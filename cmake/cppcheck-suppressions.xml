@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<suppressions>
+	<!-- Exclude Paths -->
+	<suppress>
+		<id>*</id>
+		<fileName>*/build/*</fileName>
+	</suppress>
+	<suppress>
+		<id>*</id>
+		<fileName>*/sdk/src/thirdparty/*</fileName>
+	</suppress>
+	<suppress>
+		<id>CheckLevelMaxBranches</id>
+	</suppress>
+	<suppress>
+		<id>noExplicitConstructor</id>
+	</suppress>
+	<suppress>
+		<id>normalCheckLevelMaxBranches</id>
+	</suppress>
+	<suppress>
+		<id>postfixOperator</id>
+	</suppress>
+	<suppress>
+		<id>y2038-unsafe-call</id>
+	</suppress>
+	<suppress>
+		<id>useStlAlgorithm</id>
+	</suppress>
+	<suppress>
+		<id>knownConditionTrueFalse</id>
+	</suppress>
+	<suppress>
+		<id>*</id>
+		<fileName>*/sdk/src/signer/SignerV1.cpp</fileName>
+	</suppress>
+</suppressions>

@@ -1,0 +1,88 @@
+#include "alibabacloud/oss2/ClientConfiguration.h"
+#include "alibabacloud/oss2/OSSClient.h"
+#include "alibabacloud/oss2/credentials/CredentialsProvider.h"
+#include <cstdlib>
+#include <iostream>
+#include <string>
+
+using namespace alibabacloud::oss2;
+
+static void printUsageAndExit(const char* prog, const char* extra) {
+    std::cerr << "Usage: " << prog << " --region <region>" << extra << " [--endpoint <endpoint>]" << std::endl;
+    exit(1);
+}
+
+struct Args {
+    std::string region;
+    std::string endpoint;
+    std::string bucket;
+    std::string key;
+    // extra fields filled by caller
+};
+
+static Args parseCommonArgs(int argc, char* argv[]) {
+    Args a;
+    for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        if (arg == "--region" && i + 1 < argc)
+            a.region = argv[++i];
+        else if (arg == "--endpoint" && i + 1 < argc)
+            a.endpoint = argv[++i];
+        else if (arg == "--bucket" && i + 1 < argc)
+            a.bucket = argv[++i];
+        else if (arg == "--key" && i + 1 < argc)
+            a.key = argv[++i];
+    }
+    return a;
+}
+
+static OSSClient createClient(const Args& args) {
+    auto conf = ClientConfiguration::loadDefault();
+    conf.region = args.region;
+    if (!args.endpoint.empty()) {
+        conf.endpoint = args.endpoint;
+    }
+    conf.credentialsProvider = std::make_shared<EnvironmentVariableCredentialsProvider>();
+    return OSSClient(conf);
+}
+
+int main(int argc, char* argv[]) {
+    auto args = parseCommonArgs(argc, argv);
+    std::string uploadId, sourceBucket, sourceKey;
+    int partNumber = 1;
+    for (int i = 1; i < argc; i++) {
+        std::string a = argv[i];
+        if (a == "--upload-id" && i + 1 < argc)
+            uploadId = argv[++i];
+        else if (a == "--part-number" && i + 1 < argc)
+            partNumber = std::stoi(argv[++i]);
+        else if (a == "--source-bucket" && i + 1 < argc)
+            sourceBucket = argv[++i];
+        else if (a == "--source-key" && i + 1 < argc)
+            sourceKey = argv[++i];
+    }
+    if (args.region.empty() || args.bucket.empty() || args.key.empty() || uploadId.empty() || sourceBucket.empty() ||
+        sourceKey.empty())
+        printUsageAndExit(argv[0], " --bucket <b> --key <k> --upload-id <id> --source-bucket <sb> --source-key <sk>");
+
+    auto client = createClient(args);
+
+    auto outcome = client.uploadPartCopy(models::UploadPartCopyRequest()
+                                                 .setBucket(args.bucket)
+                                                 .setKey(args.key)
+                                                 .setUploadId(uploadId)
+                                                 .setPartNumber(partNumber)
+                                                 .setSourceBucket(sourceBucket)
+                                                 .setSourceKey(sourceKey));
+    if (!outcome.isSuccess()) {
+        auto& e = outcome.getError();
+        std::cerr << "UploadPartCopy fail, code: " << e.getCode() << ", message: " << e.getMessage()
+                  << ", requestId: " << e.getRequestId() << std::endl;
+        return 1;
+    }
+    auto& result = outcome.getResult();
+    std::cout << "status code: " << result.getStatusCode() << ", requestId: " << result.getRequestId()
+              << ", eTag: " << result.getETag() << ", lastModified: " << result.getLastModified()
+              << ", copySourceVersionId: " << result.getCopySourceVersionId() << std::endl;
+    return 0;
+}
