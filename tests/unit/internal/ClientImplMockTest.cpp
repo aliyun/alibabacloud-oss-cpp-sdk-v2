@@ -2083,9 +2083,209 @@ TEST(ClientImplMockTest, presignInnerV4_defaultExpiration) {
                 output->url.find("x-oss-expires=899") != std::string::npos);
 }
 
-TEST(ClientImplMockTest, presignInnerV1) {}
+TEST(ClientImplMockTest, presignInnerV1) {
+    auto mockHandler = std::make_shared<MockTransport>();
 
-TEST(ClientImplMockTest, presignInnerV1_defaultExpiration) {}
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.signatureVersion = "v1";
+    config.credentialsProvider = std::make_shared<StaticCredentialsProvider>("ak", "sk");
+    config.httpTransport = mockHandler;
+
+    auto client = ClientImpl(config, defaultClientFns);
+
+    mockHandler->Clear();
+
+    // no headers & parameters
+    auto input = OperationInput{};
+    input.opName = "GetObject";
+    input.method = "GET";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    std::int64_t expiration = static_cast<std::int64_t>(std::time(nullptr));
+    expiration += 60LL * 60LL;
+    input.opMetadata.emplace("EXPIRATION_TIME", expiration);
+
+    auto result = client.Presign(input);
+    auto output = std::get_if<PresignInnerOutput>(&result);
+    EXPECT_NE(nullptr, output);
+
+    EXPECT_EQ("GET", output->method);
+    EXPECT_EQ(expiration, output->expiration);
+    EXPECT_EQ(0LL, output->signedHeaders.size());
+    EXPECT_NE(std::string::npos, output->url.find("https://bucket.oss-cn-hangzhou.aliyuncs.com/key?"));
+    EXPECT_NE(std::string::npos, output->url.find("OSSAccessKeyId=ak"));
+    EXPECT_NE(std::string::npos, output->url.find("Expires="));
+    EXPECT_NE(std::string::npos, output->url.find("Signature="));
+
+    // default signed headers
+    mockHandler->Clear();
+
+    input = OperationInput{};
+    input.opName = "GetObject";
+    input.method = "GET";
+    input.bucket = "bucket";
+    input.key = "key+123/subdir/1.txt";
+    input.headers = {
+            {"Content-Type", "text"}, {"Content-MD5", "md5-123"}, {"x-oss-meta-key1", "value1"},
+            {"abc", "abc-value1"},    {"abc-2", "abc-value2"},
+    };
+    input.parameters = {{"key#?+", "value#123/+123"}, {"key", "value"}};
+
+    expiration = static_cast<std::int64_t>(std::time(nullptr));
+    expiration += 60LL * 60LL;
+    input.opMetadata.emplace("EXPIRATION_TIME", expiration);
+
+    result = client.Presign(input);
+    output = std::get_if<PresignInnerOutput>(&result);
+    EXPECT_NE(nullptr, output);
+
+    EXPECT_EQ("GET", output->method);
+    EXPECT_EQ(expiration, output->expiration);
+    EXPECT_EQ(3LL, output->signedHeaders.size());
+    EXPECT_EQ("text", output->signedHeaders.at("Content-Type"));
+    EXPECT_EQ("md5-123", output->signedHeaders.at("Content-MD5"));
+    EXPECT_EQ("value1", output->signedHeaders.at("x-oss-meta-key1"));
+
+    EXPECT_NE(std::string::npos,
+              output->url.find("https://bucket.oss-cn-hangzhou.aliyuncs.com/key%2B123/subdir/1.txt?"));
+    EXPECT_NE(std::string::npos, output->url.find("OSSAccessKeyId=ak"));
+    EXPECT_NE(std::string::npos, output->url.find("Expires=" + std::to_string(expiration)));
+    EXPECT_NE(std::string::npos, output->url.find("Signature="));
+    EXPECT_NE(std::string::npos, output->url.find("key=value"));
+    EXPECT_NE(std::string::npos, output->url.find("key%23%3F%2B=value%23123%2F%2B123"));
+
+    // additional headers - abc should not be included in signedHeaders
+    config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.signatureVersion = "v1";
+    config.credentialsProvider = std::make_shared<StaticCredentialsProvider>("ak", "sk");
+    config.additionalHeaders = {"Abc"};
+    config.httpTransport = mockHandler;
+
+    client = ClientImpl(config, defaultClientFns);
+
+    mockHandler->Clear();
+
+    input = OperationInput{};
+    input.opName = "GetObject";
+    input.method = "GET";
+    input.bucket = "bucket";
+    input.key = "key+123/subdir/1.txt";
+    input.headers = {
+            {"Content-Type", "text"}, {"Content-MD5", "md5-123"}, {"x-oss-meta-key1", "value1"},
+            {"abc", "abc-value1"},    {"abc-2", "abc-value2"},
+    };
+    input.parameters = {{"key#?+", "value#123/+123"}, {"key", "value"}};
+
+    expiration = static_cast<std::int64_t>(std::time(nullptr));
+    expiration += 60LL * 60LL;
+    input.opMetadata.emplace("EXPIRATION_TIME", expiration);
+
+    result = client.Presign(input);
+    output = std::get_if<PresignInnerOutput>(&result);
+    EXPECT_NE(nullptr, output);
+
+    EXPECT_EQ("GET", output->method);
+    EXPECT_EQ(expiration, output->expiration);
+    EXPECT_EQ(3LL, output->signedHeaders.size());
+    EXPECT_EQ("text", output->signedHeaders.at("Content-Type"));
+    EXPECT_EQ("md5-123", output->signedHeaders.at("Content-MD5"));
+    EXPECT_EQ("value1", output->signedHeaders.at("x-oss-meta-key1"));
+
+    EXPECT_NE(std::string::npos,
+              output->url.find("https://bucket.oss-cn-hangzhou.aliyuncs.com/key%2B123/subdir/1.txt?"));
+    EXPECT_NE(std::string::npos, output->url.find("OSSAccessKeyId=ak"));
+    EXPECT_NE(std::string::npos, output->url.find("Expires=" + std::to_string(expiration)));
+    EXPECT_NE(std::string::npos, output->url.find("Signature="));
+    EXPECT_NE(std::string::npos, output->url.find("key=value"));
+    EXPECT_NE(std::string::npos, output->url.find("key%23%3F%2B=value%23123%2F%2B123"));
+
+    // token
+    config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.signatureVersion = "v1";
+    config.credentialsProvider = std::make_shared<StaticCredentialsProvider>("ak", "sk", "token+1");
+    config.httpTransport = mockHandler;
+
+    client = ClientImpl(config, defaultClientFns);
+
+    mockHandler->Clear();
+
+    input = OperationInput{};
+    input.opName = "GetObject";
+    input.method = "GET";
+    input.bucket = "bucket";
+    input.key = "key+123/subdir/1.txt";
+    input.headers = {
+            {"Content-Type", "text"}, {"Content-MD5", "md5-123"}, {"x-oss-meta-key1", "value1"},
+            {"abc", "abc-value1"},    {"abc-2", "abc-value2"},
+    };
+    input.parameters = {{"key#?+", "value#123/+123"}, {"key", "value"}};
+
+    expiration = static_cast<std::int64_t>(std::time(nullptr));
+    expiration += 60LL * 60LL;
+    input.opMetadata.emplace("EXPIRATION_TIME", expiration);
+
+    result = client.Presign(input);
+    output = std::get_if<PresignInnerOutput>(&result);
+    EXPECT_NE(nullptr, output);
+
+    EXPECT_EQ("GET", output->method);
+    EXPECT_EQ(expiration, output->expiration);
+    EXPECT_EQ(3LL, output->signedHeaders.size());
+    EXPECT_EQ("text", output->signedHeaders.at("Content-Type"));
+    EXPECT_EQ("md5-123", output->signedHeaders.at("Content-MD5"));
+    EXPECT_EQ("value1", output->signedHeaders.at("x-oss-meta-key1"));
+
+    EXPECT_NE(std::string::npos,
+              output->url.find("https://bucket.oss-cn-hangzhou.aliyuncs.com/key%2B123/subdir/1.txt?"));
+    EXPECT_NE(std::string::npos, output->url.find("OSSAccessKeyId=ak"));
+    EXPECT_NE(std::string::npos, output->url.find("Expires=" + std::to_string(expiration)));
+    EXPECT_NE(std::string::npos, output->url.find("Signature="));
+    EXPECT_NE(std::string::npos, output->url.find("security-token=token%2B1"));
+    EXPECT_NE(std::string::npos, output->url.find("key=value"));
+    EXPECT_NE(std::string::npos, output->url.find("key%23%3F%2B=value%23123%2F%2B123"));
+}
+
+
+TEST(ClientImplMockTest, presignInnerV1_defaultExpiration) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.signatureVersion = "v1";
+    config.credentialsProvider = std::make_shared<StaticCredentialsProvider>("ak", "sk");
+    config.httpTransport = mockHandler;
+
+    auto client = ClientImpl(config, defaultClientFns);
+
+    mockHandler->Clear();
+
+    // no headers & parameters
+    auto input = OperationInput{};
+    input.opName = "GetObject";
+    input.method = "GET";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    auto result = client.Presign(input);
+    auto output = std::get_if<PresignInnerOutput>(&result);
+    EXPECT_NE(nullptr, output);
+
+    EXPECT_EQ("GET", output->method);
+    EXPECT_EQ(0LL, output->signedHeaders.size());
+    EXPECT_NE(std::string::npos, output->url.find("https://bucket.oss-cn-hangzhou.aliyuncs.com/key?"));
+    EXPECT_NE(std::string::npos, output->url.find("OSSAccessKeyId=ak"));
+    EXPECT_NE(std::string::npos, output->url.find("Expires="));
+    EXPECT_NE(std::string::npos, output->url.find("Signature="));
+    EXPECT_NE(0, output->expiration);
+
+    std::int64_t expectedExpiration = static_cast<std::int64_t>(std::time(nullptr)) + 15 * 60;
+    EXPECT_LT(output->expiration, expectedExpiration + 10);
+    EXPECT_GT(output->expiration, expectedExpiration - 10);
+}
 
 TEST(ClientImplMockTest, presignMisc) {
     // empty ak&sk
