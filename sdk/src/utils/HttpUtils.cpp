@@ -1,6 +1,7 @@
 
 #include "Utils.h"
 #include <sstream>
+#include <cctype>
 
 
 namespace alibabacloud {
@@ -46,13 +47,24 @@ std::string UrlDecode(const std::string& src) {
     for (auto i = safe, n = safe + safeLength; i != n; ++i) {
         char c = *i;
         if (c == '%') {
+            if (i + 2 >= n) {
+                unescaped << c;
+                break;
+            }
+
             char hex[3];
             hex[0] = *(i + 1);
             hex[1] = *(i + 2);
-            hex[2] = 0;
-            i += 2;
-            auto hexAsInteger = strtol(hex, nullptr, 16);
-            unescaped << (char) hexAsInteger;
+
+            if (std::isxdigit(static_cast<unsigned char>(hex[0])) &&
+                std::isxdigit(static_cast<unsigned char>(hex[1]))) {
+                hex[2] = 0;
+                i += 2;
+                auto hexAsInteger = strtol(hex, nullptr, 16);
+                unescaped << static_cast<char>(hexAsInteger);
+            } else {
+                unescaped << c;
+            }
         } else {
             unescaped << *i;
         }
