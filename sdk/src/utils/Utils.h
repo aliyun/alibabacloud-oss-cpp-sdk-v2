@@ -34,6 +34,7 @@ std::string CalcContentMD5(const std::string& data);
 std::string CalcContentMD5(const char* data, size_t size);
 
 // hash utils
+void HmacSha1(const void* data, size_t numDataBytes, const void* key, size_t numKeyBytes, unsigned char out[20]);
 void HmacSh256(const void* data, size_t numDataBytes, const void* key, size_t numKeyBytes, unsigned char out[32]);
 std::string HashSh256(const void* data, size_t numDataBytes);
 

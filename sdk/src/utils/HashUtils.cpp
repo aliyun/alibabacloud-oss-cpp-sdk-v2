@@ -1,12 +1,45 @@
 
 #include "Utils.h"
 #include "src/thirdparty/hash/sha256.h"
+#include "src/thirdparty/hash/sha1.h"
 #include <cstring>
 
 
 namespace alibabacloud {
 namespace oss2 {
 namespace utils {
+
+void HmacSha1(const void* data, size_t numDataBytes, const void* key, size_t numKeyBytes, unsigned char out[20]) {
+    using namespace thirdparty::hash;
+
+    unsigned char usedKey[SHA1::BlockSize] = {0};
+
+    if (numKeyBytes <= SHA1::BlockSize) {
+        memcpy(usedKey, key, numKeyBytes);
+    } else {
+        SHA1 keyHasher;
+        keyHasher.add(key, numKeyBytes);
+        keyHasher.getHash(usedKey);
+    }
+
+    for (size_t i = 0; i < SHA1::BlockSize; i++)
+        usedKey[i] ^= 0x36;
+
+    unsigned char inside[SHA1::HashBytes];
+    SHA1 insideHasher;
+    insideHasher.add(usedKey, SHA1::BlockSize);
+    insideHasher.add(data, numDataBytes);
+    insideHasher.getHash(inside);
+
+    for (size_t i = 0; i < SHA1::BlockSize; i++)
+        usedKey[i] ^= 0x5C ^ 0x36;
+
+    SHA1 finalHasher;
+    finalHasher.add(usedKey, SHA1::BlockSize);
+    finalHasher.add(inside, SHA1::HashBytes);
+
+    finalHasher.getHash(out);
+}
 
 void HmacSh256(const void* data, size_t numDataBytes, const void* key, size_t numKeyBytes, unsigned char out[32]) {
     // initialize key with zeros

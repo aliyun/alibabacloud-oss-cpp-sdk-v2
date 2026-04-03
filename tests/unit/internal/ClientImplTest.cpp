@@ -320,14 +320,14 @@ TEST(ClientImplTest, ConfigUserAgent) {
     config.region = "cn-hangzhou";
     config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
     auto client = ClientImpl(config, defaultClientFns);
-    EXPECT_EQ("alibabacloud-cpp-sdk-v2/2.", client.getInnerOptions().userAgent.substr(0, 26));
+    EXPECT_EQ("alibabacloud-cpp-sdk-v2/0.", client.getInnerOptions().userAgent.substr(0, 26));
 
     config = ClientConfiguration::loadDefault();
     config.region = "cn-hangzhou";
     config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
     config.userAgent = "/my-agent";
     client = ClientImpl(config, defaultClientFns);
-    EXPECT_EQ("alibabacloud-cpp-sdk-v2/2.", client.getInnerOptions().userAgent.substr(0, 26));
+    EXPECT_EQ("alibabacloud-cpp-sdk-v2/0.", client.getInnerOptions().userAgent.substr(0, 26));
     EXPECT_NE(-1, client.getInnerOptions().userAgent.find("/my-agent"));
 }
 
