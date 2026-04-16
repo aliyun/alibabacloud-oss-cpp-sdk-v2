@@ -9,9 +9,9 @@ file(GLOB test_bucket_src "bucket/*.cpp")
 file(GLOB test_object_src "object/*.cpp")
 
 
-add_executable(${PROJECT_NAME} 
+add_executable(${PROJECT_NAME}
 	${test_gtest_src}
-	${test_src} 
+	${test_src}
 	${test_bucket_src}
 	${test_object_src}
 )
@@ -22,7 +22,7 @@ target_include_directories(${PROJECT_NAME}
 	PRIVATE ${TEST_ROOT}/external/googletest/include
     PRIVATE ${TEST_ROOT}/external/googletest/)
 
-target_link_libraries(${PROJECT_NAME} cpp-sdk-v2)	
+target_link_libraries(${PROJECT_NAME} cpp-sdk-v2 ${CURL_LIB})
 
 target_compile_options(${PROJECT_NAME}
     PRIVATE "${SDK_COMPILER_FLAGS}"

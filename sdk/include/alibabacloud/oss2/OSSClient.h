@@ -98,7 +98,7 @@ class ALIBABACLOUD_OSS_API OSSClient final {
      * @return The result instance
      */
     DeleteMultipleObjectsOutcome deleteMultipleObjects(const models::DeleteMultipleObjectsRequest& request,
-                                     const OperationOptions* options = nullptr);
+                                                       const OperationOptions* options = nullptr);
 
     /**
      * @brief Queries the information about all objects in a bucket.
@@ -428,6 +428,48 @@ class ALIBABACLOUD_OSS_API OSSClient final {
      * @return The result instance
      */
     ListPartsOutcome listParts(const models::ListPartsRequest& request, const OperationOptions* options = nullptr);
+
+    // Presign
+
+    /**
+     * @brief Generates a presigned URL for the PutObject operation.
+     *
+     * @param request The PutObject request to presign
+     * @param options Optional, presign options (expiration, etc.)
+     * @return PresignOutcome containing the presigned URL and signed headers
+     */
+    PresignOutcome presign(const models::PutObjectRequest& request,
+                           const models::PresignOptions* options = nullptr);
+
+    /**
+     * @brief Generates a presigned URL for the GetObject operation.
+     *
+     * @param request The GetObject request to presign
+     * @param options Optional, presign options (expiration, etc.)
+     * @return PresignOutcome containing the presigned URL and signed headers
+     */
+    PresignOutcome presign(const models::GetObjectRequest& request,
+                           const models::PresignOptions* options = nullptr);
+
+    /**
+     * @brief Generates a presigned URL for the HeadObject operation.
+     *
+     * @param request The HeadObject request to presign
+     * @param options Optional, presign options (expiration, etc.)
+     * @return PresignOutcome containing the presigned URL and signed headers
+     */
+    PresignOutcome presign(const models::HeadObjectRequest& request,
+                           const models::PresignOptions* options = nullptr);
+
+    /**
+     * @brief Generates a presigned URL for the UploadPart operation.
+     *
+     * @param request The UploadPart request to presign
+     * @param options Optional, presign options (expiration, etc.)
+     * @return PresignOutcome containing the presigned URL and signed headers
+     */
+    PresignOutcome presign(const models::UploadPartRequest& request,
+                           const models::PresignOptions* options = nullptr);
 
   private:
     std::shared_ptr<internal::ClientImpl> client_;
