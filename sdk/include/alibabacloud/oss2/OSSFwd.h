@@ -13,6 +13,7 @@
 #include "alibabacloud/oss2/models/ObjectMultipart.h"
 #include "alibabacloud/oss2/models/ObjectSymlink.h"
 #include "alibabacloud/oss2/models/ObjectTagging.h"
+#include "alibabacloud/oss2/models/Presign.h"
 #include "alibabacloud/oss2/models/Region.h"
 #include "alibabacloud/oss2/models/Service.h"
 
@@ -94,5 +95,8 @@ using AbortMultipartUploadOutcome = Outcome<models::AbortMultipartUploadResult, 
 using ListMultipartUploadsOutcome = Outcome<models::ListMultipartUploadsResult, OperationError>;
 
 using ListPartsOutcome = Outcome<models::ListPartsResult, OperationError>;
+
+using PresignOutcome = Outcome<models::PresignResult, OperationError>;
+
 } // namespace oss2
 } // namespace alibabacloud

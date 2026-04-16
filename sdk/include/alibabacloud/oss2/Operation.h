@@ -40,7 +40,7 @@ class ALIBABACLOUD_OSS_API OperationError {
   public:
     OperationError() = default;
     OperationError(std::error_code errorCode, std::map<std::string, std::string> errorFields)
-            : errorCode_(std::move(errorCode)), errorFields_(std::move(errorFields)){};
+            : errorCode_(std::move(errorCode)), errorFields_(std::move(errorFields)) {};
 
     OperationError(std::string opName, std::string method, std::string requestTarget, std::error_code errorCode,
                    std::map<std::string, std::string> errorFields)
