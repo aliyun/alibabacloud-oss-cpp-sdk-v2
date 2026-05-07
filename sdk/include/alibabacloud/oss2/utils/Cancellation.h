@@ -50,15 +50,15 @@ class ALIBABACLOUD_OSS_API CancellationTokenSource : public std::enable_shared_f
     }
 
     void cancel() {
-        updateDealine(std::chrono::steady_clock::now());
+        updateDeadline(std::chrono::steady_clock::now());
     }
 
     void cancelAfter(std::chrono::milliseconds after) {
-        updateDealine(std::chrono::steady_clock::now() + after);
+        updateDeadline(std::chrono::steady_clock::now() + after);
     }
 
     void cancelAfter(std::chrono::system_clock::time_point timepoint) {
-        updateDealine(std::chrono::steady_clock::now() + (timepoint - std::chrono::system_clock::now()));
+        updateDeadline(std::chrono::steady_clock::now() + (timepoint - std::chrono::system_clock::now()));
     }
 
     CancellationToken getToken() {
@@ -70,7 +70,7 @@ class ALIBABACLOUD_OSS_API CancellationTokenSource : public std::enable_shared_f
     }
 
   private:
-    void updateDealine(std::chrono::steady_clock::time_point timepoint) {
+    void updateDeadline(std::chrono::steady_clock::time_point timepoint) {
         if (timepoint < deadline_->load()) {
             deadline_->store(timepoint);
         }
