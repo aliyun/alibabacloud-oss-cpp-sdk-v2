@@ -14,15 +14,30 @@ namespace alibabacloud {
 namespace oss2 {
 
 
+/**
+ * @brief A single-pass, sequential read cursor over a byte sequence.
+ *
+ * ByteSource is the read-side counterpart of ByteContent. Each call to
+ * ByteContent::spanSource() produces a fresh ByteSource that reads from
+ * the beginning. A ByteSource is consumed at most once and should not be
+ * shared across threads.
+ *
+ * State flags follow the same semantics as std::istream::rdstate():
+ *   - goodbit (0): no errors
+ *   - eofbit  (1): end-of-data reached during a read
+ *   - failbit (2): a read could not satisfy the requested count
+ *   - badbit  (4): an unrecoverable I/O error occurred
+ */
 class ALIBABACLOUD_OSS_API ByteSource {
   private:
     /**
-     * Read portion of data into a buffer.
+     * @brief Reads up to @p count bytes into @p buffer.
+     * @return The number of bytes actually read.
      */
     virtual std::size_t onRead(std::uint8_t* buffer, std::size_t count) = 0;
 
     /**
-     * Type for source state flags
+     * @brief Returns the current error-state flags (see state()).
      */
     virtual int iostate() = 0;
 
@@ -30,32 +45,39 @@ class ALIBABACLOUD_OSS_API ByteSource {
     virtual ~ByteSource() = default;
 
     /**
-     * Read portion of data into a buffer.
+     * @brief Reads up to @p count bytes into @p buffer.
+     * @return The number of bytes actually read. A return value less than
+     *         @p count indicates end-of-data or an error (check state()).
      */
     std::size_t read(std::uint8_t* buffer, std::size_t count) {
         return onRead(buffer, count);
     }
 
     /**
-     * Read into a buffer until the buffer is filled, or until the stream is read to end.
+     * @brief Reads exactly @p count bytes, or until end-of-data is reached.
+     *
+     * Internally loops over read() until either @p count bytes have been
+     * collected or read() returns 0.
+     * @return The total number of bytes read (may be less than @p count).
      */
     std::size_t readToCount(std::uint8_t* buffer, std::size_t count);
 
     /**
-     * Read until the stream is read to end, allocating memory
-     * for the entirety of contents.
+     * @brief Reads all remaining data and returns it as a byte vector.
+     *
+     * Allocates memory in 8 KB chunks. Intended for small payloads such as
+     * XML response bodies; do not use for large file downloads.
      */
     std::vector<std::uint8_t> readToEnd();
 
     /**
-     * Bitmask type to represent stream error state flags.
-     * This flag is set by operations performed on the stream
-     * when an error occurs while read, generally causing the loss of integrity of the stream
-     * The same as std::ios_base::rdstate
-     * good bit 0x0 No errors (zero value iostate)
-     * eof  bit 0x1 End-of-File reached on input operation
-     * fail bit 0x2 Logical error on i/o operation
-     * bad  bit 0x4 Read error on i/o operation
+     * @brief Returns the current stream error-state flags.
+     *
+     * Bitmask values are identical to std::ios_base::iostate:
+     *   - good bit 0x0  No errors (zero value)
+     *   - eof  bit 0x1  End-of-data reached on read
+     *   - fail bit 0x2  Logical error on I/O operation
+     *   - bad  bit 0x4  Unrecoverable read error
      */
     int state() {
         return iostate();
@@ -63,28 +85,74 @@ class ALIBABACLOUD_OSS_API ByteSource {
 };
 
 
+/**
+ * @brief Abstract base for request body content.
+ *
+ * ByteContent represents a replayable (or one-shot) data source that can
+ * produce one or more ByteSource cursors via spanSource(). The SDK calls
+ * spanSource() once per HTTP attempt; on retries a new cursor is created
+ * so that the data can be re-read from the beginning.
+ *
+ * Concrete implementations:
+ *   - StringContent   : owns a std::string
+ *   - StreamContent   : references a shared_ptr<std::istream>
+ *   - FileContent     : owns a file path, opens a new handle per span
+ *   - MemoryContent   : non-owning (borrows a string_view, zero-copy)
+ *   - EmptyContent    : zero-length body
+ *
+ * Typical usage through the RequestBody helpers:
+ * @code
+ *   // From an owned string
+ *   auto body = RequestBody::FromString("hello");
+ *
+ *   // From a file (supports offset + length for multipart upload)
+ *   auto body = RequestBody::FromFile("/path/to/data.bin");
+ *
+ *   // From a std::istream
+ *   auto ifs = std::make_shared<std::ifstream>("data.bin", std::ios::binary);
+ *   auto body = RequestBody::FromStream(ifs);
+ *
+ *   // From externally managed memory (zero-copy, caller must keep data alive)
+ *   auto body = RequestBody::FromMemory(ptr, len);
+ * @endcode
+ */
 class ALIBABACLOUD_OSS_API ByteContent {
   public:
     virtual ~ByteContent() = default;
 
     /**
-     * The content length if known
+     * @brief Returns the content length in bytes, or std::nullopt if unknown.
+     *
+     * When the length is known, the SDK sets the Content-Length header
+     * automatically. When unknown, chunked transfer encoding may be used.
      */
     virtual std::optional<std::size_t> length() const = 0;
 
     /**
-     * Flag indicating if the body can only be consumed once. If false the underlying stream
-     * must be capable of being replayed.
+     * @brief Indicates whether the content can only be consumed once.
+     *
+     * If true, the SDK will not retry the request on transient failures
+     * because the underlying data cannot be re-read. Non-seekable streams
+     * (e.g., pipes, network sockets) should return true.
      */
     virtual bool isOneShot() const = 0;
 
     /**
-     * Provides non-owning ByteSource to read from/consume
+     * @brief Creates a new read cursor over this content.
+     *
+     * Each call returns an independent ByteSource that starts reading from
+     * the beginning. The returned ByteSource does not own the underlying
+     * data; callers must ensure that this ByteContent outlives the
+     * ByteSource.
      */
     virtual std::unique_ptr<ByteSource> spanSource() = 0;
 
     /**
-     * The path of content if known
+     * @brief Returns the filesystem path of the content, if applicable.
+     *
+     * Only FileContent returns a valid path. This is reserved for transport
+     * layer optimizations (e.g., sendfile() system call). The default
+     * implementation returns std::nullopt.
      */
     virtual std::optional<std::filesystem::path> path() const {
         return std::nullopt;
@@ -92,7 +160,16 @@ class ALIBABACLOUD_OSS_API ByteContent {
 };
 
 /**
- * Container for wrapping a string as a ByteContent
+ * @brief Owning content backed by a std::string.
+ *
+ * The string is copied or moved into this object and is owned for the
+ * lifetime of the StringContent instance. Always replayable.
+ *
+ * @code
+ *   auto body = std::make_shared<StringContent>("<?xml ...>");
+ *   // or use the helper:
+ *   auto body = RequestBody::FromString("<?xml ...>");
+ * @endcode
  */
 class ALIBABACLOUD_OSS_API StringContent : public ByteContent {
   public:
@@ -111,7 +188,28 @@ class ALIBABACLOUD_OSS_API StringContent : public ByteContent {
 };
 
 /**
- * Container for wrapping a istream as a ByteContent
+ * @brief Content backed by a shared std::istream.
+ *
+ * StreamContent references (but does not own exclusively) an istream via
+ * shared_ptr. On construction it probes whether the stream is seekable;
+ * if so, spanSource() can rewind the stream for retries (isOneShot() == false).
+ *
+ * Two constructors are available:
+ *   - Auto-detect: probes seekability and computes length by seeking.
+ *   - Explicit:    caller supplies seekable flag and optional length,
+ *                  avoiding seek side-effects on non-seekable streams.
+ *
+ * @code
+ *   // Auto-detect (suitable for file-backed streams)
+ *   auto ifs = std::make_shared<std::ifstream>("data.bin", std::ios::binary);
+ *   auto body = std::make_shared<StreamContent>(ifs);
+ *
+ *   // Explicit (suitable for pipes or network streams)
+ *   auto body = std::make_shared<StreamContent>(pipeStream, false);
+ *
+ *   // Or use the helper:
+ *   auto body = RequestBody::FromStream(ifs);
+ * @endcode
  */
 class ALIBABACLOUD_OSS_API StreamContent : public ByteContent {
   public:
@@ -135,7 +233,24 @@ class ALIBABACLOUD_OSS_API StreamContent : public ByteContent {
 };
 
 /**
- * Container for wrapping a file as a ByteContent
+ * @brief Owning content backed by a filesystem path.
+ *
+ * Each call to spanSource() opens a new file handle positioned at the
+ * given offset, making FileContent inherently safe for retries and
+ * concurrent reads. The optional @p length parameter limits how many
+ * bytes the transport layer will read, which is useful for multipart
+ * upload parts.
+ *
+ * @code
+ *   // Upload an entire file
+ *   auto body = std::make_shared<FileContent>("/path/to/data.bin");
+ *
+ *   // Upload bytes [1048576, 2097152) as one multipart part
+ *   auto body = std::make_shared<FileContent>("/path/to/data.bin", 1048576, 1048576);
+ *
+ *   // Or use the helper:
+ *   auto body = RequestBody::FromFile("/path/to/data.bin");
+ * @endcode
  */
 class ALIBABACLOUD_OSS_API FileContent : public ByteContent {
   public:
@@ -162,7 +277,37 @@ class ALIBABACLOUD_OSS_API FileContent : public ByteContent {
 };
 
 /**
- * Container for wrapping a memeory data as a ByteContent
+ * @brief Non-owning content that borrows externally managed memory (zero-copy).
+ *
+ * MemoryContent holds a std::string_view and does NOT copy or own the
+ * underlying data. This is intentional: it enables zero-copy request bodies
+ * when the caller can guarantee that the pointed-to memory remains valid
+ * for the entire lifetime of the MemoryContent and any ByteSource produced
+ * from it.
+ *
+ * @warning The caller MUST ensure the referenced memory outlives this object
+ *          and all ByteSource instances created via spanSource(). Passing a
+ *          temporary std::string or a buffer that is freed before the HTTP
+ *          request completes will result in undefined behavior.
+ *
+ * @code
+ *   // CORRECT: data is a local variable whose lifetime covers the request
+ *   std::string xml = buildXmlPayload();
+ *   auto body = std::make_shared<MemoryContent>(xml);
+ *   client.putObject(request.setBody(body));
+ *   // 'xml' is still alive here; safe.
+ *
+ *   // CORRECT: static / global data
+ *   static const char kPayload[] = "...";
+ *   auto body = RequestBody::FromMemory(kPayload, sizeof(kPayload) - 1);
+ *
+ *   // WRONG: temporary string destroyed immediately
+ *   auto body = std::make_shared<MemoryContent>(std::string("hello"));
+ *   // The temporary is gone -- body->spanSource() reads garbage!
+ *
+ *   // If you need owning semantics, use StringContent instead:
+ *   auto body = RequestBody::FromString("hello");  // safe, data is copied
+ * @endcode
  */
 class ALIBABACLOUD_OSS_API MemoryContent : public ByteContent {
   public:
@@ -181,7 +326,10 @@ class ALIBABACLOUD_OSS_API MemoryContent : public ByteContent {
 };
 
 /**
- * Container for wrapping a null data as a ByteContent
+ * @brief A zero-length content representing an empty request body.
+ *
+ * Used for requests that require a body field but carry no payload
+ * (e.g., DELETE, HEAD when constructed via RequestBody helpers).
  */
 class ALIBABACLOUD_OSS_API EmptyContent : public ByteContent {
   public:
@@ -196,21 +344,36 @@ class ALIBABACLOUD_OSS_API EmptyContent : public ByteContent {
 };
 
 
+/**
+ * @brief Factory for creating output streams to receive response data.
+ *
+ * OStreamSupplier provides the write-side abstraction for response bodies.
+ * The transport layer calls getOStream() to obtain a stream to write
+ * received data into.
+ *
+ * When isOneShot() returns false, the supplier can be called multiple times
+ * (e.g., on retries) to create fresh output streams.
+ */
 class ALIBABACLOUD_OSS_API OStreamSupplier {
   public:
     virtual ~OStreamSupplier() = default;
 
     /**
-     * Flag indicating if the writer can only be use once.
+     * @brief Indicates whether the supplier can only produce one stream.
      */
     virtual bool isOneShot() const = 0;
 
     /**
-     * Provides std::ostream to write to
+     * @brief Creates or returns an output stream to write response data into.
      */
     virtual std::shared_ptr<std::ostream> getOStream() = 0;
 
   public:
+    /**
+     * @brief Convenience factory that wraps a callable into an OStreamSupplier.
+     * @param supplier  A callable that returns a shared_ptr<std::ostream>.
+     * @param reuse     If true, the supplier may be called multiple times (retries).
+     */
     static std::unique_ptr<OStreamSupplier> from(std::function<std::shared_ptr<std::ostream>()> supplier, bool reuse);
 };
 
