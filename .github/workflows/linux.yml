@@ -1,0 +1,69 @@
+name: Linux CI
+
+on:
+  push:
+    branches: [main, 'dev-*']
+    paths:
+      - 'sdk/**'
+      - 'tests/**'
+      - 'CMakeLists.txt'
+      - 'cmake/**'
+      - '.github/workflows/linux.yml'
+  pull_request:
+    branches: [main, 'dev-*']
+    paths:
+      - 'sdk/**'
+      - 'tests/**'
+      - 'CMakeLists.txt'
+      - 'cmake/**'
+      - '.github/workflows/linux.yml'
+
+jobs:
+  build:
+    name: Ubuntu (${{ matrix.compiler }}, ${{ matrix.std }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+        std: [c++17, c++20]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up compiler
+        run: |
+          if [ "${{ matrix.compiler }}" = "gcc" ]; then
+            echo "CC=gcc" >> $GITHUB_ENV
+            echo "CXX=g++" >> $GITHUB_ENV
+          else
+            echo "CC=clang" >> $GITHUB_ENV
+            echo "CXX=clang++" >> $GITHUB_ENV
+          fi
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev pkg-config libcurl4-openssl-dev
+
+      - name: Create build directory
+        run: cmake -E make_directory ${{github.workspace}}/build
+
+      - name: Configure CMake
+        working-directory: ${{github.workspace}}/build
+        run: |
+          cmake .. \
+            -DBUILD_TESTS=ON \
+            -DBUILD_SAMPLES=OFF \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DUSE_SYSTEM_CURL=ON \
+            -DCMAKE_CXX_STANDARD=${{ matrix.std == 'c++17' && '17' || '20' }}
+
+      - name: Build
+        working-directory: ${{github.workspace}}/build
+        run: cmake --build . --config Release
+
+      - name: Test (Unit Tests Only)
+        working-directory: ${{github.workspace}}/build
+        run: ctest --config Release --output-on-failure -R cpp-sdk-unittest
