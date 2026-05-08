@@ -7,7 +7,14 @@
 #include "sha1.h"
 
 // big endian architectures need #define __BYTE_ORDER __BIG_ENDIAN
-#ifndef _MSC_VER
+#ifdef _MSC_VER
+// Windows: use built-in byte order functions
+#include <stdlib.h>
+#elif defined(__APPLE__)
+// macOS: use libkern/OSByteOrder.h
+#include <libkern/OSByteOrder.h>
+#else
+// Linux and other Unix-like systems
 #include <endian.h>
 #endif
 
