@@ -178,6 +178,21 @@ static int progressCallback(void* userdata, double dltotal, double dlnow, double
     return 0;
 }
 
+#if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 32, 0)
+static int xferInfoCallback(void* userdata, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
+    UNUSED_PARAM(dltotal);
+    UNUSED_PARAM(dlnow);
+    UNUSED_PARAM(ultotal);
+    UNUSED_PARAM(ulnow);
+    TransferState* state = static_cast<TransferState*>(userdata);
+    if (state == nullptr || state->owner == nullptr) {
+        return 0;
+    }
+
+    return 0;
+}
+#endif
+
 bool static ignoreHeader(const std::string& header, const std::string& expect) {
     if ((expect.length() == header.length()) &&
         std::equal(header.begin(), header.end(), expect.begin(),
@@ -328,7 +343,11 @@ ResponseResult CurlHttpClient::send(std::unique_ptr<RequestMessage>& request, Re
     errbuf[0] = 0;
 
     // Progress Callback
+#if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 32, 0)
+    curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, detail::xferInfoCallback);
+#else
     curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, detail::progressCallback);
+#endif
     curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &transferState);
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 
