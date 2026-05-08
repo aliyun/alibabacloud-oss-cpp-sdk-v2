@@ -31,6 +31,7 @@ message(STATUS "C++ CMake Options")
 message(STATUS "=======================================================")
 sdk_option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 sdk_option(BUILD_TESTS "Build unit tests" OFF)
+
 sdk_option(BUILD_SAMPLES "Build samples" OFF)
 
 sdk_option(ENABLE_RTTI "Flag to enable/disable building code with RTTI information" ON)
@@ -156,6 +157,7 @@ if (BUILD_SAMPLES)
 endif()
 
 if (BUILD_TESTS)
+    enable_testing()
     add_subdirectory(tests)
 endif()
 
