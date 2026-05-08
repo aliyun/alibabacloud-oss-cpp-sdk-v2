@@ -3,6 +3,8 @@
 #include "src/utils/LogUtils.h"
 #include "CurlContainer.h"
 
+#include <curl/curlver.h>
+
 #include <algorithm>
 #include <atomic>
 #include <cassert>
@@ -129,9 +131,15 @@ static size_t recvHeaders(char* buffer, size_t size, size_t nitems, void* userda
 
     if (wanted == 2 && (buffer[0] == 0x0D) && (buffer[1] == 0x0A)) {
         if (state->response->headers.find("Content-Length") != state->response->headers.end()) {
+#if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 55, 0)
             curl_off_t dval;
             curl_easy_getinfo(state->curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &dval);
             state->recvDataLength = (int64_t) dval;
+#else
+            double dval;
+            curl_easy_getinfo(state->curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &dval);
+            state->recvDataLength = (int64_t) dval;
+#endif
         }
     }
     return wanted;
