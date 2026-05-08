@@ -129,8 +129,8 @@ static size_t recvHeaders(char* buffer, size_t size, size_t nitems, void* userda
 
     if (wanted == 2 && (buffer[0] == 0x0D) && (buffer[1] == 0x0A)) {
         if (state->response->headers.find("Content-Length") != state->response->headers.end()) {
-            double dval;
-            curl_easy_getinfo(state->curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &dval);
+            curl_off_t dval;
+            curl_easy_getinfo(state->curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &dval);
             state->recvDataLength = (int64_t) dval;
         }
     }
