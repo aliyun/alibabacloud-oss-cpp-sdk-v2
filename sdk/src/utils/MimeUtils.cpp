@@ -119,17 +119,13 @@ const std::string& LookupMimeType(const std::string& name) {
     }
 
     // extract the last extension
-    if (last_pos != std::string::npos) {
-        ext = name.substr(1 + last_pos, std::string::npos);
-    }
-    if (last_pos != std::string::npos) {
-        if (first_pos != std::string::npos && first_pos < last_pos) {
-            prefix = name.substr(0, last_pos);
-            // Now get the second to last file extension
-            std::string::size_type next_pos = prefix.find_last_of('.');
-            if (next_pos != std::string::npos) {
-                ext2 = prefix.substr(1 + next_pos, std::string::npos);
-            }
+    ext = name.substr(1 + last_pos, std::string::npos);
+    if (first_pos != std::string::npos && first_pos < last_pos) {
+        prefix = name.substr(0, last_pos);
+        // Now get the second to last file extension
+        std::string::size_type next_pos = prefix.find_last_of('.');
+        if (next_pos != std::string::npos) {
+            ext2 = prefix.substr(1 + next_pos, std::string::npos);
         }
     }
 
