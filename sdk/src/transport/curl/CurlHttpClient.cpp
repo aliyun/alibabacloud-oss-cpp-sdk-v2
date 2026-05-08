@@ -163,7 +163,8 @@ int debugCallback(void* handle, curl_infotype type, char* data, size_t size, voi
     return 0;
 }
 
-static int progressCallback(void* userdata, double dltotal, double dlnow, double ultotal, double ulnow) {
+#if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 32, 0)
+static int xferInfoCallback(void* userdata, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
     UNUSED_PARAM(dltotal);
     UNUSED_PARAM(dlnow);
     UNUSED_PARAM(ultotal);
@@ -173,13 +174,10 @@ static int progressCallback(void* userdata, double dltotal, double dlnow, double
         return 0;
     }
 
-    // CurlHttpClient* thiz = static_cast<CurlHttpClient*>(state->owner);
-
     return 0;
 }
-
-#if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 32, 0)
-static int xferInfoCallback(void* userdata, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
+#else
+static int progressCallback(void* userdata, double dltotal, double dlnow, double ultotal, double ulnow) {
     UNUSED_PARAM(dltotal);
     UNUSED_PARAM(dlnow);
     UNUSED_PARAM(ultotal);
