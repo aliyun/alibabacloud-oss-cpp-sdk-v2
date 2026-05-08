@@ -25,7 +25,7 @@ std::string toXmlText(bool value, const std::string& tag) {
     return str;
 }
 
-std::string toXmlText(std::int32_t value, const std::string& tag) {
+std::string toXmlText(int32_t value, const std::string& tag) {
     std::string str;
     str.append("<").append(tag).append(">");
     str.append(std::to_string(value));
@@ -33,7 +33,7 @@ std::string toXmlText(std::int32_t value, const std::string& tag) {
     return str;
 }
 
-std::string toXmlText(std::int64_t value, const std::string& tag) {
+std::string toXmlText(int64_t value, const std::string& tag) {
     std::string str;
     str.append("<").append(tag).append(">");
     str.append(std::to_string(value));
@@ -55,8 +55,8 @@ bool toBool(thirdparty::tinyxml2::XMLElement* node) {
     return err == thirdparty::tinyxml2::XML_SUCCESS ? value : false;
 }
 
-std::int32_t toInt32(thirdparty::tinyxml2::XMLElement* node) {
-    std::int64_t value;
+int32_t toInt32(thirdparty::tinyxml2::XMLElement* node) {
+    int64_t value;
     auto err = node->QueryInt64Text(&value);
     if (err != thirdparty::tinyxml2::XML_SUCCESS) {
         return 0;
@@ -69,8 +69,8 @@ std::int32_t toInt32(thirdparty::tinyxml2::XMLElement* node) {
     // return node->GetText() ? static_cast<int64_t>(std::atoi(node->GetText())) : 0;
 }
 
-std::int64_t toInt64(thirdparty::tinyxml2::XMLElement* node) {
-    std::int64_t value;
+int64_t toInt64(thirdparty::tinyxml2::XMLElement* node) {
+    int64_t value;
     auto err = node->QueryInt64Text(&value);
     return err == thirdparty::tinyxml2::XML_SUCCESS ? value : 0;
     // return node->GetText() ? static_cast<int64_t>(std::atoll(node->GetText())) : 0;
