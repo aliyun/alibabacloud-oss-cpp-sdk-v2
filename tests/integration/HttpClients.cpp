@@ -1,4 +1,5 @@
 #include "HttpClients.h"
+#include <cstring>
 
 namespace alibabacloud {
 namespace oss2 {
