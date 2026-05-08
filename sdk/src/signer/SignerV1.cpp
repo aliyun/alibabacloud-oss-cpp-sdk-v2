@@ -2,6 +2,7 @@
 #include "alibabacloud/oss2/transport/HttpTypes.h"
 #include "src/utils/Utils.h"
 
+#include <algorithm>
 #include <set>
 #include <sstream>
 
