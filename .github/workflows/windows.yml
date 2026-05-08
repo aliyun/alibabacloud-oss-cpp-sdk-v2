@@ -56,7 +56,12 @@ jobs:
       - name: Build
         working-directory: ${{github.workspace}}/build
         shell: bash
-        run: cmake --build . --config Release
+        run: cmake --build . --config Release --target ALL_BUILD
+
+      - name: List available tests
+        working-directory: ${{github.workspace}}/build
+        shell: bash
+        run: ctest -N
 
       - name: Test (Unit Tests Only)
         working-directory: ${{github.workspace}}/build
