@@ -66,4 +66,4 @@ jobs:
       - name: Test (Unit Tests Only)
         working-directory: ${{github.workspace}}/build
         shell: bash
-        run: ctest -C Release --output-on-failure -R cpp-sdk-unittest
+        run: ctest -C Release -V --output-on-failure -R cpp-sdk-unittest
