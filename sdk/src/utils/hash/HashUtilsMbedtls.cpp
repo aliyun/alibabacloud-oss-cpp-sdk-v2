@@ -1,5 +1,6 @@
 
 #include "../Utils.h"
+#include <cstring>
 #include <mbedtls/md.h>
 #include <mbedtls/sha256.h>
 #include <mbedtls/version.h>
@@ -20,6 +21,10 @@ namespace utils {
 
 void HmacSha1(const void* data, size_t numDataBytes, const void* key, size_t numKeyBytes, unsigned char out[20]) {
     const mbedtls_md_info_t* info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA1);
+    if (info == nullptr) {
+        std::memset(out, 0, 20);
+        return;
+    }
     mbedtls_md_hmac(info,
         static_cast<const unsigned char*>(key), numKeyBytes,
         static_cast<const unsigned char*>(data), numDataBytes,
@@ -28,6 +33,10 @@ void HmacSha1(const void* data, size_t numDataBytes, const void* key, size_t num
 
 void HmacSh256(const void* data, size_t numDataBytes, const void* key, size_t numKeyBytes, unsigned char out[32]) {
     const mbedtls_md_info_t* info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
+    if (info == nullptr) {
+        std::memset(out, 0, 32);
+        return;
+    }
     mbedtls_md_hmac(info,
         static_cast<const unsigned char*>(key), numKeyBytes,
         static_cast<const unsigned char*>(data), numDataBytes,

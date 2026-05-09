@@ -65,6 +65,9 @@ int32_t toInt32(const thirdparty::tinyxml2::XMLElement* node) {
     if (value > INT32_MAX) {
         return INT32_MAX;
     }
+    if (value < INT32_MIN) {
+        return INT32_MIN;
+    }
     return static_cast<int32_t>(value);
     // return node->GetText() ? static_cast<int64_t>(std::atoi(node->GetText())) : 0;
 }
