@@ -24,7 +24,7 @@ class ExecuteStack final {
 
     virtual ~ExecuteStack() = default;
 
-    void Push(CreateExecuteMiddleware create, std::string name) {
+    void Push(CreateExecuteMiddleware create, const std::string& name) {
         ((void) (name));
         this->stack_.emplace_back(create);
         this->cached_ = nullptr;

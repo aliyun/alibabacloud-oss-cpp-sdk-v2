@@ -105,7 +105,7 @@ class ALIBABACLOUD_OSS_API PresignResult final {
   private:
     std::string url_;
     std::string method_;
-    std::time_t expiration_;
+    std::time_t expiration_{0};
     HeaderCollection signedHeaders_;
 };
 

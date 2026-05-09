@@ -28,7 +28,7 @@ class TransportExecuteMiddleware final : public ExecuteMiddleware {
             return nullptr;
         }
 
-        return std::move(std::get<0>(result));
+        return std::get<0>(result);
     }
 
   private:
