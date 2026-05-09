@@ -11,7 +11,7 @@
 #include "alibabacloud/oss2/signer/SignerV1.h"
 #include "alibabacloud/oss2/signer/SignerV4.h"
 #include "src/thirdparty/tinyxml2/tinyxml2.hpp"
-#include "src/transport/curl/CurlHttpClient.h"
+#include "src/transport/HttpTransportFactory.h"
 #include "src/utils/Utils.h"
 
 
@@ -353,7 +353,7 @@ std::shared_ptr<HttpTransport> ClientImpl::resolveHttpClient(const struct Client
     httpConfig.enabledRedirect = config.enabledRedirect;
     httpConfig.proxyHost = config.proxyHost;
 
-    return std::make_shared<transport::curl::CurlHttpClient>(httpConfig);
+    return transport::CreateDefaultHttpTransport(httpConfig);
 }
 
 std::shared_ptr<Signer> ClientImpl::resolveSigner(const struct ClientConfiguration& config) {

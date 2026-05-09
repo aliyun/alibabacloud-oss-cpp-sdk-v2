@@ -33,12 +33,16 @@ file(GLOB sdk_io_src "src/io/*.cpp")
 file(GLOB sdk_models_src "src/models/*.cpp")
 file(GLOB sdk_transform_src "src/transform/*.cpp")
 
-# transport 
+# transport
 file(GLOB sdk_transport_common_src "src/transport/*.cpp")
-file(GLOB sdk_transport_curl_src "src/transport/curl/*.cpp")
+if(USE_SYSTEM_WINHTTP)
+    file(GLOB sdk_transport_platform_src "src/transport/winhttp/*.cpp")
+else()
+    file(GLOB sdk_transport_platform_src "src/transport/curl/*.cpp")
+endif()
 file(GLOB sdk_transport_src
     ${sdk_transport_common_src}
-    ${sdk_transport_curl_src}
+    ${sdk_transport_platform_src}
 )
 
 # add source by DISABLE_XX option
@@ -95,9 +99,12 @@ else()
 endif()
     
 
-target_link_libraries(${PROJECT_NAME}
-    PRIVATE ${CURL_LIB}
-)
+if(USE_SYSTEM_WINHTTP)
+    target_link_libraries(${PROJECT_NAME} PRIVATE winhttp)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE USE_WINHTTP)
+else()
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${CURL_LIB})
+endif()
 
 if(USE_SYSTEM_OPENSSL)
     target_link_libraries(${PROJECT_NAME} PRIVATE OpenSSL::Crypto)
