@@ -105,11 +105,6 @@ elseif(USE_SYSTEM_MBEDTLS)
     target_link_libraries(${PROJECT_NAME} PRIVATE MbedTLS::mbedcrypto)
 endif()
 
-# Fix missing OpenSSL includes for Windows since in 'ssl_ctx.cpp' we include OpenSSL directly
-if(SSL_BACKEND_USED STREQUAL "OpenSSL")
-    target_link_libraries(cpp-sdk PRIVATE OpenSSL::SSL)
-    target_include_directories(cpp-sdk PRIVATE ${OPENSSL_INCLUDE_DIR})
-endif()
 
 set_target_properties(${PROJECT_NAME}
     PROPERTIES
