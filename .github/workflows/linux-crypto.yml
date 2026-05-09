@@ -1,0 +1,68 @@
+name: Linux Crypto CI
+
+on:
+  push:
+    branches: [main, 'dev-*']
+    paths:
+      - 'sdk/**'
+      - 'tests/**'
+      - 'CMakeLists.txt'
+      - 'cmake/**'
+      - '.github/workflows/linux-crypto.yml'
+  pull_request:
+    branches: [main, 'dev-*']
+    paths:
+      - 'sdk/**'
+      - 'tests/**'
+      - 'CMakeLists.txt'
+      - 'cmake/**'
+      - '.github/workflows/linux-crypto.yml'
+
+jobs:
+  build:
+    name: Linux (${{ matrix.crypto }}, ${{ matrix.curl }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # built-in hash + built-in curl
+          - crypto: builtin
+            curl: builtin
+            cmake_flags: ""
+          # built-in hash + system curl
+          - crypto: builtin
+            curl: system
+            cmake_flags: "-DUSE_SYSTEM_CURL=ON"
+          # openssl hash + system curl
+          - crypto: openssl
+            curl: system
+            cmake_flags: "-DUSE_SYSTEM_CURL=ON -DUSE_SYSTEM_OPENSSL=ON"
+          # mbedtls hash + system curl
+          - crypto: mbedtls
+            curl: system
+            cmake_flags: "-DUSE_SYSTEM_CURL=ON -DUSE_SYSTEM_MBEDTLS=ON"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev pkg-config libcurl4-openssl-dev libmbedtls-dev
+
+      - name: Configure CMake
+        run: |
+          cmake -B build \
+            -DBUILD_TESTS=ON \
+            -DBUILD_SAMPLES=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            ${{ matrix.cmake_flags }}
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        working-directory: build
+        run: ctest -V --output-on-failure -R cpp-sdk-unittest
