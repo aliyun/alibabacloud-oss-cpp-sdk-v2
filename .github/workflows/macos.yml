@@ -46,12 +46,12 @@ jobs:
         run: |
           brew install openssl curl gcc
 
-      # Static library build
+      # Static library build + unit tests
       - name: Configure CMake (static)
         run: |
           cmake -B build-static \
             -DBUILD_TESTS=ON \
-            -DBUILD_SAMPLES=OFF \
+            -DBUILD_SAMPLES=ON \
             -DCMAKE_BUILD_TYPE=Release \
             -DUSE_SYSTEM_CURL=ON \
             -DCMAKE_CXX_STANDARD=${{ matrix.std == 'c++17' && '17' || '20' }} \
@@ -64,12 +64,12 @@ jobs:
         working-directory: build-static
         run: ctest -V --output-on-failure -R cpp-sdk-unittest
 
-      # Shared library build
+      # Shared library build (compile-only)
       - name: Configure CMake (shared)
         run: |
           cmake -B build-shared \
-            -DBUILD_TESTS=ON \
-            -DBUILD_SAMPLES=OFF \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_SAMPLES=ON \
             -DCMAKE_BUILD_TYPE=Release \
             -DUSE_SYSTEM_CURL=ON \
             -DCMAKE_CXX_STANDARD=${{ matrix.std == 'c++17' && '17' || '20' }} \
@@ -77,7 +77,3 @@ jobs:
 
       - name: Build (shared)
         run: cmake --build build-shared
-
-      - name: Test (shared)
-        working-directory: build-shared
-        run: ctest -V --output-on-failure -R cpp-sdk-unittest

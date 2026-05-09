@@ -32,7 +32,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y mingw-w64 wine wine64 xvfb
 
-      # Static library build
+      # Static library build + unit tests
       - name: Configure CMake (static)
         run: |
           cmake -B build-static \
@@ -43,7 +43,7 @@ jobs:
             -DCMAKE_EXE_LINKER_FLAGS="-static" \
             -DBUILD_SHARED_LIBS=OFF \
             -DBUILD_TESTS=ON \
-            -DBUILD_SAMPLES=OFF
+            -DBUILD_SAMPLES=ON
 
       - name: Build (static)
         run: cmake --build build-static
@@ -52,7 +52,7 @@ jobs:
         working-directory: build-static
         run: xvfb-run wine tests/unit/cpp-sdk-unittest.exe
 
-      # Shared library build
+      # Shared library build (compile-only)
       - name: Configure CMake (shared)
         run: |
           cmake -B build-shared \
@@ -61,15 +61,8 @@ jobs:
             -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ \
             -DCMAKE_BUILD_TYPE=Release \
             -DBUILD_SHARED_LIBS=ON \
-            -DBUILD_TESTS=ON \
-            -DBUILD_SAMPLES=OFF
+            -DBUILD_TESTS=OFF \
+            -DBUILD_SAMPLES=ON
 
       - name: Build (shared)
         run: cmake --build build-shared
-
-      - name: Copy DLLs for shared test
-        run: cp build-shared/sdk/*.dll build-shared/tests/unit/
-
-      - name: Test (shared)
-        working-directory: build-shared
-        run: xvfb-run wine tests/unit/cpp-sdk-unittest.exe

@@ -40,7 +40,7 @@ jobs:
             -DANDROID_PLATFORM=android-21 \
             -DCMAKE_BUILD_TYPE=Release \
             -DBUILD_TESTS=OFF \
-            -DBUILD_SAMPLES=OFF \
+            -DBUILD_SAMPLES=ON \
             -DBUILD_SHARED_LIBS=OFF
 
       - name: Build (static)
@@ -55,7 +55,7 @@ jobs:
             -DANDROID_PLATFORM=android-21 \
             -DCMAKE_BUILD_TYPE=Release \
             -DBUILD_TESTS=OFF \
-            -DBUILD_SAMPLES=OFF \
+            -DBUILD_SAMPLES=ON \
             -DBUILD_SHARED_LIBS=ON
 
       - name: Build (shared)

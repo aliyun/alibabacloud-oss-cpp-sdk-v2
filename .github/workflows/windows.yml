@@ -40,13 +40,13 @@ jobs:
             echo "CXX=clang-cl" >> $GITHUB_ENV
           fi
 
-      # Static library build
+      # Static library build + unit tests
       - name: Configure CMake (static)
         shell: bash
         run: |
           cmake -B build-static \
             -DBUILD_TESTS=ON \
-            -DBUILD_SAMPLES=OFF \
+            -DBUILD_SAMPLES=ON \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_CXX_STANDARD=${{ matrix.std == 'c++17' && '17' || '20' }} \
             -DBUILD_SHARED_LIBS=OFF
@@ -60,13 +60,13 @@ jobs:
         shell: bash
         run: ctest -C Release -V --output-on-failure -R cpp-sdk-unittest
 
-      # Shared library build
+      # Shared library build (compile-only)
       - name: Configure CMake (shared)
         shell: bash
         run: |
           cmake -B build-shared \
-            -DBUILD_TESTS=ON \
-            -DBUILD_SAMPLES=OFF \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_SAMPLES=ON \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_CXX_STANDARD=${{ matrix.std == 'c++17' && '17' || '20' }} \
             -DBUILD_SHARED_LIBS=ON
@@ -74,8 +74,3 @@ jobs:
       - name: Build (shared)
         shell: bash
         run: cmake --build build-shared --config Release --target ALL_BUILD
-
-      - name: Test (shared)
-        working-directory: build-shared
-        shell: bash
-        run: ctest -C Release -V --output-on-failure -R cpp-sdk-unittest
