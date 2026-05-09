@@ -115,7 +115,7 @@ class ALIBABACLOUD_OSS_API Error {
     }
 
   private:
-    long status_;
+    long status_{0};
     std::string code_;
     std::string message_;
 };

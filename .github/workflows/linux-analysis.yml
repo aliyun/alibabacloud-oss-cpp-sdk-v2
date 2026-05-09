@@ -47,25 +47,28 @@ jobs:
 
       - name: Build with Cppcheck
         working-directory: ${{github.workspace}}/build
-        continue-on-error: true
         run: cmake --build . --config Release 2>&1 | tee cppcheck-build.log
 
-      - name: Check build result
+      - name: Show Cppcheck errors
+        if: failure()
         working-directory: ${{github.workspace}}/build
-        id: cppcheck_result
         run: |
           if [ -f cppcheck.xml ]; then
-            echo "has_xml=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_xml=false" >> $GITHUB_OUTPUT
+            echo "::group::Cppcheck XML report (first 100 lines)"
+            head -100 cppcheck.xml
+            echo "::endgroup::"
           fi
+          echo "::group::Build errors from log"
+          grep -i "error\|warning" cppcheck-build.log | grep -v "^Checking\|^[[:space:]]*$" | head -50 || true
+          echo "::endgroup::"
 
       - name: Upload Cppcheck XML report
         uses: actions/upload-artifact@v4
-        if: steps.cppcheck_result.outputs.has_xml == 'true'
+        if: always()
         with:
           name: cppcheck-report
           path: build/cppcheck.xml
+          if-no-files-found: ignore
 
       - name: Upload build log
         uses: actions/upload-artifact@v4
