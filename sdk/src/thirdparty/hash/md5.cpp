@@ -7,8 +7,8 @@
 #include "md5.h"
 
 // Header for byte order functions
-#ifdef _MSC_VER
-// Windows: use built-in byte order functions
+#if defined(_WIN32)
+// Windows (MSVC and MinGW): use built-in byte order functions
 #include <stdlib.h>
 #elif defined(__APPLE__)
 // macOS: use libkern/OSByteOrder.h
