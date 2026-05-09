@@ -151,7 +151,7 @@ TEST(ObjectBasicTest, CopyObjectRequest_ConstructorDefault) {
     EXPECT_EQ("", request.getCopySource());
     EXPECT_EQ("", request.getSourceBucket());
     EXPECT_EQ("", request.getSourceKey());
-    EXPECT_EQ("", request.getSourceVersiondId());
+    EXPECT_EQ("", request.getSourceVersionId());
     EXPECT_EQ("", request.getForbidOverwrite());
     EXPECT_EQ("", request.getCopySourceIfMatch());
     EXPECT_EQ("", request.getCopySourceIfNoneMatch());
@@ -182,7 +182,7 @@ TEST(ObjectBasicTest, CopyObjectRequest_Setter) {
     request.setKey("dest-key");
     request.setSourceBucket("src-bucket");
     request.setSourceKey("src-key");
-    request.setourceVersiondId("version-id");
+    request.setSourceVersionId("version-id");
     request.setCopySource("/src-bucket/src-key");
     request.setForbidOverwrite("false");
     request.setCopySourceIfMatch("etag123");
@@ -207,7 +207,7 @@ TEST(ObjectBasicTest, CopyObjectRequest_Setter) {
     EXPECT_EQ("/src-bucket/src-key", request.getCopySource());
     EXPECT_EQ("src-bucket", request.getSourceBucket());
     EXPECT_EQ("src-key", request.getSourceKey());
-    EXPECT_EQ("version-id", request.getSourceVersiondId());
+    EXPECT_EQ("version-id", request.getSourceVersionId());
     EXPECT_EQ("false", request.getForbidOverwrite());
     EXPECT_EQ("etag123", request.getCopySourceIfMatch());
     EXPECT_EQ("etag456", request.getCopySourceIfNoneMatch());
@@ -684,7 +684,7 @@ TEST(ObjectBasicTest, GetObjectMetaRequest_Setter) {
 TEST(ObjectBasicTest, GetObjectMetaResult_ConstructorDefault) {
     auto result = GetObjectMetaResult();
     EXPECT_EQ("", result.getLastAccessTime());
-    EXPECT_EQ("", result.getLastModifed());
+    EXPECT_EQ("", result.getLastModified());
     EXPECT_EQ("", result.getTransitionTime());
     EXPECT_EQ("", result.getVersionId());
     EXPECT_EQ("", result.getETag());
@@ -696,7 +696,7 @@ TEST(ObjectBasicTest, GetObjectMetaResult_ConstructorDefault) {
 
 TEST(ObjectBasicTest, GetObjectMetaResult_ConstructorAll) {
     auto result = GetObjectMetaResult(200, {{"x-oss-last-access-time", "2023-01-01T00:00:00Z"},
-                                            {"Last-Modifed", "2023-01-01T00:00:00Z"},
+                                            {"Last-Modified", "2023-01-01T00:00:00Z"},
                                             {"x-oss-transition-time", "2023-02-01T00:00:00Z"},
                                             {"x-oss-version-id", "version123"},
                                             {"ETag", "etag123"},
@@ -704,7 +704,7 @@ TEST(ObjectBasicTest, GetObjectMetaResult_ConstructorAll) {
                                             {"x-oss-request-id", "req123"}});
 
     EXPECT_EQ("2023-01-01T00:00:00Z", result.getLastAccessTime());
-    EXPECT_EQ("2023-01-01T00:00:00Z", result.getLastModifed());
+    EXPECT_EQ("2023-01-01T00:00:00Z", result.getLastModified());
     EXPECT_EQ("2023-02-01T00:00:00Z", result.getTransitionTime());
     EXPECT_EQ("version123", result.getVersionId());
     EXPECT_EQ("etag123", result.getETag());

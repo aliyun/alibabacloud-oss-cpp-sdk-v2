@@ -63,6 +63,6 @@ int main(int argc, char* argv[]) {
     auto& result = outcome.getResult();
     std::cout << "status code: " << result.getStatusCode() << ", requestId: " << result.getRequestId()
               << ", contentLength: " << result.getContentLength() << ", eTag: " << result.getETag()
-              << ", lastModified: " << result.getLastModifed() << ", versionId: " << result.getVersionId() << std::endl;
+              << ", lastModified: " << result.getLastModified() << ", versionId: " << result.getVersionId() << std::endl;
     return 0;
 }

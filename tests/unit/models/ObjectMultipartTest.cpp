@@ -331,7 +331,7 @@ TEST(ObjectMultipartTest, UploadPartCopyRequest_ConstructorDefault) {
     EXPECT_EQ("", request.getCopySource());
     EXPECT_EQ("", request.getSourceBucket());
     EXPECT_EQ("", request.getSourceKey());
-    EXPECT_EQ("", request.getSourceVersiondId());
+    EXPECT_EQ("", request.getSourceVersionId());
     EXPECT_EQ("", request.getCopySourceRange());
     EXPECT_EQ("", request.getCopySourceIfMatch());
     EXPECT_EQ("", request.getCopySourceIfNoneMatch());
@@ -350,7 +350,7 @@ TEST(ObjectMultipartTest, UploadPartCopyRequest_Setter) {
     EXPECT_EQ("", request.getCopySource());
     EXPECT_EQ("", request.getSourceBucket());
     EXPECT_EQ("", request.getSourceKey());
-    EXPECT_EQ("", request.getSourceVersiondId());
+    EXPECT_EQ("", request.getSourceVersionId());
     EXPECT_EQ("", request.getCopySourceRange());
     EXPECT_EQ("", request.getCopySourceIfMatch());
     EXPECT_EQ("", request.getCopySourceIfNoneMatch());
@@ -365,7 +365,7 @@ TEST(ObjectMultipartTest, UploadPartCopyRequest_Setter) {
     request.setCopySource("/src-bucket/src-key");
     request.setSourceBucket("src-bucket");
     request.setSourceKey("src-key");
-    request.setourceVersiondId("version-id");
+    request.setSourceVersionId("version-id");
     request.setCopySourceRange("bytes=0-1023");
     request.setCopySourceIfMatch("etag123");
     request.setCopySourceIfNoneMatch("etag456");
@@ -379,7 +379,7 @@ TEST(ObjectMultipartTest, UploadPartCopyRequest_Setter) {
     EXPECT_EQ("/src-bucket/src-key", request.getCopySource());
     EXPECT_EQ("src-bucket", request.getSourceBucket());
     EXPECT_EQ("src-key", request.getSourceKey());
-    EXPECT_EQ("version-id", request.getSourceVersiondId());
+    EXPECT_EQ("version-id", request.getSourceVersionId());
     EXPECT_EQ("bytes=0-1023", request.getCopySourceRange());
     EXPECT_EQ("etag123", request.getCopySourceIfMatch());
     EXPECT_EQ("etag456", request.getCopySourceIfNoneMatch());

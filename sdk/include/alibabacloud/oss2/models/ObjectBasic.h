@@ -383,12 +383,12 @@ class ALIBABACLOUD_OSS_API CopyObjectRequest final : public RequestModel {
     }
 
     // The version id of the source object.
-    inline const std::string& getSourceVersiondId() const {
-        return sourceVersiondId_;
+    inline const std::string& getSourceVersionId() const {
+        return sourceVersionId_;
     }
     template <typename ValueT = std::string>
-    CopyObjectRequest& setourceVersiondId(ValueT&& value) {
-        sourceVersiondId_ = std::forward<ValueT>(value);
+    CopyObjectRequest& setSourceVersionId(ValueT&& value) {
+        sourceVersionId_ = std::forward<ValueT>(value);
         return *this;
     }
 
@@ -584,7 +584,7 @@ class ALIBABACLOUD_OSS_API CopyObjectRequest final : public RequestModel {
     std::string key_;
     std::string sourceBucket_;
     std::string sourceKey_;
-    std::string sourceVersiondId_;
+    std::string sourceVersionId_;
     HeaderCollection metadata_;
 };
 
@@ -1559,8 +1559,8 @@ class ALIBABACLOUD_OSS_API GetObjectMetaResult final : public ResultModel {
     }
 
     // <no value>
-    inline const std::string& getLastModifed() const {
-        return getHeaderOrEmpty("Last-Modifed");
+    inline const std::string& getLastModified() const {
+        return getHeaderOrEmpty("Last-Modified");
     }
 
     // <no value>

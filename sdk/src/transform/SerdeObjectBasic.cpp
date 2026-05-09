@@ -163,8 +163,8 @@ OperationInput fromCopyObject(const models::CopyObjectRequest& request) {
         source.append("/");
         source.append(request.getSourceBucket().empty() ? request.getBucket() : request.getSourceBucket());
         source.append("/").append(utils::UrlEncode(request.getSourceKey()));
-        if (!request.getSourceVersiondId().empty()) {
-            source.append("?versionId=").append(request.getSourceVersiondId());
+        if (!request.getSourceVersionId().empty()) {
+            source.append("?versionId=").append(request.getSourceVersionId());
         }
         input.headers.insert_or_assign("x-oss-copy-source", source);
     }

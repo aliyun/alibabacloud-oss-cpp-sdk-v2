@@ -581,7 +581,7 @@ inline static models::ListBucketResultXml toListBucketResult(const thirdparty::t
     }
 
     node = root->FirstChildElement("CommonPrefixes");
-    for (; node; node = node->NextSiblingElement()) {
+    for (; node; node = node->NextSiblingElement("CommonPrefixes")) {
         result.commonPrefixes.emplace_back(toCommonPrefix(node));
         if (doDecode) {
             auto& item = result.commonPrefixes.back();
