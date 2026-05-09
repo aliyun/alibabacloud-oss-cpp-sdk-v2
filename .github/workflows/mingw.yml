@@ -20,12 +20,8 @@ on:
 
 jobs:
   build:
-    name: MinGW (${{ matrix.arch }})
+    name: MinGW (x86_64)
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        arch: [x86_64, i686]
 
     steps:
       - name: Checkout repository
@@ -33,9 +29,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo dpkg --add-architecture i386
           sudo apt-get update
-          sudo apt-get install -y mingw-w64 wine wine32 wine64
+          sudo apt-get install -y mingw-w64 wine wine64 xvfb
 
       - name: Create build directory
         run: cmake -E make_directory ${{github.workspace}}/build
@@ -45,9 +40,10 @@ jobs:
         run: |
           cmake .. \
             -DCMAKE_SYSTEM_NAME=Windows \
-            -DCMAKE_C_COMPILER=${{ matrix.arch }}-w64-mingw32-gcc \
-            -DCMAKE_CXX_COMPILER=${{ matrix.arch }}-w64-mingw32-g++ \
+            -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc \
+            -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ \
             -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_EXE_LINKER_FLAGS="-static" \
             -DBUILD_TESTS=ON \
             -DBUILD_SAMPLES=OFF
 
@@ -57,4 +53,4 @@ jobs:
 
       - name: Test (Unit Tests Only)
         working-directory: ${{github.workspace}}/build
-        run: wine tests/unit/cpp-sdk-unittest.exe
+        run: xvfb-run wine tests/unit/cpp-sdk-unittest.exe
