@@ -62,7 +62,7 @@ std::unique_ptr<ByteSource> TeeByteContent::spanSource() {
 
 
 void CRC64Observer::data(std::uint8_t* buffer, std::size_t count) {
-    value_ = utils::CalcCRC64(value_, (void*) buffer, count);
+    value_ = utils::CalcCRC64(value_, static_cast<void*>(buffer), count);
 }
 
 
