@@ -62,40 +62,40 @@ void Url::fromString(const std::string& url) {
 
     std::string str = url;
     std::string::size_type pos = 0;
-    std::string authority, fragment, path, query, scheme;
+    std::string authorityPart, fragmentPart, pathPart, queryPart, schemePart;
 
     pos = str.find("://");
     if (pos != str.npos) {
-        scheme = str.substr(0, pos);
+        schemePart = str.substr(0, pos);
         str.erase(0, pos + 3);
     }
 
     pos = str.find('#');
     if (pos != str.npos) {
-        fragment = str.substr(pos + 1);
+        fragmentPart = str.substr(pos + 1);
         str.erase(pos);
     }
 
     pos = str.find('?');
     if (pos != str.npos) {
-        query = str.substr(pos + 1);
+        queryPart = str.substr(pos + 1);
         str.erase(pos);
     }
 
     pos = str.find('/');
     if (pos != str.npos) {
-        path = str.substr(pos);
+        pathPart = str.substr(pos);
         str.erase(pos);
     } else
-        path = "/";
+        pathPart = "/";
 
-    authority = str;
+    authorityPart = str;
 
-    setScheme(scheme);
-    setAuthority(authority);
-    setPath(path);
-    setQuery(query);
-    setFragment(fragment);
+    setScheme(schemePart);
+    setAuthority(authorityPart);
+    setPath(pathPart);
+    setQuery(queryPart);
+    setFragment(fragmentPart);
 }
 
 bool Url::hasFragment() const {
@@ -156,26 +156,26 @@ void Url::setAuthority(const std::string& authority) {
         return;
     }
 
-    std::string userinfo, host, port;
+    std::string userinfoPart, hostPart, portPart;
     std::string::size_type pos = 0, prevpos = 0;
 
     pos = authority.find('@');
     if (pos != authority.npos) {
-        userinfo = authority.substr(0, pos);
+        userinfoPart = authority.substr(0, pos);
         prevpos = pos + 1;
     }
 
     pos = authority.find(':', prevpos);
     if (pos == authority.npos)
-        host = authority.substr(prevpos);
+        hostPart = authority.substr(prevpos);
     else {
-        host = authority.substr(prevpos, pos - prevpos);
-        port = authority.substr(pos + 1);
+        hostPart = authority.substr(prevpos, pos - prevpos);
+        portPart = authority.substr(pos + 1);
     }
 
-    setUserInfo(userinfo);
-    setHost(host);
-    setPort(!port.empty() ? atoi(port.c_str()) : INVALID_PORT);
+    setUserInfo(userinfoPart);
+    setHost(hostPart);
+    setPort(!portPart.empty() ? atoi(portPart.c_str()) : INVALID_PORT);
 }
 
 void Url::setFragment(const std::string& fragment) {
