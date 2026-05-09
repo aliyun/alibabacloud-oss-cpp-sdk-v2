@@ -28,7 +28,8 @@ class TransportExecuteMiddleware final : public ExecuteMiddleware {
             return nullptr;
         }
 
-        return std::get<0>(result);
+        // cppcheck-suppress returnStdMoveLocal
+        return std::move(std::get<0>(result));
     }
 
   private:
