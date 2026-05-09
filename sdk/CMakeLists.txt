@@ -103,7 +103,7 @@ target_include_directories(${PROJECT_NAME}
 )
 
 #warning flags
-if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+if(MSVC)
     list(APPEND SDK_WARNING_FLAGS "/W4" "/D_CRT_SECURE_NO_WARNINGS")
 else()
     list(APPEND SDK_WARNING_FLAGS "-Wall" "-Werror" "-pedantic" "-Wextra")
