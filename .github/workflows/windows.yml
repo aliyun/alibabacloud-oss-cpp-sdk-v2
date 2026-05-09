@@ -40,30 +40,42 @@ jobs:
             echo "CXX=clang-cl" >> $GITHUB_ENV
           fi
 
-      - name: Create build directory
-        run: cmake -E make_directory ${{github.workspace}}/build
-
-      - name: Configure CMake
-        working-directory: ${{github.workspace}}/build
+      # Static library build
+      - name: Configure CMake (static)
         shell: bash
         run: |
-          cmake .. \
+          cmake -B build-static \
             -DBUILD_TESTS=ON \
             -DBUILD_SAMPLES=OFF \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_CXX_STANDARD=${{ matrix.std == 'c++17' && '17' || '20' }}
+            -DCMAKE_CXX_STANDARD=${{ matrix.std == 'c++17' && '17' || '20' }} \
+            -DBUILD_SHARED_LIBS=OFF
 
-      - name: Build
-        working-directory: ${{github.workspace}}/build
+      - name: Build (static)
         shell: bash
-        run: cmake --build . --config Release --target ALL_BUILD
+        run: cmake --build build-static --config Release --target ALL_BUILD
 
-      - name: List available tests
-        working-directory: ${{github.workspace}}/build
+      - name: Test (static)
+        working-directory: build-static
         shell: bash
-        run: ctest -N
+        run: ctest -C Release -V --output-on-failure -R cpp-sdk-unittest
 
-      - name: Test (Unit Tests Only)
-        working-directory: ${{github.workspace}}/build
+      # Shared library build
+      - name: Configure CMake (shared)
+        shell: bash
+        run: |
+          cmake -B build-shared \
+            -DBUILD_TESTS=ON \
+            -DBUILD_SAMPLES=OFF \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_STANDARD=${{ matrix.std == 'c++17' && '17' || '20' }} \
+            -DBUILD_SHARED_LIBS=ON
+
+      - name: Build (shared)
+        shell: bash
+        run: cmake --build build-shared --config Release --target ALL_BUILD
+
+      - name: Test (shared)
+        working-directory: build-shared
         shell: bash
         run: ctest -C Release -V --output-on-failure -R cpp-sdk-unittest

@@ -32,25 +32,44 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y mingw-w64 wine wine64 xvfb
 
-      - name: Create build directory
-        run: cmake -E make_directory ${{github.workspace}}/build
-
-      - name: Configure CMake
-        working-directory: ${{github.workspace}}/build
+      # Static library build
+      - name: Configure CMake (static)
         run: |
-          cmake .. \
+          cmake -B build-static \
             -DCMAKE_SYSTEM_NAME=Windows \
             -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc \
             -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_EXE_LINKER_FLAGS="-static" \
+            -DBUILD_SHARED_LIBS=OFF \
             -DBUILD_TESTS=ON \
             -DBUILD_SAMPLES=OFF
 
-      - name: Build
-        working-directory: ${{github.workspace}}/build
-        run: cmake --build .
+      - name: Build (static)
+        run: cmake --build build-static
 
-      - name: Test (Unit Tests Only)
-        working-directory: ${{github.workspace}}/build
+      - name: Test (static)
+        working-directory: build-static
+        run: xvfb-run wine tests/unit/cpp-sdk-unittest.exe
+
+      # Shared library build
+      - name: Configure CMake (shared)
+        run: |
+          cmake -B build-shared \
+            -DCMAKE_SYSTEM_NAME=Windows \
+            -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc \
+            -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=ON \
+            -DBUILD_TESTS=ON \
+            -DBUILD_SAMPLES=OFF
+
+      - name: Build (shared)
+        run: cmake --build build-shared
+
+      - name: Copy DLLs for shared test
+        run: cp build-shared/sdk/*.dll build-shared/tests/unit/
+
+      - name: Test (shared)
+        working-directory: build-shared
         run: xvfb-run wine tests/unit/cpp-sdk-unittest.exe

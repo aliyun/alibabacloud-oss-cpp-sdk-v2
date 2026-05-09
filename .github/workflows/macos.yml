@@ -46,23 +46,38 @@ jobs:
         run: |
           brew install openssl curl gcc
 
-      - name: Create build directory
-        run: cmake -E make_directory ${{github.workspace}}/build
-
-      - name: Configure CMake
-        working-directory: ${{github.workspace}}/build
+      # Static library build
+      - name: Configure CMake (static)
         run: |
-          cmake .. \
+          cmake -B build-static \
             -DBUILD_TESTS=ON \
             -DBUILD_SAMPLES=OFF \
             -DCMAKE_BUILD_TYPE=Release \
             -DUSE_SYSTEM_CURL=ON \
-            -DCMAKE_CXX_STANDARD=${{ matrix.std == 'c++17' && '17' || '20' }}
+            -DCMAKE_CXX_STANDARD=${{ matrix.std == 'c++17' && '17' || '20' }} \
+            -DBUILD_SHARED_LIBS=OFF
 
-      - name: Build
-        working-directory: ${{github.workspace}}/build
-        run: cmake --build .
+      - name: Build (static)
+        run: cmake --build build-static
 
-      - name: Test (Unit Tests Only)
-        working-directory: ${{github.workspace}}/build
+      - name: Test (static)
+        working-directory: build-static
+        run: ctest -V --output-on-failure -R cpp-sdk-unittest
+
+      # Shared library build
+      - name: Configure CMake (shared)
+        run: |
+          cmake -B build-shared \
+            -DBUILD_TESTS=ON \
+            -DBUILD_SAMPLES=OFF \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DUSE_SYSTEM_CURL=ON \
+            -DCMAKE_CXX_STANDARD=${{ matrix.std == 'c++17' && '17' || '20' }} \
+            -DBUILD_SHARED_LIBS=ON
+
+      - name: Build (shared)
+        run: cmake --build build-shared
+
+      - name: Test (shared)
+        working-directory: build-shared
         run: ctest -V --output-on-failure -R cpp-sdk-unittest
