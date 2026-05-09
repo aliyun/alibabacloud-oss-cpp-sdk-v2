@@ -24,7 +24,7 @@ static std::string LogPrefix(LogLevel logLevel, const char* tag) {
     auto tp = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
     auto ms = tp.time_since_epoch().count() % 1000;
     auto t = std::chrono::system_clock::to_time_t(tp);
-    struct tm tm;
+    struct tm tm{};
 #ifdef _WIN32
     ::localtime_s(&tm, &t);
 #else

@@ -9,8 +9,8 @@ namespace oss2 {
 namespace transform {
 
 
-inline static models::BucketSummary toBucket(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::BucketSummary toBucket(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::BucketSummary();
 
     node = root->FirstChildElement("Name");
@@ -66,8 +66,8 @@ inline static models::BucketSummary toBucket(thirdparty::tinyxml2::XMLElement* r
 }
 
 
-inline static models::Owner toOwner(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::Owner toOwner(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::Owner();
 
     node = root->FirstChildElement("ID");
@@ -87,8 +87,8 @@ inline static models::Owner toOwner(thirdparty::tinyxml2::XMLElement* root) {
     return result;
 }
 
-inline static models::ListAllMyBucketsResult toListAllMyBucketsResult(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::ListAllMyBucketsResult toListAllMyBucketsResult(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::ListAllMyBucketsResult();
 
     node = root->FirstChildElement("Marker");
@@ -154,12 +154,12 @@ OperationInput fromListBuckets(const models::ListBucketsRequest& request) {
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -179,7 +179,7 @@ Outcome<models::ListBucketsResult, OperationError> toListBuckets(OperationOutput
         std::istreambuf_iterator<char> isb(*output.body.get()), end;
         std::string str(isb, end);
         if ((xml_err = doc.Parse(str.c_str(), str.size())) == thirdparty::tinyxml2::XML_SUCCESS) {
-            auto root = doc.RootElement();
+            const auto* root = doc.RootElement();
             if (root != nullptr && !std::strcmp("ListAllMyBucketsResult", root->Name())) {
                 return models::ListBucketsResult(output.statusCode, std::move(output.headers),
                                                  toListAllMyBucketsResult(root));

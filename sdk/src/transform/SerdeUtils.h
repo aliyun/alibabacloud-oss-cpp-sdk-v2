@@ -15,12 +15,12 @@ std::string toXmlText(int32_t value, const std::string& tag);
 std::string toXmlText(int64_t value, const std::string& tag);
 std::string toXmlText(double value, const std::string& tag);
 
-bool toBool(thirdparty::tinyxml2::XMLElement* node);
-std::int32_t toInt32(thirdparty::tinyxml2::XMLElement* node);
-std::int64_t toInt64(thirdparty::tinyxml2::XMLElement* node);
-double toDouble(thirdparty::tinyxml2::XMLElement* node);
-std::string toString(thirdparty::tinyxml2::XMLElement* node);
-std::string toString(thirdparty::tinyxml2::XMLElement* node, bool doDecode);
+bool toBool(const thirdparty::tinyxml2::XMLElement* node);
+std::int32_t toInt32(const thirdparty::tinyxml2::XMLElement* node);
+std::int64_t toInt64(const thirdparty::tinyxml2::XMLElement* node);
+double toDouble(const thirdparty::tinyxml2::XMLElement* node);
+std::string toString(const thirdparty::tinyxml2::XMLElement* node);
+std::string toString(const thirdparty::tinyxml2::XMLElement* node, bool doDecode);
 
 
 } // namespace transform

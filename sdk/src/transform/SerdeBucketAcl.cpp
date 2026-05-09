@@ -8,8 +8,8 @@ namespace alibabacloud {
 namespace oss2 {
 namespace transform {
 
-inline static models::Owner toOwner(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::Owner toOwner(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::Owner();
 
     node = root->FirstChildElement("ID");
@@ -29,8 +29,8 @@ inline static models::Owner toOwner(thirdparty::tinyxml2::XMLElement* root) {
     return result;
 }
 
-inline static models::AccessControlList toAccessControlList(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::AccessControlList toAccessControlList(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::AccessControlList();
 
     node = root->FirstChildElement("Grant");
@@ -43,8 +43,8 @@ inline static models::AccessControlList toAccessControlList(thirdparty::tinyxml2
     return result;
 }
 
-inline static models::AccessControlPolicy toAccessControlPolicy(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::AccessControlPolicy toAccessControlPolicy(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::AccessControlPolicy();
 
     node = root->FirstChildElement("Owner");
@@ -77,12 +77,12 @@ OperationInput fromPutBucketAcl(const models::PutBucketAclRequest& request) {
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -114,12 +114,12 @@ OperationInput fromGetBucketAcl(const models::GetBucketAclRequest& request) {
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -141,7 +141,7 @@ Outcome<models::GetBucketAclResult, OperationError> toGetBucketAcl(OperationOutp
         std::istreambuf_iterator<char> isb(*output.body.get()), end;
         std::string str(isb, end);
         if ((xml_err = doc.Parse(str.c_str(), str.size())) == thirdparty::tinyxml2::XML_SUCCESS) {
-            auto root = doc.RootElement();
+            const auto* root = doc.RootElement();
             auto result = models::GetBucketAclResult(output.statusCode, std::move(output.headers));
             if (root != nullptr && !std::strcmp("AccessControlPolicy", root->Name())) {
                 result.setAccessControlPolicy(toAccessControlPolicy(root));

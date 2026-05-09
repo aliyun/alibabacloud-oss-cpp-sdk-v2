@@ -58,8 +58,8 @@ inline static std::string toXmlText(const models::Delete& value, const std::stri
 }
 
 
-inline static models::CopyObjectResultXml toCopyObjectResult(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::CopyObjectResultXml toCopyObjectResult(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::CopyObjectResultXml();
 
     node = root->FirstChildElement("LastModified");
@@ -78,8 +78,8 @@ inline static models::CopyObjectResultXml toCopyObjectResult(thirdparty::tinyxml
     return result;
 }
 
-inline static models::DeletedInfo toDeletedInfo(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::DeletedInfo toDeletedInfo(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::DeletedInfo();
 
     node = root->FirstChildElement("Key");
@@ -115,16 +115,16 @@ OperationInput fromPutObject(const models::PutObjectRequest& request) {
     // Default Parameters
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
-    for (auto& [k, v] : request.getMetadata()) {
+    for (const auto& [k, v] : request.getMetadata()) {
         input.headers.insert_or_assign("x-oss-meta-" + k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -151,10 +151,10 @@ OperationInput fromCopyObject(const models::CopyObjectRequest& request) {
     // Default Parameters
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
-    for (auto& [k, v] : request.getMetadata()) {
+    for (const auto& [k, v] : request.getMetadata()) {
         input.headers.insert_or_assign("x-oss-meta-" + k, v);
     }
 
@@ -170,7 +170,7 @@ OperationInput fromCopyObject(const models::CopyObjectRequest& request) {
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -192,7 +192,7 @@ Outcome<models::CopyObjectResult, OperationError> toCopyObject(OperationOutput&&
         std::istreambuf_iterator<char> isb(*output.body.get()), end;
         std::string str(isb, end);
         if ((xml_err = doc.Parse(str.c_str(), str.size())) == thirdparty::tinyxml2::XML_SUCCESS) {
-            auto root = doc.RootElement();
+            const auto* root = doc.RootElement();
             if (root != nullptr && !std::strcmp("CopyObjectResult", root->Name())) {
                 return models::CopyObjectResult(output.statusCode, std::move(output.headers), toCopyObjectResult(root));
             }
@@ -220,12 +220,12 @@ OperationInput fromGetObject(const models::GetObjectRequest& request) {
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -256,16 +256,16 @@ OperationInput fromAppendObject(const models::AppendObjectRequest& request) {
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
-    for (auto& [k, v] : request.getMetadata()) {
+    for (const auto& [k, v] : request.getMetadata()) {
         input.headers.insert_or_assign("x-oss-meta-" + k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -295,12 +295,12 @@ OperationInput fromSealAppendObject(const models::SealAppendObjectRequest& reque
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -330,12 +330,12 @@ OperationInput fromDeleteObject(const models::DeleteObjectRequest& request) {
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -367,12 +367,12 @@ OperationInput fromDeleteMultipleObjects(const models::DeleteMultipleObjectsRequ
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -399,10 +399,10 @@ Outcome<models::DeleteMultipleObjectsResult, OperationError> toDeleteMultipleObj
         std::istreambuf_iterator<char> isb(*output.body.get()), end;
         std::string str(isb, end);
         if ((xml_err = doc.Parse(str.c_str(), str.size())) == thirdparty::tinyxml2::XML_SUCCESS) {
-            auto root = doc.RootElement();
+            const auto* root = doc.RootElement();
             if (root != nullptr && !std::strcmp("DeleteResult", root->Name())) {
                 auto result = models::DeleteMultipleObjectsResult(output.statusCode, std::move(output.headers));
-                thirdparty::tinyxml2::XMLElement* node;
+                const thirdparty::tinyxml2::XMLElement* node;
                 node = root->FirstChildElement("EncodingType");
                 if (node) {
                     result.setEncodingType(toString(node));
@@ -443,12 +443,12 @@ OperationInput fromHeadObject(const models::HeadObjectRequest& request) {
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -480,12 +480,12 @@ OperationInput fromGetObjectMeta(const models::GetObjectMetaRequest& request) {
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -517,12 +517,12 @@ OperationInput fromRestoreObject(const models::RestoreObjectRequest& request) {
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -560,12 +560,12 @@ OperationInput fromCleanRestoredObject(const models::CleanRestoredObjectRequest&
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 

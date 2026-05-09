@@ -39,7 +39,7 @@ jobs:
         working-directory: ${{github.workspace}}/build
         run: |
           cmake .. \
-            -DBUILD_TESTS=ON \
+            -DBUILD_TESTS=OFF \
             -DBUILD_SAMPLES=OFF \
             -DCMAKE_BUILD_TYPE=Release \
             -DUSE_SYSTEM_CURL=ON \

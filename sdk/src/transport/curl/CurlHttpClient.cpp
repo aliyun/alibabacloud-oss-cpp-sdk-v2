@@ -79,6 +79,7 @@ static size_t sendBody(char* ptr, size_t size, size_t nmemb, void* userdata) {
     return got;
 }
 
+// cppcheck-suppress constParameterCallback
 static size_t recvBody(char* ptr, size_t size, size_t nmemb, void* userdata) {
     TransferState* state = static_cast<TransferState*>(userdata);
     const size_t wanted = size * nmemb;
@@ -177,12 +178,13 @@ static int xferInfoCallback(void* userdata, curl_off_t dltotal, curl_off_t dlnow
     return 0;
 }
 #else
+// cppcheck-suppress constParameterCallback
 static int progressCallback(void* userdata, double dltotal, double dlnow, double ultotal, double ulnow) {
     UNUSED_PARAM(dltotal);
     UNUSED_PARAM(dlnow);
     UNUSED_PARAM(ultotal);
     UNUSED_PARAM(ulnow);
-    TransferState* state = static_cast<TransferState*>(userdata);
+    const TransferState* state = static_cast<const TransferState*>(userdata);
     if (state == nullptr || state->owner == nullptr) {
         return 0;
     }

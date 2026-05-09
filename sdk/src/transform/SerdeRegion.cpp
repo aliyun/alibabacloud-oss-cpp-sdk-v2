@@ -8,8 +8,8 @@ namespace alibabacloud {
 namespace oss2 {
 namespace transform {
 
-inline static models::RegionInfo toRegionInfo(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::RegionInfo toRegionInfo(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::RegionInfo();
 
     node = root->FirstChildElement("Region");
@@ -44,8 +44,8 @@ inline static models::RegionInfo toRegionInfo(thirdparty::tinyxml2::XMLElement* 
 }
 
 
-inline static models::RegionInfoList toRegionInfoList(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::RegionInfoList toRegionInfoList(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::RegionInfoList();
 
     node = root->FirstChildElement("RegionInfo");
@@ -71,12 +71,12 @@ OperationInput fromDescribeRegions(const models::DescribeRegionsRequest& request
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -96,7 +96,7 @@ Outcome<models::DescribeRegionsResult, OperationError> toDescribeRegions(Operati
         std::istreambuf_iterator<char> isb(*output.body.get()), end;
         std::string str(isb, end);
         if ((xml_err = doc.Parse(str.c_str(), str.size())) == thirdparty::tinyxml2::XML_SUCCESS) {
-            auto root = doc.RootElement();
+            const auto* root = doc.RootElement();
             auto result = models::DescribeRegionsResult(output.statusCode, std::move(output.headers));
             if (root != nullptr && !std::strcmp("RegionInfoList", root->Name())) {
                 result.setRegionInfoList(toRegionInfoList(root));

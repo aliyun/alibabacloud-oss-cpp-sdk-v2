@@ -107,15 +107,15 @@ static void crc64_big_init(void) {
 
 /* Calculate a CRC-64 eight bytes at a time on a little-endian architecture. */
 static uint64_t crc64_little(uint64_t crc, void* buf, size_t len) {
-    unsigned char* next = (unsigned char*) buf;
+    auto* next = static_cast<unsigned char*>(buf);
 
     crc = ~crc;
-    while (len && ((uintptr_t) next & 7) != 0) {
+    while (len && (reinterpret_cast<uintptr_t>(next) & 7) != 0) {
         crc = crc64_table[0][(crc ^ *next++) & 0xff] ^ (crc >> 8);
         len--;
     }
     while (len >= 8) {
-        crc ^= *(uint64_t*) next;
+        crc ^= *reinterpret_cast<uint64_t*>(next);
         crc = crc64_table[7][crc & 0xff] ^ crc64_table[6][(crc >> 8) & 0xff] ^ crc64_table[5][(crc >> 16) & 0xff] ^
               crc64_table[4][(crc >> 24) & 0xff] ^ crc64_table[3][(crc >> 32) & 0xff] ^
               crc64_table[2][(crc >> 40) & 0xff] ^ crc64_table[1][(crc >> 48) & 0xff] ^ crc64_table[0][crc >> 56];
@@ -131,15 +131,15 @@ static uint64_t crc64_little(uint64_t crc, void* buf, size_t len) {
 
 /* Calculate a CRC-64 eight bytes at a time on a big-endian architecture. */
 static uint64_t crc64_big(uint64_t crc, void* buf, size_t len) {
-    unsigned char* next = (unsigned char*) buf;
+    auto* next = static_cast<unsigned char*>(buf);
 
     crc = ~rev8(crc);
-    while (len && ((uintptr_t) next & 7) != 0) {
+    while (len && (reinterpret_cast<uintptr_t>(next) & 7) != 0) {
         crc = crc64_table[0][(crc >> 56) ^ *next++] ^ (crc << 8);
         len--;
     }
     while (len >= 8) {
-        crc ^= *(uint64_t*) next;
+        crc ^= *reinterpret_cast<uint64_t*>(next);
         crc = crc64_table[0][crc & 0xff] ^ crc64_table[1][(crc >> 8) & 0xff] ^ crc64_table[2][(crc >> 16) & 0xff] ^
               crc64_table[3][(crc >> 24) & 0xff] ^ crc64_table[4][(crc >> 32) & 0xff] ^
               crc64_table[5][(crc >> 40) & 0xff] ^ crc64_table[6][(crc >> 48) & 0xff] ^ crc64_table[7][crc >> 56];
@@ -241,7 +241,7 @@ class CRC64_GUARD {
   public:
     CRC64_GUARD() {
         uint64_t n = 1;
-        if (*(char*) &n) {
+        if (*reinterpret_cast<char*>(&n)) {
             crc64_little_init();
         } else {
             crc64_big_init();
@@ -254,7 +254,7 @@ static CRC64_GUARD crc64Guard;
 
 uint64_t CalcCRC64(uint64_t crc, void* buf, size_t len) {
     uint64_t n = 1;
-    return *(char*) &n ? crc64_little(crc, buf, len) : crc64_big(crc, buf, len);
+    return *reinterpret_cast<char*>(&n) ? crc64_little(crc, buf, len) : crc64_big(crc, buf, len);
 }
 
 uint64_t CalcCRC64(uint64_t crc, void* buf, size_t len, bool little) {

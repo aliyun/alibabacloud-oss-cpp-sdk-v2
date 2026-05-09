@@ -13,7 +13,7 @@ inline static std::string toXmlText(const models::RefererList& value, const std:
     std::string str;
     str.append("<").append(tag).append(">");
 
-    for (auto& it : value.referers) {
+    for (const auto& it : value.referers) {
         str.append(toXmlText(it, "Referer"));
     }
 
@@ -21,8 +21,8 @@ inline static std::string toXmlText(const models::RefererList& value, const std:
     return str;
 }
 
-inline static models::RefererList toRefererList(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::RefererList toRefererList(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::RefererList();
 
     node = root->FirstChildElement("Referer");
@@ -40,7 +40,7 @@ inline static std::string toXmlText(const models::RefererBlacklist& value, const
     std::string str;
     str.append("<").append(tag).append(">");
 
-    for (auto& it : value.referers) {
+    for (const auto& it : value.referers) {
         str.append(toXmlText(it, "Referer"));
     }
 
@@ -48,8 +48,8 @@ inline static std::string toXmlText(const models::RefererBlacklist& value, const
     return str;
 }
 
-inline static models::RefererBlacklist toRefererBlacklist(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::RefererBlacklist toRefererBlacklist(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::RefererBlacklist();
 
     node = root->FirstChildElement("Referer");
@@ -91,8 +91,8 @@ inline static std::string toXmlText(const models::RefererConfiguration& value, c
     return str;
 }
 
-inline static models::RefererConfiguration toRefererConfiguration(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::RefererConfiguration toRefererConfiguration(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::RefererConfiguration();
 
     node = root->FirstChildElement("AllowEmptyReferer");
@@ -146,12 +146,12 @@ OperationInput fromPutBucketReferer(const models::PutBucketRefererRequest& reque
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -188,12 +188,12 @@ OperationInput fromGetBucketReferer(const models::GetBucketRefererRequest& reque
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -215,7 +215,7 @@ Outcome<models::GetBucketRefererResult, OperationError> toGetBucketReferer(Opera
         std::istreambuf_iterator<char> isb(*output.body.get()), end;
         std::string str(isb, end);
         if ((xml_err = doc.Parse(str.c_str(), str.size())) == thirdparty::tinyxml2::XML_SUCCESS) {
-            auto root = doc.RootElement();
+            const auto* root = doc.RootElement();
             auto result = models::GetBucketRefererResult(output.statusCode, std::move(output.headers));
             if (root != nullptr && !std::strcmp("RefererConfiguration", root->Name())) {
                 result.setRefererConfiguration(toRefererConfiguration(root));
