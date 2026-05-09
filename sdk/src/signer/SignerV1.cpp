@@ -95,7 +95,7 @@ static std::string getDateFromHeaders(const HeaderCollection& headers) {
 }
 
 static std::string calcStringToSign(const SigningContext& context, const std::string& dateOverride = "") {
-    RequestMessage* request = context.request;
+    const RequestMessage* request = context.request;
 
     std::string canonicalUri = buildResource(context.bucket, context.key);
 
