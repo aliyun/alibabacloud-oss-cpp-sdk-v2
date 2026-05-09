@@ -22,6 +22,7 @@ namespace oss2 {
 namespace internal {
 
 
+// cppcheck-suppress constParameterCallback
 static bool onServiceError(std::unique_ptr<ResponseMessage>& response, ExecuteContext& context) {
     if (response->statusCode / 100 == 2) {
         return true;
@@ -491,6 +492,7 @@ std::unique_ptr<RequestMessage> ClientImpl::applyOperationInput(ExecuteContext& 
     return request;
 }
 
+// cppcheck-suppress constParameterReference
 void ClientImpl::applyOther(ExecuteContext& context, std::unique_ptr<RequestMessage>& request,
                             const OperationInnerOptions* innerOpts) {
     ((void) (context));
