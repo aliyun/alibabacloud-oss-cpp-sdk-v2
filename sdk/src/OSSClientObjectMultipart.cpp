@@ -51,6 +51,7 @@ InitiateMultipartUploadOutcome OSSClient::initiateMultipartUpload(const models::
 
     auto input = transform::fromInitiateMultipartUpload(request);
     if (input.headers.find("Content-Type") == input.headers.end()) {
+        // cppcheck-suppress stlFindInsert
         input.headers.emplace("Content-Type", utils::LookupMimeType(request.getKey()));
     }
     auto result = client_->Execute(input, options);

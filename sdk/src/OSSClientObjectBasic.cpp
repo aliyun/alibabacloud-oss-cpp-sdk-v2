@@ -52,8 +52,9 @@ PutObjectOutcome OSSClient::putObject(const models::PutObjectRequest& request, c
     auto input = transform::fromPutObject(request);
     if (client_->hasFlag(FeatureFlagsType::AutoDetectMimeType)) {
         if (input.headers.find("Content-Type") == input.headers.end()) {
+            // cppcheck-suppress stlFindInsert
             input.headers.emplace("Content-Type", utils::LookupMimeType(request.getKey()));
-        }    
+        }
     }
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
@@ -95,6 +96,7 @@ AppendObjectOutcome OSSClient::appendObject(const models::AppendObjectRequest& r
 
     auto input = transform::fromAppendObject(request);
     if (input.headers.find("Content-Type") == input.headers.end()) {
+        // cppcheck-suppress stlFindInsert
         input.headers.emplace("Content-Type", utils::LookupMimeType(request.getKey()));
     }
 
