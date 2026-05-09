@@ -2,6 +2,17 @@
 #include "../Utils.h"
 #include <mbedtls/md.h>
 #include <mbedtls/sha256.h>
+#include <mbedtls/version.h>
+
+#if MBEDTLS_VERSION_NUMBER >= 0x03000000
+#define oss2_sha256_starts(ctx, is224)        mbedtls_sha256_starts(ctx, is224)
+#define oss2_sha256_update(ctx, input, ilen)  mbedtls_sha256_update(ctx, input, ilen)
+#define oss2_sha256_finish(ctx, output)       mbedtls_sha256_finish(ctx, output)
+#else
+#define oss2_sha256_starts(ctx, is224)        mbedtls_sha256_starts_ret(ctx, is224)
+#define oss2_sha256_update(ctx, input, ilen)  mbedtls_sha256_update_ret(ctx, input, ilen)
+#define oss2_sha256_finish(ctx, output)       mbedtls_sha256_finish_ret(ctx, output)
+#endif
 
 namespace alibabacloud {
 namespace oss2 {
@@ -28,9 +39,9 @@ std::string HashSh256(const void* data, size_t numDataBytes) {
 
     mbedtls_sha256_context ctx;
     mbedtls_sha256_init(&ctx);
-    mbedtls_sha256_starts(&ctx, 0);
-    mbedtls_sha256_update(&ctx, static_cast<const unsigned char*>(data), numDataBytes);
-    mbedtls_sha256_finish(&ctx, hash);
+    oss2_sha256_starts(&ctx, 0);
+    oss2_sha256_update(&ctx, static_cast<const unsigned char*>(data), numDataBytes);
+    oss2_sha256_finish(&ctx, hash);
     mbedtls_sha256_free(&ctx);
 
     static const char hex[] = "0123456789abcdef";
