@@ -662,12 +662,12 @@ class ALIBABACLOUD_OSS_API UploadPartCopyRequest final : public RequestModel {
     }
 
     // The version id of the source object.
-    inline const std::string& getSourceVersiondId() const {
-        return sourceVersiondId_;
+    inline const std::string& getSourceVersionId() const {
+        return sourceVersionId_;
     }
     template <typename ValueT = std::string>
-    UploadPartCopyRequest& setourceVersiondId(ValueT&& value) {
-        sourceVersiondId_ = std::forward<ValueT>(value);
+    UploadPartCopyRequest& setSourceVersionId(ValueT&& value) {
+        sourceVersionId_ = std::forward<ValueT>(value);
         return *this;
     }
 
@@ -759,7 +759,7 @@ class ALIBABACLOUD_OSS_API UploadPartCopyRequest final : public RequestModel {
     std::string key_;
     std::string sourceBucket_;
     std::string sourceKey_;
-    std::string sourceVersiondId_;
+    std::string sourceVersionId_;
 };
 
 /*

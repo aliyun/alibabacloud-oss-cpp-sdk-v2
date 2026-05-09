@@ -563,7 +563,7 @@ TEST(OSSClientObjectBasicTest, CopyObject_SourceKey) {
     request.setKey("dest-key");
     request.setSourceBucket("source-bucket");
     request.setSourceKey("source-key:123");
-    request.setourceVersiondId("id-123");
+    request.setSourceVersionId("id-123");
 
     outcome = client.copyObject(request);
     EXPECT_TRUE(outcome.isSuccess());
@@ -1273,7 +1273,7 @@ TEST(OSSClientObjectBasicTest, GetObjectMeta_Success) {
                                                               {{"ETag", "\"meta-test-etag\""},
                                                                {"Content-Length", "2048"},
                                                                {"x-oss-last-access-time", "2023-01-01T12:00:00.000Z"},
-                                                               {"Last-Modifed", "2023-01-01T12:00:00.000Z"},
+                                                               {"Last-Modified", "2023-01-01T12:00:00.000Z"},
                                                                {"x-oss-version-id", "version123"},
                                                                {"x-oss-request-id", "id-1234"}},
                                                               nullptr}));
@@ -1291,7 +1291,7 @@ TEST(OSSClientObjectBasicTest, GetObjectMeta_Success) {
     EXPECT_EQ("\"meta-test-etag\"", result.getETag());
     EXPECT_EQ(2048, result.getContentLength());
     EXPECT_EQ("2023-01-01T12:00:00.000Z", result.getLastAccessTime());
-    EXPECT_EQ("2023-01-01T12:00:00.000Z", result.getLastModifed());
+    EXPECT_EQ("2023-01-01T12:00:00.000Z", result.getLastModified());
     EXPECT_EQ("version123", result.getVersionId());
 }
 

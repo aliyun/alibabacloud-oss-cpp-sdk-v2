@@ -538,7 +538,7 @@ TEST(OSSClientObjectMultipartTest, UploadPartCopy_SourceKey) {
     request.setUploadId("test-upload-id");        
     request.setSourceBucket("source-bucket");
     request.setSourceKey("source-key:123");
-    request.setourceVersiondId("id-123");
+    request.setSourceVersionId("id-123");
 
     outcome = client.uploadPartCopy(request);
     EXPECT_TRUE(outcome.isSuccess());

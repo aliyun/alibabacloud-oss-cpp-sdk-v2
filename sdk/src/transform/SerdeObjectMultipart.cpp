@@ -438,6 +438,14 @@ Outcome<models::CompleteMultipartUploadResult, OperationError> toCompleteMultipa
         std::string str(isb, end);
         if ((xml_err = doc.Parse(str.c_str(), str.size())) == thirdparty::tinyxml2::XML_SUCCESS) {
             const auto* root = doc.RootElement();
+            if (root == nullptr) {
+                auto opErr = OperationError{SdkErrorCode::Deserialization_ERROR,
+                                            {
+                                                    {"Code", "XMLError"},
+                                                    {"Message", "RootElement is null"},
+                                            }};
+                return opErr;
+            }
             auto result = models::CompleteMultipartUploadResult(output.statusCode, std::move(output.headers));
             auto node = root->FirstChildElement("EncodingType");
             bool doDecode = false;
@@ -501,8 +509,8 @@ OperationInput fromUploadPartCopy(const models::UploadPartCopyRequest& request) 
         source.append("/");
         source.append(request.getSourceBucket().empty()?request.getBucket():request.getSourceBucket());
         source.append("/").append(utils::UrlEncode(request.getSourceKey()));
-        if (!request.getSourceVersiondId().empty()) {
-            source.append("?versionId=").append(request.getSourceVersiondId());
+        if (!request.getSourceVersionId().empty()) {
+            source.append("?versionId=").append(request.getSourceVersionId());
         }
         input.headers.insert_or_assign("x-oss-copy-source",  source);
     }
