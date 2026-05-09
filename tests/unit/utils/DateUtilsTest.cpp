@@ -2,10 +2,10 @@
 
 #include "src/utils/Utils.h"
 
-// macOS + GCC(libstdc++): std::locale("") crashes because libstdc++ doesn't
-// recognise macOS locale names, and -fno-exceptions turns the throw into
-// std::terminate(). Fall back to the C API setlocale() on that combo.
-#if defined(__APPLE__) && defined(__GNUC__) && !defined(__clang__)
+// macOS/MinGW + GCC(libstdc++): std::locale("") crashes because libstdc++
+// doesn't recognise the system locale names, and -fno-exceptions turns the
+// throw into std::terminate(). Fall back to the C API setlocale().
+#if defined(__GNUC__) && !defined(__clang__) && (defined(__APPLE__) || defined(__MINGW32__))
 #include <clocale>
 #define SET_LOCALE_ENV()                                        \
     const char* _oldLoc = setlocale(LC_ALL, nullptr);           \
