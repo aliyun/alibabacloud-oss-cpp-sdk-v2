@@ -58,8 +58,10 @@ static bool onServiceError(std::unique_ptr<ResponseMessage>& response, ExecuteCo
         response->body->seekg(0, std::ios::end);
         auto len = response->body->tellg();
         response->body->seekg(0, std::ios::beg);
-        data.resize(len);
-        response->body->read(data.data(), len);
+        if (len > 0) {
+            data.resize(static_cast<size_t>(len));
+            response->body->read(data.data(), len);
+        }
         context.errorContext.snapshot = std::move(data);
     }
 
@@ -154,6 +156,8 @@ ClientImpl::ClientImpl(const struct ClientConfiguration& config, const ClientOpt
                 return std::make_unique<ResponseCheckerExecuteMiddleware>(std::move(handle));
             },
             "ResponseChecker");
+
+    executeStack_->Apply();
 }
 
 OperationResult ClientImpl::Execute(const OperationInput& input, const OperationOptions* opts,

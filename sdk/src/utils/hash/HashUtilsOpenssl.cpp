@@ -1,5 +1,6 @@
 
 #include "../Utils.h"
+#include <cstring>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
 
@@ -9,18 +10,24 @@ namespace utils {
 
 void HmacSha1(const void* data, size_t numDataBytes, const void* key, size_t numKeyBytes, unsigned char out[20]) {
     unsigned int outLen = 20;
-    HMAC(EVP_sha1(),
+    unsigned char* ret = HMAC(EVP_sha1(),
         key, static_cast<int>(numKeyBytes),
         static_cast<const unsigned char*>(data), numDataBytes,
         out, &outLen);
+    if (ret == nullptr) {
+        std::memset(out, 0, 20);
+    }
 }
 
 void HmacSh256(const void* data, size_t numDataBytes, const void* key, size_t numKeyBytes, unsigned char out[32]) {
     unsigned int outLen = 32;
-    HMAC(EVP_sha256(),
+    unsigned char* ret = HMAC(EVP_sha256(),
         key, static_cast<int>(numKeyBytes),
         static_cast<const unsigned char*>(data), numDataBytes,
         out, &outLen);
+    if (ret == nullptr) {
+        std::memset(out, 0, 32);
+    }
 }
 
 std::string HashSh256(const void* data, size_t numDataBytes) {
@@ -28,12 +35,18 @@ std::string HashSh256(const void* data, size_t numDataBytes) {
     unsigned int hashLen = 0;
 
     EVP_MD_CTX* ctx = EVP_MD_CTX_new();
+    if (ctx == nullptr) {
+        return std::string(64, '0');
+    }
 #ifndef OPENSSL_IS_BORINGSSL
     EVP_MD_CTX_set_flags(ctx, EVP_MD_CTX_FLAG_NON_FIPS_ALLOW);
 #endif
-    EVP_DigestInit_ex(ctx, EVP_sha256(), nullptr);
-    EVP_DigestUpdate(ctx, data, numDataBytes);
-    EVP_DigestFinal_ex(ctx, hash, &hashLen);
+    if (EVP_DigestInit_ex(ctx, EVP_sha256(), nullptr) != 1 ||
+        EVP_DigestUpdate(ctx, data, numDataBytes) != 1 ||
+        EVP_DigestFinal_ex(ctx, hash, &hashLen) != 1) {
+        EVP_MD_CTX_free(ctx);
+        return std::string(64, '0');
+    }
     EVP_MD_CTX_free(ctx);
 
     static const char hex[] = "0123456789abcdef";

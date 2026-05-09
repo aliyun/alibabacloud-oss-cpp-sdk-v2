@@ -1,5 +1,6 @@
 #include "Url.h"
 #include <algorithm>
+#include <cstdlib>
 #include <sstream>
 
 
@@ -175,7 +176,8 @@ void Url::setAuthority(const std::string& authority) {
 
     setUserInfo(userinfoPart);
     setHost(hostPart);
-    setPort(!portPart.empty() ? atoi(portPart.c_str()) : INVALID_PORT);
+    int portVal = !portPart.empty() ? atoi(portPart.c_str()) : INVALID_PORT;
+    setPort(portVal <= 0 ? INVALID_PORT : portVal);
 }
 
 void Url::setFragment(const std::string& fragment) {
@@ -246,7 +248,7 @@ std::string Url::toString() const {
         out << scheme_ << "://";
     std::string str = authority();
     if (!str.empty())
-        out << authority();
+        out << str;
     if (path_.empty())
         out << "/";
     else
