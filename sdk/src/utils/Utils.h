@@ -65,6 +65,9 @@ std::time_t UtcToUnixTime(const std::string& t);
 std::time_t ToUnixTime(const std::string& str, const std::string& fmt);
 std::string FormatUnixTime(const std::time_t& t, const std::string& fmt);
 
+// rand utils
+uint32_t GetRandomValue();
+
 // mimetype utils
 const std::string& LookupMimeType(const std::string& name);
 
