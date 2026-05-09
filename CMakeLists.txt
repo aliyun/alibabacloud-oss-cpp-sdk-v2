@@ -38,6 +38,7 @@ sdk_option(ENABLE_RTTI "Flag to enable/disable building code with RTTI informati
 
 sdk_option(USE_SYSTEM_CURL "If enabled we will use the curl lib already installed on this system." OFF)
 sdk_option(USE_SYSTEM_OPENSSL "If enabled we will use the openssl lib already installed on this system." OFF)
+sdk_option(USE_SYSTEM_MBEDTLS "If enabled we will use the mbedtls lib already installed on this system." OFF)
 
 sdk_option(ENABLE_COVERAGE "Set to ON to generate coverage reports." OFF)
 sdk_option(ENABLE_CPPCHECK "Set to ON to enable Cppcheck static analysis." OFF)
@@ -83,6 +84,21 @@ endif()
 # SANITIZER
 if(ENABLE_SANITIZER)
     include(cmake/sanitizer.cmake)
+endif()
+
+#Find dependency Library for hash
+if(USE_SYSTEM_OPENSSL AND USE_SYSTEM_MBEDTLS)
+    message(FATAL_ERROR "USE_SYSTEM_OPENSSL and USE_SYSTEM_MBEDTLS are mutually exclusive. Please enable only one.")
+endif()
+
+if(USE_SYSTEM_OPENSSL)
+    find_package(OpenSSL REQUIRED)
+    message(STATUS "Using system OpenSSL for hash: ${OPENSSL_VERSION}")
+endif()
+
+if(USE_SYSTEM_MBEDTLS)
+    find_package(MbedTLS REQUIRED)
+    message(STATUS "Using system mbedTLS for hash")
 endif()
 
 #Find dependency Library curl

@@ -44,15 +44,29 @@ file(GLOB sdk_transport_src
 # add source by DISABLE_XX option
 
 # external source
-file(GLOB sdk_thirdparty_base64_src "src/thirdparty/base64/*.cpp")
-file(GLOB sdk_thirdparty_tinyxml2_src "src/thirdparty/tinyxml2/*.cpp")
-file(GLOB sdk_thirdparty_hash_src "src/thirdparty/hash/*.cpp")
-
 file(GLOB sdk_thirdparty_src
-    ${sdk_thirdparty_base64_src}
-    ${sdk_thirdparty_tinyxml2_src}
-    ${sdk_thirdparty_hash_src}
+    "src/thirdparty/base64/*.cpp"
+    "src/thirdparty/tinyxml2/*.cpp"
 )
+
+if(USE_SYSTEM_OPENSSL)
+    set(sdk_utils_hash_src
+        "src/utils/hash/Md5UtilsOpenssl.cpp"
+        "src/utils/hash/HashUtilsOpenssl.cpp"
+    )
+elseif(USE_SYSTEM_MBEDTLS)
+    set(sdk_utils_hash_src
+        "src/utils/hash/Md5UtilsMbedtls.cpp"
+        "src/utils/hash/HashUtilsMbedtls.cpp"
+    )
+else()
+    set(sdk_utils_hash_src
+        "src/utils/hash/Md5Utils.cpp"
+        "src/utils/hash/HashUtils.cpp"
+    )
+    file(GLOB sdk_thirdparty_hash_src "src/thirdparty/hash/*.cpp")
+    list(APPEND sdk_thirdparty_src ${sdk_thirdparty_hash_src})
+endif()
 
 #all source
 file(GLOB sdk_src
@@ -62,6 +76,7 @@ file(GLOB sdk_src
     ${sdk_retry_src}
     ${sdk_transport_src}
     ${sdk_utils_src}
+    ${sdk_utils_hash_src}
     ${sdk_internal_src}
     ${sdk_io_src}
     ${sdk_models_src}
@@ -80,9 +95,15 @@ else()
 endif()
     
 
-target_link_libraries(${PROJECT_NAME} 
+target_link_libraries(${PROJECT_NAME}
     PRIVATE ${CURL_LIB}
 )
+
+if(USE_SYSTEM_OPENSSL)
+    target_link_libraries(${PROJECT_NAME} PRIVATE OpenSSL::Crypto)
+elseif(USE_SYSTEM_MBEDTLS)
+    target_link_libraries(${PROJECT_NAME} PRIVATE MbedTLS::mbedcrypto)
+endif()
 
 # Fix missing OpenSSL includes for Windows since in 'ssl_ctx.cpp' we include OpenSSL directly
 if(SSL_BACKEND_USED STREQUAL "OpenSSL")
