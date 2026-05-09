@@ -71,6 +71,9 @@ include(ExternalProject)
 include(GNUInstallDirs)
 include(FetchContent)
 
+# CMake can find FindMbedTLS.cmake
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 # code coverage
 if(ENABLE_COVERAGE)
     include(cmake/code_coverage.cmake)
