@@ -2,6 +2,7 @@
 #include "alibabacloud/oss2/transport/HttpTypes.h"
 #include "src/utils/Utils.h"
 
+#include <algorithm>
 #include <set>
 #include <sstream>
 
@@ -93,35 +94,33 @@ static std::string getDateFromHeaders(const HeaderCollection& headers) {
     return "";
 }
 
-static std::string calcStringToSign(SigningContext& context, const std::string& dateOverride = "") {
-    RequestMessage* request = context.request;
+static std::string calcStringToSign(const SigningContext& context, const std::string& dateOverride = "") {
+    const RequestMessage* request = context.request;
 
     std::string canonicalUri = buildResource(context.bucket, context.key);
 
     std::string canonicalQuery;
-    if (request != nullptr) {
-        auto encodedParameters = utils::ToEncodedParameters(request->uri);
-        std::vector<std::pair<std::string, std::string>> sortedEntries;
-        for (const auto& [k, v] : encodedParameters) {
-            sortedEntries.emplace_back(k, v);
-        }
-        std::sort(sortedEntries.begin(), sortedEntries.end());
+    auto encodedParameters = utils::ToEncodedParameters(request->uri);
+    std::vector<std::pair<std::string, std::string>> sortedEntries;
+    for (const auto& [k, v] : encodedParameters) {
+        sortedEntries.emplace_back(k, v);
+    }
+    std::sort(sortedEntries.begin(), sortedEntries.end());
 
-        std::vector<std::string> queryParts;
-        for (const auto& [k, v] : sortedEntries) {
-            std::string decodedKey = utils::UrlDecode(k);
-            std::string decodedValue = utils::UrlDecode(v);
-            if (SubResourceSet.count(decodedKey) > 0) {
-                if (!decodedValue.empty()) {
-                    queryParts.push_back(decodedKey + "=" + decodedValue);
-                } else {
-                    queryParts.push_back(decodedKey);
-                }
+    std::vector<std::string> queryParts;
+    for (const auto& [k, v] : sortedEntries) {
+        std::string decodedKey = utils::UrlDecode(k);
+        std::string decodedValue = utils::UrlDecode(v);
+        if (SubResourceSet.count(decodedKey) > 0) {
+            if (!decodedValue.empty()) {
+                queryParts.push_back(decodedKey + "=" + decodedValue);
+            } else {
+                queryParts.push_back(decodedKey);
             }
         }
-        if (!queryParts.empty()) {
-            canonicalQuery = "?" + utils::StringJoin(queryParts, "&");
-        }
+    }
+    if (!queryParts.empty()) {
+        canonicalQuery = "?" + utils::StringJoin(queryParts, "&");
     }
 
     std::string canonicalResource = canonicalUri + canonicalQuery;
@@ -239,7 +238,6 @@ static void authQuery(SigningContext& context) {
     }
 
     // Temporarily update request URI for stringToSign calculation
-    std::string originalUri = request->uri;
     request->uri = ss.str();
 
     // Calculate stringToSign and signature

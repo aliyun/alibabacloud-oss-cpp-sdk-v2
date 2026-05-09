@@ -97,8 +97,9 @@ class TeeByteContent : public ByteContent {
     bool isOneShot() const override {
         return source_->isOneShot();
     }
+    // cppcheck-suppress uselessOverride
     std::optional<std::filesystem::path> path() const override {
-        // ignore FileContent path
+        // intentionally ignore FileContent path from source_
         return std::nullopt;
     };
     std::unique_ptr<ByteSource> spanSource() override;

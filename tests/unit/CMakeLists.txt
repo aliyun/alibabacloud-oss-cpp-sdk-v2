@@ -39,5 +39,7 @@ target_compile_options(${PROJECT_NAME}
     PRIVATE "${SDK_COMPILER_FLAGS}")
 
 if(CMAKE_HOST_UNIX)
-	target_link_libraries(${PROJECT_NAME} pthread)	
+	target_link_libraries(${PROJECT_NAME} pthread)
 endif()
+
+add_test(NAME cpp-sdk-unittest COMMAND ${PROJECT_NAME})

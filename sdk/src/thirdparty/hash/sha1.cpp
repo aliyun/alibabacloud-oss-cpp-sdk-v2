@@ -7,7 +7,14 @@
 #include "sha1.h"
 
 // big endian architectures need #define __BYTE_ORDER __BIG_ENDIAN
-#ifndef _MSC_VER
+#if defined(_WIN32)
+// Windows (MSVC and MinGW): use built-in byte order functions
+#include <stdlib.h>
+#elif defined(__APPLE__)
+// macOS: use libkern/OSByteOrder.h
+#include <libkern/OSByteOrder.h>
+#else
+// Linux and other Unix-like systems
 #include <endian.h>
 #endif
 
@@ -55,7 +62,7 @@ inline uint32_t swap(uint32_t x) {
 #if defined(__GNUC__) || defined(__clang__)
     return __builtin_bswap32(x);
 #endif
-#ifdef MSC_VER
+#ifdef _MSC_VER
     return _byteswap_ulong(x);
 #endif
 

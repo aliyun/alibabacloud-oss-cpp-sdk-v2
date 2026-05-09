@@ -3,11 +3,11 @@
 	<!-- Exclude Paths -->
 	<suppress>
 		<id>*</id>
-		<fileName>*/build/*</fileName>
+		<fileName>*build*</fileName>
 	</suppress>
 	<suppress>
 		<id>*</id>
-		<fileName>*/sdk/src/thirdparty/*</fileName>
+		<fileName>*thirdparty*</fileName>
 	</suppress>
 	<suppress>
 		<id>CheckLevelMaxBranches</id>
@@ -29,9 +29,5 @@
 	</suppress>
 	<suppress>
 		<id>knownConditionTrueFalse</id>
-	</suppress>
-	<suppress>
-		<id>*</id>
-		<fileName>*/sdk/src/signer/SignerV1.cpp</fileName>
 	</suppress>
 </suppressions>

@@ -9,8 +9,8 @@ namespace oss2 {
 namespace transform {
 
 
-inline static models::CopyPartResult toCopyPartResult(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::CopyPartResult toCopyPartResult(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::CopyPartResult();
 
     node = root->FirstChildElement("LastModified");
@@ -31,8 +31,8 @@ inline static models::CopyPartResult toCopyPartResult(thirdparty::tinyxml2::XMLE
 }
 
 
-inline static models::Upload toUpload(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::Upload toUpload(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::Upload();
 
     node = root->FirstChildElement("Key");
@@ -60,8 +60,8 @@ inline static models::Upload toUpload(thirdparty::tinyxml2::XMLElement* root) {
 }
 
 /*
-inline static models::CommonPrefix toCommonPrefix(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::CommonPrefix toCommonPrefix(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::CommonPrefix();
 
     node = root->FirstChildElement("Prefix");
@@ -91,8 +91,8 @@ inline static std::string toXmlText(const models::Part& value, const std::string
     return str;
 }
 
-inline static models::Part toPart(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::Part toPart(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::Part();
 
     node = root->FirstChildElement("ETag");
@@ -131,7 +131,7 @@ inline static std::string toXmlText(const models::CompleteMultipartUpload& value
     std::string str;
     str.append("<").append(tag).append(">");
 
-    for (auto& it : value.parts) {
+    for (const auto& it : value.parts) {
         str.append(toXmlText(it, "Part"));
     }
 
@@ -139,8 +139,8 @@ inline static std::string toXmlText(const models::CompleteMultipartUpload& value
     return str;
 }
 
-inline static models::ListPartResultXml toListPartResult(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::ListPartResultXml toListPartResult(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::ListPartResultXml();
 
     node = root->FirstChildElement("EncodingType");
@@ -208,8 +208,8 @@ inline static models::ListPartResultXml toListPartResult(thirdparty::tinyxml2::X
 }
 
 inline static models::InitiateMultipartUploadResultXml toInitiateMultipartUploadResultXml(
-        thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+        const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::InitiateMultipartUploadResultXml();
 
     node = root->FirstChildElement("EncodingType");
@@ -237,8 +237,8 @@ inline static models::InitiateMultipartUploadResultXml toInitiateMultipartUpload
 
 
 inline static models::ListMultipartUploadsResultXml toListMultipartUploadsResult(
-        thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+        const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::ListMultipartUploadsResultXml();
 
     node = root->FirstChildElement("EncodingType");
@@ -315,12 +315,12 @@ OperationInput fromInitiateMultipartUpload(const models::InitiateMultipartUpload
     input.parameters.emplace("encoding-type", "url");
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -342,7 +342,7 @@ Outcome<models::InitiateMultipartUploadResult, OperationError> toInitiateMultipa
         std::istreambuf_iterator<char> isb(*output.body.get()), end;
         std::string str(isb, end);
         if ((xml_err = doc.Parse(str.c_str(), str.size())) == thirdparty::tinyxml2::XML_SUCCESS) {
-            auto root = doc.RootElement();
+            const auto* root = doc.RootElement();
             if (root != nullptr && !std::strcmp("InitiateMultipartUploadResult", root->Name())) {
                 return models::InitiateMultipartUploadResult(output.statusCode, std::move(output.headers),
                                                              toInitiateMultipartUploadResultXml(root));
@@ -371,12 +371,12 @@ OperationInput fromUploadPart(const models::UploadPartRequest& request) {
     // Default Parameters
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -404,12 +404,12 @@ OperationInput fromCompleteMultipartUpload(const models::CompleteMultipartUpload
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -437,7 +437,7 @@ Outcome<models::CompleteMultipartUploadResult, OperationError> toCompleteMultipa
         std::istreambuf_iterator<char> isb(*output.body.get()), end;
         std::string str(isb, end);
         if ((xml_err = doc.Parse(str.c_str(), str.size())) == thirdparty::tinyxml2::XML_SUCCESS) {
-            auto root = doc.RootElement();
+            const auto* root = doc.RootElement();
             auto result = models::CompleteMultipartUploadResult(output.statusCode, std::move(output.headers));
             auto node = root->FirstChildElement("EncodingType");
             bool doDecode = false;
@@ -492,7 +492,7 @@ OperationInput fromUploadPartCopy(const models::UploadPartCopyRequest& request) 
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
@@ -508,7 +508,7 @@ OperationInput fromUploadPartCopy(const models::UploadPartCopyRequest& request) 
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -530,7 +530,7 @@ Outcome<models::UploadPartCopyResult, OperationError> toUploadPartCopy(Operation
         std::istreambuf_iterator<char> isb(*output.body.get()), end;
         std::string str(isb, end);
         if ((xml_err = doc.Parse(str.c_str(), str.size())) == thirdparty::tinyxml2::XML_SUCCESS) {
-            auto root = doc.RootElement();
+            const auto* root = doc.RootElement();
             if (root != nullptr && !std::strcmp("CopyPartResult", root->Name())) {
                 return models::UploadPartCopyResult(output.statusCode, std::move(output.headers),
                                                     toCopyPartResult(root));
@@ -560,12 +560,12 @@ OperationInput fromAbortMultipartUpload(const models::AbortMultipartUploadReques
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -597,12 +597,12 @@ OperationInput fromListMultipartUploads(const models::ListMultipartUploadsReques
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -624,7 +624,7 @@ Outcome<models::ListMultipartUploadsResult, OperationError> toListMultipartUploa
         std::istreambuf_iterator<char> isb(*output.body.get()), end;
         std::string str(isb, end);
         if ((xml_err = doc.Parse(str.c_str(), str.size())) == thirdparty::tinyxml2::XML_SUCCESS) {
-            auto root = doc.RootElement();
+            const auto* root = doc.RootElement();
             if (root != nullptr && !std::strcmp("ListMultipartUploadsResult", root->Name())) {
                 return models::ListMultipartUploadsResult(output.statusCode, std::move(output.headers),
                                                           toListMultipartUploadsResult(root));
@@ -654,12 +654,12 @@ OperationInput fromListParts(const models::ListPartsRequest& request) {
     input.parameters.emplace("encoding-type", "url");
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -681,7 +681,7 @@ Outcome<models::ListPartsResult, OperationError> toListParts(OperationOutput&& o
         std::istreambuf_iterator<char> isb(*output.body.get()), end;
         std::string str(isb, end);
         if ((xml_err = doc.Parse(str.c_str(), str.size())) == thirdparty::tinyxml2::XML_SUCCESS) {
-            auto root = doc.RootElement();
+            const auto* root = doc.RootElement();
             if (root != nullptr && !std::strcmp("ListPartsResult", root->Name())) {
                 return models::ListPartsResult(output.statusCode, std::move(output.headers), toListPartResult(root));
             }

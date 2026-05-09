@@ -81,7 +81,7 @@ std::time_t ToUnixTime(const std::string& str, const std::string& fmt) {
     strptime(str.c_str(), fmt.c_str(), &tm);
 #else
     std::istringstream input(str);
-    input.imbue(std::locale(setlocale(LC_ALL, nullptr)));
+    input.imbue(std::locale::classic());
     input >> std::get_time(&tm, fmt.c_str());
     if (input.fail()) {
         return -1;

@@ -3,6 +3,8 @@
 #include "src/utils/LogUtils.h"
 #include "CurlContainer.h"
 
+#include <curl/curlver.h>
+
 #include <algorithm>
 #include <atomic>
 #include <cassert>
@@ -77,6 +79,7 @@ static size_t sendBody(char* ptr, size_t size, size_t nmemb, void* userdata) {
     return got;
 }
 
+// cppcheck-suppress constParameterCallback
 static size_t recvBody(char* ptr, size_t size, size_t nmemb, void* userdata) {
     TransferState* state = static_cast<TransferState*>(userdata);
     const size_t wanted = size * nmemb;
@@ -129,9 +132,15 @@ static size_t recvHeaders(char* buffer, size_t size, size_t nitems, void* userda
 
     if (wanted == 2 && (buffer[0] == 0x0D) && (buffer[1] == 0x0A)) {
         if (state->response->headers.find("Content-Length") != state->response->headers.end()) {
+#if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 55, 0)
+            curl_off_t dval;
+            curl_easy_getinfo(state->curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &dval);
+            state->recvDataLength = (int64_t) dval;
+#else
             double dval;
             curl_easy_getinfo(state->curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &dval);
             state->recvDataLength = (int64_t) dval;
+#endif
         }
     }
     return wanted;
@@ -155,7 +164,8 @@ int debugCallback(void* handle, curl_infotype type, char* data, size_t size, voi
     return 0;
 }
 
-static int progressCallback(void* userdata, double dltotal, double dlnow, double ultotal, double ulnow) {
+#if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 32, 0)
+static int xferInfoCallback(void* userdata, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
     UNUSED_PARAM(dltotal);
     UNUSED_PARAM(dlnow);
     UNUSED_PARAM(ultotal);
@@ -165,10 +175,23 @@ static int progressCallback(void* userdata, double dltotal, double dlnow, double
         return 0;
     }
 
-    // CurlHttpClient* thiz = static_cast<CurlHttpClient*>(state->owner);
+    return 0;
+}
+#else
+// cppcheck-suppress constParameterCallback
+static int progressCallback(void* userdata, double dltotal, double dlnow, double ultotal, double ulnow) {
+    UNUSED_PARAM(dltotal);
+    UNUSED_PARAM(dlnow);
+    UNUSED_PARAM(ultotal);
+    UNUSED_PARAM(ulnow);
+    const TransferState* state = static_cast<const TransferState*>(userdata);
+    if (state == nullptr || state->owner == nullptr) {
+        return 0;
+    }
 
     return 0;
 }
+#endif
 
 bool static ignoreHeader(const std::string& header, const std::string& expect) {
     if ((expect.length() == header.length()) &&
@@ -320,7 +343,11 @@ ResponseResult CurlHttpClient::send(std::unique_ptr<RequestMessage>& request, Re
     errbuf[0] = 0;
 
     // Progress Callback
+#if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 32, 0)
+    curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, detail::xferInfoCallback);
+#else
     curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, detail::progressCallback);
+#endif
     curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &transferState);
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 

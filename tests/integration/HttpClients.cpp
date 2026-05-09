@@ -1,4 +1,6 @@
 #include "HttpClients.h"
+#include <cstring>
+#include <cassert>
 
 namespace alibabacloud {
 namespace oss2 {
@@ -6,7 +8,7 @@ namespace test {
 
 HttpClient::HttpClient() : curl_(curl_easy_init()) {
     if (!curl_) {
-        throw std::runtime_error("Failed to initialize libcurl");
+        assert(false && "Failed to initialize libcurl");
     }
 }
 

@@ -25,8 +25,8 @@ inline static std::string toXmlText(const models::Tag& value, const std::string&
     return str;
 }
 
-inline static models::Tag toTag(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::Tag toTag(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::Tag();
 
     node = root->FirstChildElement("Key");
@@ -51,7 +51,7 @@ inline static std::string toXmlText(const models::TagSet& value, const std::stri
     std::string str;
     str.append("<").append(tag).append(">");
 
-    for (auto& it : value.tags) {
+    for (const auto& it : value.tags) {
         str.append(toXmlText(it, "Tag"));
     }
 
@@ -60,8 +60,8 @@ inline static std::string toXmlText(const models::TagSet& value, const std::stri
 }
 
 
-inline static models::TagSet toTagSet(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::TagSet toTagSet(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::TagSet();
 
     node = root->FirstChildElement("Tag");
@@ -88,8 +88,8 @@ inline static std::string toXmlText(const models::Tagging& value, const std::str
 }
 
 
-inline static models::Tagging toTagging(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::Tagging toTagging(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::Tagging();
 
     node = root->FirstChildElement("TagSet");
@@ -115,12 +115,12 @@ OperationInput fromPutObjectTagging(const models::PutObjectTaggingRequest& reque
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -158,12 +158,12 @@ OperationInput fromGetObjectTagging(const models::GetObjectTaggingRequest& reque
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -185,7 +185,7 @@ Outcome<models::GetObjectTaggingResult, OperationError> toGetObjectTagging(Opera
         std::istreambuf_iterator<char> isb(*output.body.get()), end;
         std::string str(isb, end);
         if ((xml_err = doc.Parse(str.c_str(), str.size())) == thirdparty::tinyxml2::XML_SUCCESS) {
-            auto root = doc.RootElement();
+            const auto* root = doc.RootElement();
             auto result = models::GetObjectTaggingResult(output.statusCode, std::move(output.headers));
             if (root != nullptr && !std::strcmp("Tagging", root->Name())) {
                 result.setTagging(toTagging(root));
@@ -218,12 +218,12 @@ OperationInput fromDeleteObjectTagging(const models::DeleteObjectTaggingRequest&
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 

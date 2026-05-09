@@ -1,0 +1,114 @@
+name: Linux Analysis
+
+on:
+  push:
+    branches: [main, 'dev-*']
+    paths:
+      - 'sdk/**'
+      - 'tests/**'
+      - 'CMakeLists.txt'
+      - 'cmake/**'
+      - '.github/workflows/linux-analysis.yml'
+  pull_request:
+    branches: [main, 'dev-*']
+    paths:
+      - 'sdk/**'
+      - 'tests/**'
+      - 'CMakeLists.txt'
+      - 'cmake/**'
+      - '.github/workflows/linux-analysis.yml'
+
+jobs:
+  cppcheck:
+    name: Cppcheck Static Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev pkg-config libcurl4-openssl-dev cppcheck
+
+      - name: Create build directory
+        run: cmake -E make_directory ${{github.workspace}}/build
+
+      - name: Configure CMake with Cppcheck
+        working-directory: ${{github.workspace}}/build
+        run: |
+          cmake .. \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_SAMPLES=OFF \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DUSE_SYSTEM_CURL=ON \
+            -DENABLE_CPPCHECK=ON
+
+      - name: Build with Cppcheck
+        working-directory: ${{github.workspace}}/build
+        run: |
+          set -o pipefail
+          cmake --build . --config Release 2>&1 | tee cppcheck-build.log
+
+      - name: Show Cppcheck errors
+        if: failure()
+        working-directory: ${{github.workspace}}/build
+        run: |
+          if [ -f cppcheck.xml ]; then
+            echo "::group::Cppcheck XML report (first 100 lines)"
+            head -100 cppcheck.xml
+            echo "::endgroup::"
+          fi
+          echo "::group::Build errors from log"
+          grep -i "error\|warning" cppcheck-build.log | grep -v "^Checking\|^[[:space:]]*$" | head -50 || true
+          echo "::endgroup::"
+
+      - name: Upload Cppcheck XML report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cppcheck-report
+          path: build/cppcheck.xml
+          if-no-files-found: ignore
+
+      - name: Upload build log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cppcheck-build-log
+          path: build/cppcheck-build.log
+
+  sanitizer:
+    name: Sanitizer (ASan/UBSan)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev pkg-config libcurl4-openssl-dev
+
+      - name: Create build directory
+        run: cmake -E make_directory ${{github.workspace}}/build
+
+      - name: Configure CMake with Sanitizers
+        working-directory: ${{github.workspace}}/build
+        run: |
+          cmake .. \
+            -DBUILD_TESTS=ON \
+            -DBUILD_SAMPLES=OFF \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DUSE_SYSTEM_CURL=ON \
+            -DENABLE_SANITIZER=ON
+
+      - name: Build with Sanitizers
+        working-directory: ${{github.workspace}}/build
+        run: cmake --build .
+
+      - name: Run Unit Tests with Sanitizers
+        working-directory: ${{github.workspace}}/build
+        run: ctest -V --output-on-failure -R cpp-sdk-unittest

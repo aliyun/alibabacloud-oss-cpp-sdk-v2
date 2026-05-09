@@ -1,0 +1,79 @@
+name: macOS CI
+
+on:
+  push:
+    branches: [main, 'dev-*']
+    paths:
+      - 'sdk/**'
+      - 'tests/**'
+      - 'CMakeLists.txt'
+      - 'cmake/**'
+      - '.github/workflows/macos.yml'
+  pull_request:
+    branches: [main, 'dev-*']
+    paths:
+      - 'sdk/**'
+      - 'tests/**'
+      - 'CMakeLists.txt'
+      - 'cmake/**'
+      - '.github/workflows/macos.yml'
+
+jobs:
+  build:
+    name: macOS (${{ matrix.compiler }}, ${{ matrix.std }})
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [clang, gcc]
+        std: [c++17, c++20]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up compiler
+        run: |
+          if [ "${{ matrix.compiler }}" = "gcc" ]; then
+            echo "CC=gcc-13" >> $GITHUB_ENV
+            echo "CXX=g++-13" >> $GITHUB_ENV
+          else
+            echo "CC=clang" >> $GITHUB_ENV
+            echo "CXX=clang++" >> $GITHUB_ENV
+          fi
+
+      - name: Install dependencies
+        run: |
+          brew install openssl curl gcc
+
+      # Static library build + unit tests
+      - name: Configure CMake (static)
+        run: |
+          cmake -B build-static \
+            -DBUILD_TESTS=ON \
+            -DBUILD_SAMPLES=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DUSE_SYSTEM_CURL=ON \
+            -DCMAKE_CXX_STANDARD=${{ matrix.std == 'c++17' && '17' || '20' }} \
+            -DBUILD_SHARED_LIBS=OFF
+
+      - name: Build (static)
+        run: cmake --build build-static
+
+      - name: Test (static)
+        working-directory: build-static
+        run: ctest -V --output-on-failure -R cpp-sdk-unittest
+
+      # Shared library build (compile-only)
+      - name: Configure CMake (shared)
+        run: |
+          cmake -B build-shared \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_SAMPLES=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DUSE_SYSTEM_CURL=ON \
+            -DCMAKE_CXX_STANDARD=${{ matrix.std == 'c++17' && '17' || '20' }} \
+            -DBUILD_SHARED_LIBS=ON
+
+      - name: Build (shared)
+        run: cmake --build build-shared

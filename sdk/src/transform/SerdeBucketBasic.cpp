@@ -7,8 +7,8 @@ namespace alibabacloud {
 namespace oss2 {
 namespace transform {
 
-inline static models::BucketStat toBucketStat(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::BucketStat toBucketStat(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::BucketStat();
 
     node = root->FirstChildElement("DeleteMarkerCount");
@@ -239,8 +239,8 @@ inline static models::BucketStat toBucketStat(thirdparty::tinyxml2::XMLElement* 
 }
 
 
-inline static models::AccessControlList toAccessControlList(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::AccessControlList toAccessControlList(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::AccessControlList();
 
     node = root->FirstChildElement("Grant");
@@ -254,8 +254,8 @@ inline static models::AccessControlList toAccessControlList(thirdparty::tinyxml2
 }
 
 
-inline static models::BucketPolicy toBucketPolicy(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::BucketPolicy toBucketPolicy(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::BucketPolicy();
 
     node = root->FirstChildElement("LogBucket");
@@ -292,8 +292,8 @@ inline static std::string toXmlText(const models::CreateBucketConfiguration& val
     return str;
 }
 
-inline static models::Owner toOwner(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::Owner toOwner(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::Owner();
 
     node = root->FirstChildElement("ID");
@@ -313,8 +313,8 @@ inline static models::Owner toOwner(thirdparty::tinyxml2::XMLElement* root) {
     return result;
 }
 
-inline static models::CommonPrefix toCommonPrefix(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::CommonPrefix toCommonPrefix(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::CommonPrefix();
 
     node = root->FirstChildElement("Prefix");
@@ -328,8 +328,8 @@ inline static models::CommonPrefix toCommonPrefix(thirdparty::tinyxml2::XMLEleme
 }
 
 
-inline static models::ServerSideEncryptionRule toServerSideEncryptionRule(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::ServerSideEncryptionRule toServerSideEncryptionRule(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::ServerSideEncryptionRule();
 
     node = root->FirstChildElement("KMSMasterKeyID");
@@ -356,11 +356,11 @@ inline static models::ServerSideEncryptionRule toServerSideEncryptionRule(thirdp
     return result;
 }
 
-inline static models::BucketInfo toBucketInfo(thirdparty::tinyxml2::XMLElement* root) {
+inline static models::BucketInfo toBucketInfo(const thirdparty::tinyxml2::XMLElement* root) {
     auto result = models::BucketInfo();
     root = root->FirstChildElement("Bucket");
     if (root) {
-        thirdparty::tinyxml2::XMLElement* node;
+        const thirdparty::tinyxml2::XMLElement* node;
         node = root->FirstChildElement("StorageClass");
         if (node) {
             result.storageClass = toString(node);
@@ -455,8 +455,8 @@ inline static models::BucketInfo toBucketInfo(thirdparty::tinyxml2::XMLElement* 
 }
 
 
-inline static models::ObjectSummary toObjectSummary(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::ObjectSummary toObjectSummary(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::ObjectSummary();
 
     node = root->FirstChildElement("LastModified");
@@ -526,8 +526,8 @@ inline static models::ObjectSummary toObjectSummary(thirdparty::tinyxml2::XMLEle
 }
 
 
-inline static models::ListBucketResultXml toListBucketResult(thirdparty::tinyxml2::XMLElement* root) {
-    thirdparty::tinyxml2::XMLElement* node;
+inline static models::ListBucketResultXml toListBucketResult(const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::ListBucketResultXml();
 
     node = root->FirstChildElement("EncodingType");
@@ -624,12 +624,12 @@ OperationInput fromGetBucketStat(const models::GetBucketStatRequest& request) {
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -651,7 +651,7 @@ Outcome<models::GetBucketStatResult, OperationError> toGetBucketStat(OperationOu
         std::istreambuf_iterator<char> isb(*output.body.get()), end;
         std::string str(isb, end);
         if ((xml_err = doc.Parse(str.c_str(), str.size())) == thirdparty::tinyxml2::XML_SUCCESS) {
-            auto root = doc.RootElement();
+            const auto* root = doc.RootElement();
             auto result = models::GetBucketStatResult(output.statusCode, std::move(output.headers));
             if (root != nullptr && !std::strcmp("BucketStat", root->Name())) {
                 result.setBucketStat(toBucketStat(root));
@@ -682,12 +682,12 @@ OperationInput fromPutBucket(const models::PutBucketRequest& request) {
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -723,12 +723,12 @@ OperationInput fromDeleteBucket(const models::DeleteBucketRequest& request) {
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -758,12 +758,12 @@ OperationInput fromListObjects(const models::ListObjectsRequest& request) {
     input.parameters.emplace("encoding-type", "url");
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -785,7 +785,7 @@ Outcome<models::ListObjectsResult, OperationError> toListObjects(OperationOutput
         std::istreambuf_iterator<char> isb(*output.body.get()), end;
         std::string str(isb, end);
         if ((xml_err = doc.Parse(str.c_str(), str.size())) == thirdparty::tinyxml2::XML_SUCCESS) {
-            auto root = doc.RootElement();
+            const auto* root = doc.RootElement();
             if (root != nullptr && !std::strcmp("ListBucketResult", root->Name())) {
                 return models::ListObjectsResult(output.statusCode, std::move(output.headers),
                                                  toListBucketResult(root));
@@ -816,12 +816,12 @@ OperationInput fromListObjectsV2(const models::ListObjectsV2Request& request) {
     input.parameters.emplace("encoding-type", "url");
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -843,7 +843,7 @@ Outcome<models::ListObjectsV2Result, OperationError> toListObjectsV2(OperationOu
         std::istreambuf_iterator<char> isb(*output.body.get()), end;
         std::string str(isb, end);
         if ((xml_err = doc.Parse(str.c_str(), str.size())) == thirdparty::tinyxml2::XML_SUCCESS) {
-            auto root = doc.RootElement();
+            const auto* root = doc.RootElement();
             if (root != nullptr && !std::strcmp("ListBucketResult", root->Name())) {
                 return models::ListObjectsV2Result(output.statusCode, std::move(output.headers),
                                                    toListBucketResult(root));
@@ -875,12 +875,12 @@ OperationInput fromGetBucketInfo(const models::GetBucketInfoRequest& request) {
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -902,7 +902,7 @@ Outcome<models::GetBucketInfoResult, OperationError> toGetBucketInfo(OperationOu
         std::istreambuf_iterator<char> isb(*output.body.get()), end;
         std::string str(isb, end);
         if ((xml_err = doc.Parse(str.c_str(), str.size())) == thirdparty::tinyxml2::XML_SUCCESS) {
-            auto root = doc.RootElement();
+            const auto* root = doc.RootElement();
             auto result = models::GetBucketInfoResult(output.statusCode, std::move(output.headers));
             if (root != nullptr && !std::strcmp("BucketInfo", root->Name())) {
                 result.setBucketInfo(toBucketInfo(root));
@@ -935,12 +935,12 @@ OperationInput fromGetBucketLocation(const models::GetBucketLocationRequest& req
 
 
     // headers
-    for (auto& [k, v] : request.getHeaders()) {
+    for (const auto& [k, v] : request.getHeaders()) {
         input.headers.insert_or_assign(k, v);
     }
 
     // parameters
-    for (auto& [k, v] : request.getParameters()) {
+    for (const auto& [k, v] : request.getParameters()) {
         input.parameters.insert_or_assign(k, v);
     }
 
@@ -962,7 +962,7 @@ Outcome<models::GetBucketLocationResult, OperationError> toGetBucketLocation(Ope
         std::istreambuf_iterator<char> isb(*output.body.get()), end;
         std::string str(isb, end);
         if ((xml_err = doc.Parse(str.c_str(), str.size())) == thirdparty::tinyxml2::XML_SUCCESS) {
-            auto root = doc.RootElement();
+            const auto* root = doc.RootElement();
             if (root != nullptr && !std::strcmp("LocationConstraint", root->Name())) {
                 auto result = models::GetBucketLocationResult(output.statusCode, std::move(output.headers));
                 result.setLocationConstraint(toString(root));
