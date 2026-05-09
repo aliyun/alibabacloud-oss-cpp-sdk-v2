@@ -1,0 +1,60 @@
+name: MinGW CI
+
+on:
+  push:
+    branches: [main, 'dev-*']
+    paths:
+      - 'sdk/**'
+      - 'tests/**'
+      - 'CMakeLists.txt'
+      - 'cmake/**'
+      - '.github/workflows/mingw.yml'
+  pull_request:
+    branches: [main, 'dev-*']
+    paths:
+      - 'sdk/**'
+      - 'tests/**'
+      - 'CMakeLists.txt'
+      - 'cmake/**'
+      - '.github/workflows/mingw.yml'
+
+jobs:
+  build:
+    name: MinGW (${{ matrix.arch }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x86_64, i686]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y mingw-w64 wine wine32 wine64
+
+      - name: Create build directory
+        run: cmake -E make_directory ${{github.workspace}}/build
+
+      - name: Configure CMake
+        working-directory: ${{github.workspace}}/build
+        run: |
+          cmake .. \
+            -DCMAKE_SYSTEM_NAME=Windows \
+            -DCMAKE_C_COMPILER=${{ matrix.arch }}-w64-mingw32-gcc \
+            -DCMAKE_CXX_COMPILER=${{ matrix.arch }}-w64-mingw32-g++ \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_TESTS=ON \
+            -DBUILD_SAMPLES=OFF
+
+      - name: Build
+        working-directory: ${{github.workspace}}/build
+        run: cmake --build .
+
+      - name: Test (Unit Tests Only)
+        working-directory: ${{github.workspace}}/build
+        run: wine tests/unit/cpp-sdk-unittest.exe
