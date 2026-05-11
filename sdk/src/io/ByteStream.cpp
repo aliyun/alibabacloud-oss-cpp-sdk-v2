@@ -118,7 +118,7 @@ std::vector<std::uint8_t> ByteSource::readToEnd() {
 FileContent::FileContent(std::filesystem::path path, std::size_t off, std::optional<std::size_t> length)
         : path_(std::move(path)), off_(0), length_(std::nullopt) {
     std::error_code ec;
-    auto size = std::filesystem::file_size(path_, ec);
+    auto size = static_cast<std::size_t>(std::filesystem::file_size(path_, ec));
     if (!ec) {
         off_ = off;
         if (off_ > size) {

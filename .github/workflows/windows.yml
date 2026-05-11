@@ -32,39 +32,83 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Static library build + unit tests
-      - name: Configure CMake (static)
+      # x64: Static library build + unit tests
+      - name: Configure CMake (static, x64)
         shell: bash
         run: |
-          cmake -B build-static \
+          cmake -B build-static-x64 \
             ${{ matrix.compiler == 'clang' && '-T ClangCL' || '' }} \
+            -A x64 \
             -DBUILD_TESTS=ON \
             -DBUILD_SAMPLES=ON \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_CXX_STANDARD=${{ matrix.std == 'c++17' && '17' || '20' }} \
             -DBUILD_SHARED_LIBS=OFF
 
-      - name: Build (static)
+      - name: Build (static, x64)
         shell: bash
-        run: cmake --build build-static --config Release --target ALL_BUILD
+        run: cmake --build build-static-x64 --config Release --target ALL_BUILD
 
-      - name: Test (static)
-        working-directory: build-static
+      - name: Test (static, x64)
+        working-directory: build-static-x64
         shell: bash
         run: ctest -C Release -V --output-on-failure -R cpp-sdk-unittest
 
-      # Shared library build (compile-only)
-      - name: Configure CMake (shared)
+      # x64: Shared library build (compile-only)
+      - name: Configure CMake (shared, x64)
         shell: bash
         run: |
-          cmake -B build-shared \
+          cmake -B build-shared-x64 \
             ${{ matrix.compiler == 'clang' && '-T ClangCL' || '' }} \
+            -A x64 \
             -DBUILD_TESTS=OFF \
             -DBUILD_SAMPLES=ON \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_CXX_STANDARD=${{ matrix.std == 'c++17' && '17' || '20' }} \
             -DBUILD_SHARED_LIBS=ON
 
-      - name: Build (shared)
+      - name: Build (shared, x64)
         shell: bash
-        run: cmake --build build-shared --config Release --target ALL_BUILD
+        run: cmake --build build-shared-x64 --config Release --target ALL_BUILD
+
+      # x86: Static library build + unit tests (msvc only)
+      - name: Configure CMake (static, x86)
+        if: matrix.compiler == 'msvc'
+        shell: bash
+        run: |
+          cmake -B build-static-x86 \
+            -A Win32 \
+            -DBUILD_TESTS=ON \
+            -DBUILD_SAMPLES=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_STANDARD=${{ matrix.std == 'c++17' && '17' || '20' }} \
+            -DBUILD_SHARED_LIBS=OFF
+
+      - name: Build (static, x86)
+        if: matrix.compiler == 'msvc'
+        shell: bash
+        run: cmake --build build-static-x86 --config Release --target ALL_BUILD
+
+      - name: Test (static, x86)
+        if: matrix.compiler == 'msvc'
+        working-directory: build-static-x86
+        shell: bash
+        run: ctest -C Release -V --output-on-failure -R cpp-sdk-unittest
+
+      # x86: Shared library build (compile-only, msvc only)
+      - name: Configure CMake (shared, x86)
+        if: matrix.compiler == 'msvc'
+        shell: bash
+        run: |
+          cmake -B build-shared-x86 \
+            -A Win32 \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_SAMPLES=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_STANDARD=${{ matrix.std == 'c++17' && '17' || '20' }} \
+            -DBUILD_SHARED_LIBS=ON
+
+      - name: Build (shared, x86)
+        if: matrix.compiler == 'msvc'
+        shell: bash
+        run: cmake --build build-shared-x86 --config Release --target ALL_BUILD
