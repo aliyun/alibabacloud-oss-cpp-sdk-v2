@@ -3,8 +3,10 @@
 #include "alibabacloud/oss2/ClientOptions.h"
 #include "alibabacloud/oss2/OSSFwd.h"
 
-
+#include <future>
+#include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -14,6 +16,7 @@ namespace oss2 {
 
 // forward declare
 struct ClientConfiguration;
+class Executor;
 
 namespace internal {
 class ClientImpl;
@@ -25,7 +28,7 @@ class ALIBABACLOUD_OSS_API OSSClient final {
 
     explicit OSSClient(const struct ClientConfiguration& config, ClientOptionsFns& fns);
 
-    virtual ~OSSClient() = default;
+    ~OSSClient() = default;
 
   public:
     /**
@@ -471,8 +474,51 @@ class ALIBABACLOUD_OSS_API OSSClient final {
     PresignOutcome presign(const models::UploadPartRequest& request,
                            const models::PresignOptions* options = nullptr);
 
+    // Async
+
+    template<typename OutcomeT, typename RequestT>
+    std::future<OutcomeT> callAsync(
+        OutcomeT(OSSClient::*method)(const RequestT&, const OperationOptions*),
+        const RequestT& request,
+        const OperationOptions* options = nullptr) {
+        if (!executor_) {
+            std::promise<OutcomeT> p;
+            p.set_value(OutcomeT(OperationError(SdkErrorCode::ARGUMENT_INVALID,
+                {{"Code", "NoExecutor"}, {"Message", "No executor configured for async operations"}})));
+            return p.get_future();
+        }
+        auto opts = options ? std::make_optional(*options) : std::nullopt;
+        auto task = std::make_shared<std::packaged_task<OutcomeT()>>(
+            [this, method, request, opts = std::move(opts)]() {
+                return (this->*method)(request, opts ? &*opts : nullptr);
+            });
+        executeTask([task]() { (*task)(); });
+        return task->get_future();
+    }
+
+    template<typename OutcomeT, typename RequestT, typename HandlerT>
+    void callAsync(
+        OutcomeT(OSSClient::*method)(const RequestT&, const OperationOptions*),
+        const RequestT& request,
+        HandlerT&& handler,
+        const OperationOptions* options = nullptr) {
+        if (!executor_) {
+            handler(this, request, OutcomeT(OperationError(SdkErrorCode::ARGUMENT_INVALID,
+                {{"Code", "NoExecutor"}, {"Message", "No executor configured for async operations"}})));
+            return;
+        }
+        auto opts = options ? std::make_optional(*options) : std::nullopt;
+        executeTask([this, method, req = request,
+                     h = std::forward<HandlerT>(handler),
+                     opts = std::move(opts)]() {
+            h(this, req, (this->*method)(req, opts ? &*opts : nullptr));
+        });
+    }
+
   private:
+    void executeTask(std::function<void()> task);
     std::shared_ptr<internal::ClientImpl> client_;
+    std::shared_ptr<Executor> executor_;
 };
 
 } // namespace oss2

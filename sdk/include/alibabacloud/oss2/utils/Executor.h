@@ -2,22 +2,18 @@
 #pragma once
 
 #include "alibabacloud/oss2/OSS_EXPORTS.h"
-#include "alibabacloud/oss2/utils/Runnable.h"
-#include <atomic>
-#include <condition_variable>
-#include <mutex>
-#include <queue>
-#include <thread>
-#include <unordered_map>
-#include <vector>
+#include <functional>
 
 
 namespace alibabacloud {
 namespace oss2 {
+
+/// Abstract base class for async task executors.
+/// Subclass this to provide custom threading strategies for OSSClient::callAsync.
 class ALIBABACLOUD_OSS_API Executor {
   public:
     virtual ~Executor() = default;
-    virtual void execute(Runnable* task) = 0;
+    virtual void execute(std::function<void()> task) = 0;
 };
 } // namespace oss2
 } // namespace alibabacloud
