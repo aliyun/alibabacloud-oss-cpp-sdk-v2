@@ -1,5 +1,6 @@
 #include "alibabacloud/oss2/OSSClient.h"
 #include "src/internal/ClientImpl.h"
+#include "src/OSSClientFieldCheck.h"
 
 #include <ctime>
 
@@ -9,21 +10,12 @@ namespace oss2 {
 using internal::PresignInnerOutput;
 using internal::PresignInnerResult;
 
-#define requiredFiled(field)                                                                             \
-    do {                                                                                                 \
-        if (request.get##field().empty()) {                                                              \
-            return PresignOutcome(OperationError(SdkErrorCode::ARGUMENT_REQUIRED,                        \
-                                  {{"Code", "ArgumentRequired"}, {"Message", "Miss filed " #field ""}})); \
-        }                                                                                                \
-    } while (false)
-
-
-#define requiredIntFiled(field)                                                                          \
-    do {                                                                                                 \
-        if (request.get##field() < 0) {                                                                  \
-            return PresignOutcome(OperationError(SdkErrorCode::ARGUMENT_REQUIRED,                        \
-                                  {{"Code", "ArgumentRequired"}, {"Message", "Miss filed " #field ""}})); \
-        }                                                                                                \
+#define requiredField(field)                                                                              \
+    do {                                                                                                  \
+        if (isFieldMissing(request.get##field())) {                                                       \
+            return PresignOutcome(OperationError(SdkErrorCode::ARGUMENT_REQUIRED,                         \
+                                  {{"Code", "ArgumentRequired"}, {"Message", "Missing field " #field ""}})); \
+        }                                                                                                 \
     } while (false)
 
 
@@ -53,8 +45,8 @@ static PresignOutcome doPresign(internal::ClientImpl* impl, const OperationInput
 }
 
 PresignOutcome OSSClient::presign(const models::PutObjectRequest& request, const models::PresignOptions* options) {
-    requiredFiled(Bucket);
-    requiredFiled(Key);
+    requiredField(Bucket);
+    requiredField(Key);
 
     OperationInput opInput{"PutObject", "PUT"};
 
@@ -82,8 +74,8 @@ PresignOutcome OSSClient::presign(const models::PutObjectRequest& request, const
 }
 
 PresignOutcome OSSClient::presign(const models::GetObjectRequest& request, const models::PresignOptions* options) {
-    requiredFiled(Bucket);
-    requiredFiled(Key);
+    requiredField(Bucket);
+    requiredField(Key);
 
     OperationInput opInput{"GetObject", "GET"};
 
@@ -105,8 +97,8 @@ PresignOutcome OSSClient::presign(const models::GetObjectRequest& request, const
 }
 
 PresignOutcome OSSClient::presign(const models::HeadObjectRequest& request, const models::PresignOptions* options) {
-    requiredFiled(Bucket);
-    requiredFiled(Key);
+    requiredField(Bucket);
+    requiredField(Key);
 
     OperationInput opInput{"HeadObject", "HEAD"};
 
@@ -128,10 +120,10 @@ PresignOutcome OSSClient::presign(const models::HeadObjectRequest& request, cons
 }
 
 PresignOutcome OSSClient::presign(const models::UploadPartRequest& request, const models::PresignOptions* options) {
-    requiredFiled(Bucket);
-    requiredFiled(Key);
-    requiredFiled(UploadId);
-    requiredIntFiled(PartNumber);
+    requiredField(Bucket);
+    requiredField(Key);
+    requiredField(UploadId);
+    requiredField(PartNumber);
 
     OperationInput opInput{"UploadPart", "PUT"};
 

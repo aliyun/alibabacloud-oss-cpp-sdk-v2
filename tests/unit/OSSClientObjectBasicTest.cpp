@@ -199,7 +199,7 @@ TEST(OSSClientObjectBasicTest, PutObject_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("test-bucket");
     outcome = client.putObject(request);
@@ -208,7 +208,7 @@ TEST(OSSClientObjectBasicTest, PutObject_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Key", error.getMessage());
+    EXPECT_EQ("Missing field Key", error.getMessage());
 
     request.setKey("test-key");
     outcome = client.putObject(request);
@@ -370,7 +370,7 @@ TEST(OSSClientObjectBasicTest, GetObject_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("test-bucket");
     outcome = client.getObject(request);
@@ -379,7 +379,7 @@ TEST(OSSClientObjectBasicTest, GetObject_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Key", error.getMessage());
+    EXPECT_EQ("Missing field Key", error.getMessage());
 }
 
 // Test CopyObject operation
@@ -679,7 +679,7 @@ TEST(OSSClientObjectBasicTest, CopyObject_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("dest-bucket");
     outcome = client.copyObject(request);
@@ -688,7 +688,7 @@ TEST(OSSClientObjectBasicTest, CopyObject_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Key", error.getMessage());
+    EXPECT_EQ("Missing field Key", error.getMessage());
 
     request.setKey("dest-key");
     outcome = client.copyObject(request);
@@ -697,7 +697,7 @@ TEST(OSSClientObjectBasicTest, CopyObject_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed SourceKey or CopySource", error.getMessage());
+    EXPECT_EQ("Missing field SourceKey or CopySource", error.getMessage());
 
     request.setKey("dest-key");
     request.setSourceKey("src-key");
@@ -851,7 +851,7 @@ TEST(OSSClientObjectBasicTest, AppendObject_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("dest-bucket");
     outcome = client.appendObject(request);
@@ -860,7 +860,7 @@ TEST(OSSClientObjectBasicTest, AppendObject_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Key", error.getMessage());
+    EXPECT_EQ("Missing field Key", error.getMessage());
 
     request.setKey("dest-key");
     outcome = client.appendObject(request);
@@ -869,7 +869,7 @@ TEST(OSSClientObjectBasicTest, AppendObject_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Position", error.getMessage());
+    EXPECT_EQ("Missing field Position", error.getMessage());
 
     request.setPosition(0);
     outcome = client.appendObject(request);
@@ -970,7 +970,7 @@ TEST(OSSClientObjectBasicTest, SealAppendObject_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("dest-bucket");
     outcome = client.sealAppendObject(request);
@@ -979,7 +979,7 @@ TEST(OSSClientObjectBasicTest, SealAppendObject_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Key", error.getMessage());
+    EXPECT_EQ("Missing field Key", error.getMessage());
 
     request.setKey("dest-key");
     outcome = client.sealAppendObject(request);
@@ -988,7 +988,7 @@ TEST(OSSClientObjectBasicTest, SealAppendObject_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Position", error.getMessage());
+    EXPECT_EQ("Missing field Position", error.getMessage());
 
     request.setPosition(0);
     outcome = client.sealAppendObject(request);
@@ -1100,7 +1100,7 @@ TEST(OSSClientObjectBasicTest, HeadObject_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("test-bucket");
     outcome = client.headObject(request);
@@ -1109,7 +1109,7 @@ TEST(OSSClientObjectBasicTest, HeadObject_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Key", error.getMessage());
+    EXPECT_EQ("Missing field Key", error.getMessage());
 
     request.setKey("test-key");
     outcome = client.headObject(request);
@@ -1239,7 +1239,7 @@ TEST(OSSClientObjectBasicTest, DeleteObject_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("test-bucket");
     outcome = client.deleteObject(request);
@@ -1248,7 +1248,7 @@ TEST(OSSClientObjectBasicTest, DeleteObject_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Key", error.getMessage());
+    EXPECT_EQ("Missing field Key", error.getMessage());
 
     request.setKey("test-key");
     outcome = client.deleteObject(request);
@@ -1358,7 +1358,7 @@ TEST(OSSClientObjectBasicTest, GetObjectMeta_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("test-bucket");
     outcome = client.getObjectMeta(request);
@@ -1367,7 +1367,7 @@ TEST(OSSClientObjectBasicTest, GetObjectMeta_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Key", error.getMessage());
+    EXPECT_EQ("Missing field Key", error.getMessage());
 
     request.setKey("test-key");
     outcome = client.getObjectMeta(request);
@@ -1482,7 +1482,7 @@ TEST(OSSClientObjectBasicTest, RestoreObject_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("test-bucket");
     outcome = client.restoreObject(request);
@@ -1491,7 +1491,7 @@ TEST(OSSClientObjectBasicTest, RestoreObject_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Key", error.getMessage());
+    EXPECT_EQ("Missing field Key", error.getMessage());
 
     request.setKey("test-key");
     outcome = client.restoreObject(request);
@@ -1589,7 +1589,7 @@ TEST(OSSClientObjectBasicTest, CleanRestoredObject_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("test-bucket");
     outcome = client.cleanRestoredObject(request);
@@ -1598,7 +1598,7 @@ TEST(OSSClientObjectBasicTest, CleanRestoredObject_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Key", error.getMessage());
+    EXPECT_EQ("Missing field Key", error.getMessage());
 
     request.setKey("test-key");
     outcome = client.cleanRestoredObject(request);
@@ -1848,7 +1848,7 @@ TEST(OSSClientObjectBasicTest, DeleteMultipleObjects_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("test-bucket");
     outcome = client.deleteMultipleObjects(request);
@@ -1857,7 +1857,7 @@ TEST(OSSClientObjectBasicTest, DeleteMultipleObjects_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Delete", error.getMessage());
+    EXPECT_EQ("Missing field Delete", error.getMessage());
 
     request.setDelete(models::Delete{{models::ObjectIdentifier{"multipart.data"}}});
     outcome = client.deleteMultipleObjects(request);

@@ -3,51 +3,16 @@
 #include "src/internal/ClientImpl.h"
 #include "src/transform/SerdeObjectBasic.h"
 #include "src/utils/Utils.h"
+#include "src/OSSClientUtils.h"
 
 namespace alibabacloud {
 namespace oss2 {
 
-#define requiredFiled(field)                                                                             \
-    do {                                                                                                 \
-        if (request.get##field().empty()) {                                                              \
-            return OperationError(SdkErrorCode::ARGUMENT_REQUIRED,                                       \
-                                  {{"Code", "ArgumentRequired"}, {"Message", "Miss filed " #field ""}}); \
-        }                                                                                                \
-    } while (false)
-
-
-#define requiredFileds(field1, field2)                                                                     \
-    do {                                                                                                   \
-        if (request.get##field1().empty() && request.get##field2().empty()) {                              \
-            return OperationError(                                                                         \
-                    SdkErrorCode::ARGUMENT_REQUIRED,                                                       \
-                    {{"Code", "ArgumentRequired"}, {"Message", "Miss filed " #field1 " or " #field2 ""}}); \
-        }                                                                                                  \
-    } while (false)
-
-
-#define requiredIntFiled(field)                                                                          \
-    do {                                                                                                 \
-        if (request.get##field() < 0) {                                                                  \
-            return OperationError(SdkErrorCode::ARGUMENT_REQUIRED,                                       \
-                                  {{"Code", "ArgumentRequired"}, {"Message", "Miss filed " #field ""}}); \
-        }                                                                                                \
-    } while (false)
-
-
-#define requiredHasFiled(field)                                                                          \
-    do {                                                                                                 \
-        if (!request.has##field()) {                                                                     \
-            return OperationError(SdkErrorCode::ARGUMENT_REQUIRED,                                       \
-                                  {{"Code", "ArgumentRequired"}, {"Message", "Miss filed " #field ""}}); \
-        }                                                                                                \
-    } while (false)
-
 
 // Object Basic
 PutObjectOutcome OSSClient::putObject(const models::PutObjectRequest& request, const OperationOptions* options) {
-    requiredFiled(Bucket);
-    requiredFiled(Key);
+    requiredField(Bucket);
+    requiredField(Key);
 
     auto input = transform::fromPutObject(request);
     if (client_->hasFlag(FeatureFlagsType::AutoDetectMimeType)) {
@@ -64,9 +29,9 @@ PutObjectOutcome OSSClient::putObject(const models::PutObjectRequest& request, c
 }
 
 CopyObjectOutcome OSSClient::copyObject(const models::CopyObjectRequest& request, const OperationOptions* options) {
-    requiredFiled(Bucket);
-    requiredFiled(Key);
-    requiredFileds(SourceKey, CopySource);
+    requiredField(Bucket);
+    requiredField(Key);
+    requiredFieldsOr(SourceKey, CopySource);
 
     auto input = transform::fromCopyObject(request);
     auto result = client_->Execute(input, options);
@@ -77,8 +42,8 @@ CopyObjectOutcome OSSClient::copyObject(const models::CopyObjectRequest& request
 }
 
 GetObjectOutcome OSSClient::getObject(const models::GetObjectRequest& request, const OperationOptions* options) {
-    requiredFiled(Bucket);
-    requiredFiled(Key);
+    requiredField(Bucket);
+    requiredField(Key);
 
     auto input = transform::fromGetObject(request);
     auto result = client_->Execute(input, options);
@@ -90,9 +55,9 @@ GetObjectOutcome OSSClient::getObject(const models::GetObjectRequest& request, c
 
 AppendObjectOutcome OSSClient::appendObject(const models::AppendObjectRequest& request,
                                             const OperationOptions* options) {
-    requiredFiled(Bucket);
-    requiredFiled(Key);
-    requiredIntFiled(Position);
+    requiredField(Bucket);
+    requiredField(Key);
+    requiredField(Position);
 
     auto input = transform::fromAppendObject(request);
     if (input.headers.find("Content-Type") == input.headers.end()) {
@@ -109,9 +74,9 @@ AppendObjectOutcome OSSClient::appendObject(const models::AppendObjectRequest& r
 
 SealAppendObjectOutcome OSSClient::sealAppendObject(const models::SealAppendObjectRequest& request,
                                                     const OperationOptions* options) {
-    requiredFiled(Bucket);
-    requiredFiled(Key);
-    requiredIntFiled(Position);
+    requiredField(Bucket);
+    requiredField(Key);
+    requiredField(Position);
 
     auto input = transform::fromSealAppendObject(request);
     auto result = client_->Execute(input, options);
@@ -123,8 +88,8 @@ SealAppendObjectOutcome OSSClient::sealAppendObject(const models::SealAppendObje
 
 DeleteObjectOutcome OSSClient::deleteObject(const models::DeleteObjectRequest& request,
                                             const OperationOptions* options) {
-    requiredFiled(Bucket);
-    requiredFiled(Key);
+    requiredField(Bucket);
+    requiredField(Key);
 
     auto input = transform::fromDeleteObject(request);
     auto result = client_->Execute(input, options);
@@ -136,8 +101,8 @@ DeleteObjectOutcome OSSClient::deleteObject(const models::DeleteObjectRequest& r
 
 DeleteMultipleObjectsOutcome OSSClient::deleteMultipleObjects(const models::DeleteMultipleObjectsRequest& request,
                                                               const OperationOptions* options) {
-    requiredFiled(Bucket);
-    requiredHasFiled(Delete);
+    requiredField(Bucket);
+    requiredHasField(Delete);
 
     auto input = transform::fromDeleteMultipleObjects(request);
     auto result = client_->Execute(input, options);
@@ -148,8 +113,8 @@ DeleteMultipleObjectsOutcome OSSClient::deleteMultipleObjects(const models::Dele
 }
 
 HeadObjectOutcome OSSClient::headObject(const models::HeadObjectRequest& request, const OperationOptions* options) {
-    requiredFiled(Bucket);
-    requiredFiled(Key);
+    requiredField(Bucket);
+    requiredField(Key);
 
     auto input = transform::fromHeadObject(request);
     auto result = client_->Execute(input, options);
@@ -161,8 +126,8 @@ HeadObjectOutcome OSSClient::headObject(const models::HeadObjectRequest& request
 
 GetObjectMetaOutcome OSSClient::getObjectMeta(const models::GetObjectMetaRequest& request,
                                               const OperationOptions* options) {
-    requiredFiled(Bucket);
-    requiredFiled(Key);
+    requiredField(Bucket);
+    requiredField(Key);
 
     auto input = transform::fromGetObjectMeta(request);
     auto result = client_->Execute(input, options);
@@ -174,8 +139,8 @@ GetObjectMetaOutcome OSSClient::getObjectMeta(const models::GetObjectMetaRequest
 
 RestoreObjectOutcome OSSClient::restoreObject(const models::RestoreObjectRequest& request,
                                               const OperationOptions* options) {
-    requiredFiled(Bucket);
-    requiredFiled(Key);
+    requiredField(Bucket);
+    requiredField(Key);
 
     auto input = transform::fromRestoreObject(request);
     auto result = client_->Execute(input, options);
@@ -187,8 +152,8 @@ RestoreObjectOutcome OSSClient::restoreObject(const models::RestoreObjectRequest
 
 CleanRestoredObjectOutcome OSSClient::cleanRestoredObject(const models::CleanRestoredObjectRequest& request,
                                                           const OperationOptions* options) {
-    requiredFiled(Bucket);
-    requiredFiled(Key);
+    requiredField(Bucket);
+    requiredField(Key);
 
     auto input = transform::fromCleanRestoredObject(request);
     auto result = client_->Execute(input, options);

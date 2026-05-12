@@ -2,22 +2,15 @@
 #include "alibabacloud/oss2/OSSClient.h"
 #include "src/internal/ClientImpl.h"
 #include "src/transform/SerdeObjectSymlink.h"
+#include "src/OSSClientUtils.h"
 
 namespace alibabacloud {
 namespace oss2 {
 
-#define requiredFiled(field)                                                                             \
-    do {                                                                                                 \
-        if (request.get##field().empty()) {                                                              \
-            return OperationError(SdkErrorCode::ARGUMENT_REQUIRED,                                       \
-                                  {{"Code", "ArgumentRequired"}, {"Message", "Miss filed " #field ""}}); \
-        }                                                                                                \
-    } while (false)
-
 
 PutSymlinkOutcome OSSClient::putSymlink(const models::PutSymlinkRequest& request, const OperationOptions* options) {
-    requiredFiled(Bucket);
-    requiredFiled(Key);
+    requiredField(Bucket);
+    requiredField(Key);
 
     auto input = transform::fromPutSymlink(request);
     auto result = client_->Execute(input, options);
@@ -28,8 +21,8 @@ PutSymlinkOutcome OSSClient::putSymlink(const models::PutSymlinkRequest& request
 }
 
 GetSymlinkOutcome OSSClient::getSymlink(const models::GetSymlinkRequest& request, const OperationOptions* options) {
-    requiredFiled(Bucket);
-    requiredFiled(Key);
+    requiredField(Bucket);
+    requiredField(Key);
 
     auto input = transform::fromGetSymlink(request);
     auto result = client_->Execute(input, options);

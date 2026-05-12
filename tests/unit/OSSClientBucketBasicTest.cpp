@@ -213,7 +213,7 @@ TEST(OSSClientBucketBasicTest, GetBucketStat_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("test-bucket");
     outcome = client.getBucketStat(request);
@@ -342,7 +342,7 @@ TEST(OSSClientBucketBasicTest, PutBucket_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("test-bucket");
     outcome = client.putBucket(request);
@@ -441,7 +441,7 @@ TEST(OSSClientBucketBasicTest, DeleteBucket_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("test-bucket");
     outcome = client.deleteBucket(request);
@@ -799,7 +799,7 @@ TEST(OSSClientBucketBasicTest, ListObjects_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("test-bucket");
     outcome = client.listObjects(request);
@@ -1128,7 +1128,7 @@ TEST(OSSClientBucketBasicTest, ListObjectsV2_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("test-bucket");
     outcome = client.listObjectsV2(request);
@@ -1271,7 +1271,7 @@ TEST(OSSClientBucketBasicTest, GetBucketInfo_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("test-bucket");
     outcome = client.getBucketInfo(request);
@@ -1379,7 +1379,7 @@ TEST(OSSClientBucketBasicTest, GetBucketLocation_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("test-bucket");
     outcome = client.getBucketLocation(request);

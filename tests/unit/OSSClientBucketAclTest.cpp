@@ -219,7 +219,7 @@ TEST(OSSClientBucketAclTest, GetBucketAcl_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 }
 
 TEST(OSSClientBucketAclTest, PutBucketAcl_NullXml) {
@@ -344,7 +344,7 @@ TEST(OSSClientBucketAclTest, PutBucketAcl_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 }
 
 } // namespace alibabacloud::oss2

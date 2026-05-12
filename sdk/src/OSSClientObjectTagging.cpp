@@ -2,23 +2,16 @@
 #include "alibabacloud/oss2/OSSClient.h"
 #include "src/internal/ClientImpl.h"
 #include "src/transform/SerdeObjectTagging.h"
+#include "src/OSSClientUtils.h"
 
 namespace alibabacloud {
 namespace oss2 {
 
-#define requiredFiled(field)                                                                             \
-    do {                                                                                                 \
-        if (request.get##field().empty()) {                                                              \
-            return OperationError(SdkErrorCode::ARGUMENT_REQUIRED,                                       \
-                                  {{"Code", "ArgumentRequired"}, {"Message", "Miss filed " #field ""}}); \
-        }                                                                                                \
-    } while (false)
-
 
 PutObjectTaggingOutcome OSSClient::putObjectTagging(const models::PutObjectTaggingRequest& request,
                                                     const OperationOptions* options) {
-    requiredFiled(Bucket);
-    requiredFiled(Key);
+    requiredField(Bucket);
+    requiredField(Key);
 
     auto input = transform::fromPutObjectTagging(request);
     auto result = client_->Execute(input, options);
@@ -30,8 +23,8 @@ PutObjectTaggingOutcome OSSClient::putObjectTagging(const models::PutObjectTaggi
 
 GetObjectTaggingOutcome OSSClient::getObjectTagging(const models::GetObjectTaggingRequest& request,
                                                     const OperationOptions* options) {
-    requiredFiled(Bucket);
-    requiredFiled(Key);
+    requiredField(Bucket);
+    requiredField(Key);
 
     auto input = transform::fromGetObjectTagging(request);
     auto result = client_->Execute(input, options);
@@ -43,8 +36,8 @@ GetObjectTaggingOutcome OSSClient::getObjectTagging(const models::GetObjectTaggi
 
 DeleteObjectTaggingOutcome OSSClient::deleteObjectTagging(const models::DeleteObjectTaggingRequest& request,
                                                           const OperationOptions* options) {
-    requiredFiled(Bucket);
-    requiredFiled(Key);
+    requiredField(Bucket);
+    requiredField(Key);
 
     auto input = transform::fromDeleteObjectTagging(request);
     auto result = client_->Execute(input, options);

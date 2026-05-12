@@ -2,22 +2,15 @@
 #include "alibabacloud/oss2/OSSClient.h"
 #include "src/internal/ClientImpl.h"
 #include "src/transform/SerdeBucketBasic.h"
+#include "src/OSSClientUtils.h"
 
 namespace alibabacloud {
 namespace oss2 {
 
-#define requiredFiled(field)                                                                             \
-    do {                                                                                                 \
-        if (request.get##field().empty()) {                                                              \
-            return OperationError(SdkErrorCode::ARGUMENT_REQUIRED,                                       \
-                                  {{"Code", "ArgumentRequired"}, {"Message", "Miss filed " #field ""}}); \
-        }                                                                                                \
-    } while (false)
-
 
 GetBucketStatOutcome OSSClient::getBucketStat(const models::GetBucketStatRequest& request,
                                               const OperationOptions* options) {
-    requiredFiled(Bucket);
+    requiredField(Bucket);
 
     auto input = transform::fromGetBucketStat(request);
     auto result = client_->Execute(input, options);
@@ -28,7 +21,7 @@ GetBucketStatOutcome OSSClient::getBucketStat(const models::GetBucketStatRequest
 }
 
 PutBucketOutcome OSSClient::putBucket(const models::PutBucketRequest& request, const OperationOptions* options) {
-    requiredFiled(Bucket);
+    requiredField(Bucket);
 
     auto input = transform::fromPutBucket(request);
     auto result = client_->Execute(input, options);
@@ -40,7 +33,7 @@ PutBucketOutcome OSSClient::putBucket(const models::PutBucketRequest& request, c
 
 DeleteBucketOutcome OSSClient::deleteBucket(const models::DeleteBucketRequest& request,
                                             const OperationOptions* options) {
-    requiredFiled(Bucket);
+    requiredField(Bucket);
 
     auto input = transform::fromDeleteBucket(request);
     auto result = client_->Execute(input, options);
@@ -51,7 +44,7 @@ DeleteBucketOutcome OSSClient::deleteBucket(const models::DeleteBucketRequest& r
 }
 
 ListObjectsOutcome OSSClient::listObjects(const models::ListObjectsRequest& request, const OperationOptions* options) {
-    requiredFiled(Bucket);
+    requiredField(Bucket);
 
     auto input = transform::fromListObjects(request);
     auto result = client_->Execute(input, options);
@@ -63,7 +56,7 @@ ListObjectsOutcome OSSClient::listObjects(const models::ListObjectsRequest& requ
 
 ListObjectsV2Outcome OSSClient::listObjectsV2(const models::ListObjectsV2Request& request,
                                               const OperationOptions* options) {
-    requiredFiled(Bucket);
+    requiredField(Bucket);
 
     auto input = transform::fromListObjectsV2(request);
     auto result = client_->Execute(input, options);
@@ -75,7 +68,7 @@ ListObjectsV2Outcome OSSClient::listObjectsV2(const models::ListObjectsV2Request
 
 GetBucketInfoOutcome OSSClient::getBucketInfo(const models::GetBucketInfoRequest& request,
                                               const OperationOptions* options) {
-    requiredFiled(Bucket);
+    requiredField(Bucket);
 
     auto input = transform::fromGetBucketInfo(request);
     auto result = client_->Execute(input, options);
@@ -87,7 +80,7 @@ GetBucketInfoOutcome OSSClient::getBucketInfo(const models::GetBucketInfoRequest
 
 GetBucketLocationOutcome OSSClient::getBucketLocation(const models::GetBucketLocationRequest& request,
                                                       const OperationOptions* options) {
-    requiredFiled(Bucket);
+    requiredField(Bucket);
 
     auto input = transform::fromGetBucketLocation(request);
     auto result = client_->Execute(input, options);
