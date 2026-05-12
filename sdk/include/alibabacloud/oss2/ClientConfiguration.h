@@ -16,6 +16,7 @@ class Signer;
 class CredentialsProvider;
 class Retryer;
 class HttpTransport;
+class Executor;
 
 /**
  * @brief User-facing configuration for constructing an OSSClient.
@@ -128,6 +129,12 @@ struct ALIBABACLOUD_OSS_API ClientConfiguration {
 
     /// Additional signable headers to include in the request signature.
     std::optional<std::vector<std::string>> additionalHeaders;
+
+    // ---- Async ----
+
+    /// Custom executor for async operations, only used by OSSClient::callAsync.
+    /// Must be explicitly set; if unset, OSSClient::callAsync returns a NoExecutor error.
+    std::shared_ptr<Executor> executor;
 
     /// Creates a default configuration with all fields unset.
     static ClientConfiguration loadDefault() {
