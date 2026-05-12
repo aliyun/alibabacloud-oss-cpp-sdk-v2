@@ -176,7 +176,7 @@ TEST(OSSClientObjectSymlinkTest, GetSymlink_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("bucket");
     outcome = client.getSymlink(request);
@@ -185,7 +185,7 @@ TEST(OSSClientObjectSymlinkTest, GetSymlink_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Key", error.getMessage());
+    EXPECT_EQ("Missing field Key", error.getMessage());
 }
 
 TEST(OSSClientObjectSymlinkTest, PutSymlink_NullXml) {
@@ -312,7 +312,7 @@ TEST(OSSClientObjectSymlinkTest, PutSymlink_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("bucket");
     outcome = client.putSymlink(request);
@@ -321,7 +321,7 @@ TEST(OSSClientObjectSymlinkTest, PutSymlink_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Key", error.getMessage());
+    EXPECT_EQ("Missing field Key", error.getMessage());
 }
 
 } // namespace alibabacloud::oss2

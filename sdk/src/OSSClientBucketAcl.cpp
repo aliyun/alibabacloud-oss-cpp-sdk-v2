@@ -2,22 +2,15 @@
 #include "alibabacloud/oss2/OSSClient.h"
 #include "src/internal/ClientImpl.h"
 #include "src/transform/SerdeBucketAcl.h"
+#include "src/OSSClientUtils.h"
 
 namespace alibabacloud {
 namespace oss2 {
 
-#define requiredFiled(field)                                                                             \
-    do {                                                                                                 \
-        if (request.get##field().empty()) {                                                              \
-            return OperationError(SdkErrorCode::ARGUMENT_REQUIRED,                                       \
-                                  {{"Code", "ArgumentRequired"}, {"Message", "Miss filed " #field ""}}); \
-        }                                                                                                \
-    } while (false)
-
 
 PutBucketAclOutcome OSSClient::putBucketAcl(const models::PutBucketAclRequest& request,
                                             const OperationOptions* options) {
-    requiredFiled(Bucket);
+    requiredField(Bucket);
 
     auto input = transform::fromPutBucketAcl(request);
     auto result = client_->Execute(input, options);
@@ -29,7 +22,7 @@ PutBucketAclOutcome OSSClient::putBucketAcl(const models::PutBucketAclRequest& r
 
 GetBucketAclOutcome OSSClient::getBucketAcl(const models::GetBucketAclRequest& request,
                                             const OperationOptions* options) {
-    requiredFiled(Bucket);
+    requiredField(Bucket);
 
     auto input = transform::fromGetBucketAcl(request);
     auto result = client_->Execute(input, options);

@@ -273,7 +273,7 @@ TEST(OSSClientObjectMultipartTest, InitiateMultipartUpload_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("test-bucket");
     outcome = client.initiateMultipartUpload(request);
@@ -282,7 +282,7 @@ TEST(OSSClientObjectMultipartTest, InitiateMultipartUpload_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Key", error.getMessage());
+    EXPECT_EQ("Missing field Key", error.getMessage());
 }
 
 // Test UploadPart operation
@@ -385,7 +385,7 @@ TEST(OSSClientObjectMultipartTest, UploadPart_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("test-bucket");
     outcome = client.uploadPart(request);
@@ -394,7 +394,7 @@ TEST(OSSClientObjectMultipartTest, UploadPart_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Key", error.getMessage());
+    EXPECT_EQ("Missing field Key", error.getMessage());
 
     request.setKey("test-key");
     outcome = client.uploadPart(request);
@@ -403,7 +403,7 @@ TEST(OSSClientObjectMultipartTest, UploadPart_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed PartNumber", error.getMessage());
+    EXPECT_EQ("Missing field PartNumber", error.getMessage());
 
     request.setPartNumber(1);
     outcome = client.uploadPart(request);
@@ -412,7 +412,7 @@ TEST(OSSClientObjectMultipartTest, UploadPart_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed UploadId", error.getMessage());
+    EXPECT_EQ("Missing field UploadId", error.getMessage());
 }
 
 // Test UploadPart operation
@@ -659,7 +659,7 @@ TEST(OSSClientObjectMultipartTest, UploadPartCopy_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("test-bucket");
     outcome = client.uploadPartCopy(request);
@@ -668,7 +668,7 @@ TEST(OSSClientObjectMultipartTest, UploadPartCopy_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Key", error.getMessage());
+    EXPECT_EQ("Missing field Key", error.getMessage());
 
     request.setKey("test-key");
     outcome = client.uploadPartCopy(request);
@@ -677,7 +677,7 @@ TEST(OSSClientObjectMultipartTest, UploadPartCopy_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed PartNumber", error.getMessage());
+    EXPECT_EQ("Missing field PartNumber", error.getMessage());
 
     request.setPartNumber(1);
     outcome = client.uploadPartCopy(request);
@@ -686,7 +686,7 @@ TEST(OSSClientObjectMultipartTest, UploadPartCopy_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed UploadId", error.getMessage());
+    EXPECT_EQ("Missing field UploadId", error.getMessage());
 
     request.setUploadId("1");
     outcome = client.uploadPartCopy(request);
@@ -695,7 +695,7 @@ TEST(OSSClientObjectMultipartTest, UploadPartCopy_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed SourceKey or CopySource", error.getMessage());
+    EXPECT_EQ("Missing field SourceKey or CopySource", error.getMessage());
 
     request.setSourceKey("src-key");
     outcome = client.uploadPartCopy(request);
@@ -931,7 +931,7 @@ TEST(OSSClientObjectMultipartTest, CompleteMultipartUpload_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("test-bucket");
     outcome = client.completeMultipartUpload(request);
@@ -940,7 +940,7 @@ TEST(OSSClientObjectMultipartTest, CompleteMultipartUpload_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Key", error.getMessage());
+    EXPECT_EQ("Missing field Key", error.getMessage());
 
     request.setKey("test-key");
     outcome = client.completeMultipartUpload(request);
@@ -949,7 +949,7 @@ TEST(OSSClientObjectMultipartTest, CompleteMultipartUpload_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed UploadId", error.getMessage());
+    EXPECT_EQ("Missing field UploadId", error.getMessage());
 }
 
 // Test AbortMultipartUpload operation
@@ -1045,7 +1045,7 @@ TEST(OSSClientObjectMultipartTest, AbortMultipartUpload_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("test-bucket");
     outcome = client.abortMultipartUpload(request);
@@ -1054,7 +1054,7 @@ TEST(OSSClientObjectMultipartTest, AbortMultipartUpload_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Key", error.getMessage());
+    EXPECT_EQ("Missing field Key", error.getMessage());
 
     request.setKey("test-key");
     outcome = client.abortMultipartUpload(request);
@@ -1063,7 +1063,7 @@ TEST(OSSClientObjectMultipartTest, AbortMultipartUpload_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed UploadId", error.getMessage());
+    EXPECT_EQ("Missing field UploadId", error.getMessage());
 }
 
 // Test ListMultipartUploads operation
@@ -1309,7 +1309,7 @@ TEST(OSSClientObjectMultipartTest, ListMultipartUploads_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 }
 
 // Test ListParts operation
@@ -1570,7 +1570,7 @@ TEST(OSSClientObjectMultipartTest, ListParts_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("test-bucket");
     outcome = client.listParts(request);
@@ -1579,7 +1579,7 @@ TEST(OSSClientObjectMultipartTest, ListParts_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Key", error.getMessage());
+    EXPECT_EQ("Missing field Key", error.getMessage());
 
     request.setKey("test-key");
     outcome = client.listParts(request);
@@ -1588,7 +1588,7 @@ TEST(OSSClientObjectMultipartTest, ListParts_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed UploadId", error.getMessage());
+    EXPECT_EQ("Missing field UploadId", error.getMessage());
 }
 
 } // namespace alibabacloud::oss2

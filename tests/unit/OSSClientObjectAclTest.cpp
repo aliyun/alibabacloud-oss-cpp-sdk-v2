@@ -224,7 +224,7 @@ TEST(OSSClientObjectAclTest, GetObjectAcl_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("bucket");
     outcome = client.getObjectAcl(request);
@@ -233,7 +233,7 @@ TEST(OSSClientObjectAclTest, GetObjectAcl_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Key", error.getMessage());
+    EXPECT_EQ("Missing field Key", error.getMessage());
 }
 
 TEST(OSSClientObjectAclTest, PutObjectAcl_NullXml) {
@@ -362,7 +362,7 @@ TEST(OSSClientObjectAclTest, PutObjectAcl_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Bucket", error.getMessage());
+    EXPECT_EQ("Missing field Bucket", error.getMessage());
 
     request.setBucket("bucket");
     outcome = client.putObjectAcl(request);
@@ -371,7 +371,7 @@ TEST(OSSClientObjectAclTest, PutObjectAcl_RequiredField) {
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
-    EXPECT_EQ("Miss filed Key", error.getMessage());
+    EXPECT_EQ("Missing field Key", error.getMessage());
 }
 
 } // namespace alibabacloud::oss2
