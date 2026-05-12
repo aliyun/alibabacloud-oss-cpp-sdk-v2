@@ -118,15 +118,20 @@ static size_t recvHeaders(char* buffer, size_t size, size_t nitems, void* userda
     TransferState* state = static_cast<TransferState*>(userdata);
     const size_t wanted = nitems * size;
 
-    std::string line(buffer);
+    std::string line(buffer, size * nitems);
     auto pos = line.find(':');
     if (pos != line.npos) {
-        size_t posEnd = line.rfind('\r');
-        if (posEnd != line.npos) {
-            posEnd = posEnd - pos - 2;
+        // skip optional whitespace after ':', strip trailing \r\n
+        size_t valueStart = pos + 1;
+        while (valueStart < line.size() && (line[valueStart] == ' ' || line[valueStart] == '\t')) {
+            ++valueStart;
+        }
+        size_t valueEnd = line.size();
+        while (valueEnd > valueStart && (line[valueEnd - 1] == '\r' || line[valueEnd - 1] == '\n')) {
+            --valueEnd;
         }
         auto name = line.substr(0, pos);
-        auto value = line.substr(pos + 2, posEnd);
+        auto value = line.substr(valueStart, valueEnd - valueStart);
         state->response->headers.emplace(std::move(name), std::move(value));
     }
 
@@ -206,9 +211,17 @@ bool static ignoreHeader(const std::string& header, const std::string& expect) {
 } // namespace detail
 
 CurlHttpClient::CurlHttpClient(const struct HttpTransportOptions& options)
-        : curlContainer_(std::make_unique<CurlContainer>()) {
+        : curlContainer_(std::make_unique<CurlContainer>(
+                  16,
+                  options.readWriteTimeout.value_or(10000),
+                  options.connectTimeout.value_or(5000))) {
     const static detail::CurlGlobalInit curlInit_ = {};
-    UNUSED_PARAM(options);
+
+    verifySSL_ = !options.insecureSkipVerify.value_or(false);
+
+    if (options.proxyHost.has_value() && !options.proxyHost.value().empty()) {
+        proxyHost_ = options.proxyHost.value();
+    }
 }
 
 ResponseResult CurlHttpClient::send(std::unique_ptr<RequestMessage>& request, RequestContext& context) {
