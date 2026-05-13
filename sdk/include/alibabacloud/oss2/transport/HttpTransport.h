@@ -3,7 +3,7 @@
 
 #include "alibabacloud/oss2/transport/HttpTypes.h"
 
-
+#include <functional>
 #include <optional>
 #include <string>
 
@@ -15,6 +15,15 @@ class ALIBABACLOUD_OSS_API HttpTransport {
     virtual ResponseResult send(std::unique_ptr<RequestMessage>& request, RequestContext& context) = 0;
     virtual std::string getName() const = 0;
     virtual ~HttpTransport() = default;
+};
+
+class ALIBABACLOUD_OSS_API AsyncHttpTransport {
+  public:
+    virtual void sendAsync(std::unique_ptr<RequestMessage> request,
+                           RequestContext context,
+                           RequestCallback callback) = 0;
+    virtual std::string getName() const = 0;
+    virtual ~AsyncHttpTransport() = default;
 };
 
 class NopHttpTransport : public HttpTransport {

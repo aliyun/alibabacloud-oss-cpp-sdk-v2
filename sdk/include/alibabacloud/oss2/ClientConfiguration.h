@@ -16,7 +16,9 @@ class Signer;
 class CredentialsProvider;
 class Retryer;
 class HttpTransport;
+class AsyncHttpTransport;
 class Executor;
+class ScheduledExecutor;
 
 /**
  * @brief User-facing configuration for constructing an OSSClient.
@@ -135,6 +137,16 @@ struct ALIBABACLOUD_OSS_API ClientConfiguration {
     /// Custom executor for async operations, only used by OSSClient::callAsync.
     /// Must be explicitly set; if unset, OSSClient::callAsync returns a NoExecutor error.
     std::shared_ptr<Executor> executor;
+
+    /// The async HTTP transport for OSSAsyncClient.
+    /// Defaults to a CurlMultiTransport if not set.
+    std::shared_ptr<AsyncHttpTransport> asyncHttpTransport;
+
+    /// Custom scheduled executor used only by OSSAsyncClient for internal
+    /// task scheduling (response dispatch, retry delays).
+    /// Has no effect on OSSClient.
+    /// If unset, a default implementation is created internally.
+    std::shared_ptr<ScheduledExecutor> scheduledExecutor;
 
     /// Creates a default configuration with all fields unset.
     static ClientConfiguration loadDefault() {

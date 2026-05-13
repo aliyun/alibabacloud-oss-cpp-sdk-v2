@@ -15,6 +15,7 @@ class Signer;
 class CredentialsProvider;
 class Retryer;
 class HttpTransport;
+class AsyncHttpTransport;
 
 /**
  * @brief Resolved, immutable options used internally by ClientImpl.
@@ -56,6 +57,10 @@ struct ALIBABACLOUD_OSS_API ClientOptions {
     /// The HTTP client used to invoke API calls.
     /// Resolved from ClientConfiguration::httpTransport or defaults to CurlHttpClient.
     std::shared_ptr<HttpTransport> httpTransport;
+
+    /// The async HTTP client used by OSSAsyncClient.
+    /// Resolved from ClientConfiguration::asyncHttpTransport or defaults to CurlMultiTransport.
+    std::shared_ptr<AsyncHttpTransport> asyncHttpTransport;
 
     /// The addressing style for bucket endpoints.
     /// Resolved from the usePathStyle / useCName configuration flags.

@@ -29,9 +29,11 @@ file(GLOB sdk_signer_src "src/signer/*.cpp")
 file(GLOB sdk_retry_src "src/retry/*.cpp")
 file(GLOB sdk_utils_src "src/utils/*.cpp")
 file(GLOB sdk_internal_src "src/internal/*.cpp")
+file(GLOB sdk_internal_async_src "src/internal/async/*.cpp")
 file(GLOB sdk_io_src "src/io/*.cpp")
 file(GLOB sdk_models_src "src/models/*.cpp")
 file(GLOB sdk_transform_src "src/transform/*.cpp")
+file(GLOB sdk_async_src "src/async/*.cpp")
 
 # transport 
 file(GLOB sdk_transport_common_src "src/transport/*.cpp")
@@ -78,9 +80,11 @@ file(GLOB sdk_src
     ${sdk_utils_src}
     ${sdk_utils_hash_src}
     ${sdk_internal_src}
+    ${sdk_internal_async_src}
     ${sdk_io_src}
     ${sdk_models_src}
     ${sdk_transform_src}
+    ${sdk_async_src}
     ${sdk_thirdparty_src}
 )
 
