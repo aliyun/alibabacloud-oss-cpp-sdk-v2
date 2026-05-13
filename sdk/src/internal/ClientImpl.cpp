@@ -1,10 +1,12 @@
 
 #include "ClientImpl.h"
+#include "OSSUtils.h"
 #include "ResponseCheckerExecuteMiddleware.h"
 #include "RetryerExecuteMiddleware.h"
 #include "SignerExecuteMiddleware.h"
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
 #include "src/transport/HttpTransportFactory.h"
+#include "src/utils/Utils.h"
 
 #include <set>
 
