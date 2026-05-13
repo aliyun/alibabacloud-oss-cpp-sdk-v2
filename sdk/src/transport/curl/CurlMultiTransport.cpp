@@ -1,4 +1,5 @@
 #include "CurlMultiTransport.h"
+#include "CurlHelper.h"
 #include "src/utils/LogUtils.h"
 
 #include <curl/curlver.h>
@@ -85,15 +86,19 @@ static size_t recvHeaders(char* buffer, size_t size, size_t nitems, void* userda
     auto* ctx = static_cast<AsyncTransferContext*>(userdata);
     const size_t wanted = nitems * size;
 
-    std::string line(buffer);
+    std::string line(buffer, wanted);
     auto pos = line.find(':');
     if (pos != line.npos) {
-        size_t posEnd = line.rfind('\r');
-        if (posEnd != line.npos) {
-            posEnd = posEnd - pos - 2;
+        size_t valueStart = pos + 1;
+        while (valueStart < line.size() && (line[valueStart] == ' ' || line[valueStart] == '\t')) {
+            ++valueStart;
+        }
+        size_t valueEnd = line.size();
+        while (valueEnd > valueStart && (line[valueEnd - 1] == '\r' || line[valueEnd - 1] == '\n')) {
+            --valueEnd;
         }
         auto name = line.substr(0, pos);
-        auto value = line.substr(pos + 2, posEnd);
+        auto value = line.substr(valueStart, valueEnd - valueStart);
         ctx->response->headers.emplace(std::move(name), std::move(value));
     }
 
@@ -119,32 +124,29 @@ static bool ignoreHeader(const std::string& header, const std::string& expect) {
                       [](char a, char b) { return ::tolower(a) == ::tolower(b); });
 }
 
-CurlMultiTransport::CurlMultiTransport(const struct HttpTransportOptions& options) {
-    if (options.connectTimeout.has_value()) {
-        connectTimeout_ = options.connectTimeout.value();
-    }
-    if (options.readWriteTimeout.has_value()) {
-        requestTimeout_ = options.readWriteTimeout.value();
-    }
-    if (options.insecureSkipVerify.has_value()) {
-        verifySSL_ = !options.insecureSkipVerify.value();
-    }
-    if (options.proxyHost.has_value()) {
+CurlMultiTransport::CurlMultiTransport(const struct HttpTransportOptions& options)
+        : curlContainer_(std::make_unique<CurlContainer>(
+                  16,
+                  options.readWriteTimeout.value_or(10000),
+                  options.connectTimeout.value_or(5000))) {
+    (void)CurlHelper::instance();
+
+    verifySSL_ = !options.insecureSkipVerify.value_or(false);
+
+    if (options.proxyHost.has_value() && !options.proxyHost.value().empty()) {
         proxyHost_ = options.proxyHost.value();
     }
 
     multiHandle_ = curl_multi_init();
-    if (multiHandle_ == nullptr) {
-        throw std::runtime_error("curl_multi_init failed");
+    if (multiHandle_ != nullptr) {
+        ioThread_ = std::thread([this]() { ioLoop(); });
     }
-
-    ioThread_ = std::thread([this]() { ioLoop(); });
 }
 
 CurlMultiTransport::~CurlMultiTransport() {
     stopped_.store(true, std::memory_order_release);
 
-#if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 68, 0)
+#if LIBCURL_VERSION_NUM >= 0x074400 // 7.68.0
     curl_multi_wakeup(multiHandle_);
 #endif
 
@@ -160,13 +162,40 @@ CurlMultiTransport::~CurlMultiTransport() {
 void CurlMultiTransport::sendAsync(std::unique_ptr<RequestMessage> request,
                                     RequestContext context,
                                     RequestCallback callback) {
+    if (multiHandle_ == nullptr) {
+        context.errorCode = "ClientError";
+        context.errorMessage = "curl_multi_init failed";
+        callback(std::make_error_code(std::errc::operation_not_supported),
+                 std::move(request), std::move(context));
+        return;
+    }
     if (stopped_.load(std::memory_order_acquire)) {
+        context.errorCode = "ClientError";
+        context.errorMessage = "transport is stopped";
+        callback(std::make_error_code(std::errc::operation_canceled),
+                 std::move(request), std::move(context));
+        return;
+    }
+
+    CURL* curl = curlContainer_->Acquire();
+    if (curl == nullptr) {
+        context.errorCode = "ClientError";
+        context.errorMessage = "failed to acquire curl handle";
+        callback(std::make_error_code(std::errc::resource_unavailable_try_again),
+                 std::move(request), std::move(context));
+        return;
+    }
+    if (stopped_.load(std::memory_order_acquire)) {
+        curlContainer_->Release(curl, false);
+        context.errorCode = "ClientError";
+        context.errorMessage = "transport is stopped";
         callback(std::make_error_code(std::errc::operation_canceled),
                  std::move(request), std::move(context));
         return;
     }
 
     auto ctx = std::make_unique<AsyncTransferContext>();
+    ctx->curl = curl;
     ctx->request = std::move(request);
     ctx->context = std::move(context);
     ctx->callback = std::move(callback);
@@ -183,7 +212,7 @@ void CurlMultiTransport::sendAsync(std::unique_ptr<RequestMessage> request,
         pendingRequests_.push_back(std::move(ctx));
     }
 
-#if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 68, 0)
+#if LIBCURL_VERSION_NUM >= 0x074400 // 7.68.0
     curl_multi_wakeup(multiHandle_);
 #endif
 }
@@ -192,17 +221,10 @@ void CurlMultiTransport::cleanupTransferContext(AsyncTransferContext* ctx) {
     if (ctx->headers) {
         curl_slist_free_all(ctx->headers);
     }
-    if (ctx->curl) {
-        curl_easy_cleanup(ctx->curl);
-    }
 }
 
 void CurlMultiTransport::setupCurlHandle(AsyncTransferContext* ctx) {
-    CURL* curl = curl_easy_init();
-    if (curl == nullptr) {
-        return;
-    }
-    ctx->curl = curl;
+    CURL* curl = ctx->curl;
 
     curl_slist* list = nullptr;
     for (const auto& [k, v] : ctx->request->headers) {
@@ -267,14 +289,6 @@ void CurlMultiTransport::setupCurlHandle(AsyncTransferContext* ctx) {
     curl_easy_setopt(curl, CURLOPT_READDATA, ctx);
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, sendBody);
 
-    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
-    curl_easy_setopt(curl, CURLOPT_TCP_NODELAY, 1);
-    curl_easy_setopt(curl, CURLOPT_NETRC, CURL_NETRC_IGNORED);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 0L);
-    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, connectTimeout_);
-    curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 1L);
-    curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, requestTimeout_ / 1000);
-
     if (verifySSL_) {
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
@@ -301,14 +315,10 @@ void CurlMultiTransport::drainPending() {
     }
 
     for (auto& ctx : batch) {
-        setupCurlHandle(ctx.get());
-        if (ctx->curl == nullptr) {
-            auto callback = std::move(ctx->callback);
-            callback(std::make_error_code(std::errc::resource_unavailable_try_again),
-                     std::move(ctx->request), std::move(ctx->context));
-            continue;
-        }
-        curl_multi_add_handle(multiHandle_, ctx->curl);
+        auto* raw = ctx.get();
+        setupCurlHandle(raw);
+        curl_multi_add_handle(multiHandle_, raw->curl);
+        inflightHandles_.insert(raw);
         ctx.release();
     }
 }
@@ -327,12 +337,7 @@ void CurlMultiTransport::processCompleted() {
 
         AsyncTransferContext* raw = nullptr;
         curl_easy_getinfo(curl, CURLINFO_PRIVATE, &raw);
-        if (raw == nullptr) {
-            curl_multi_remove_handle(multiHandle_, curl);
-            curl_easy_cleanup(curl);
-            continue;
-        }
-
+        inflightHandles_.erase(raw);
         std::unique_ptr<AsyncTransferContext> ctx(raw);
         curl_multi_remove_handle(multiHandle_, curl);
 
@@ -358,24 +363,16 @@ void CurlMultiTransport::processCompleted() {
         ctx->response->statusCode = response_code;
         ctx->response->body = ctx->defaultSink;
 
-        curl_slist_free_all(ctx->headers);
-        curl_easy_cleanup(curl);
-        ctx->curl = nullptr;
-        ctx->headers = nullptr;
-
         OSS_LOG(LogLevel::LogDebug, TAG, "completed async request, CURLcode:%d, ResponseCode:%d",
                 res, response_code);
 
-        if (res != CURLE_OK) {
-            auto callback = std::move(ctx->callback);
-            callback(std::make_error_code(std::errc::io_error),
-                     std::move(ctx->request), std::move(ctx->context));
-        } else {
-            auto callback = std::move(ctx->callback);
-            auto response = std::move(ctx->response);
-            callback(std::move(response),
-                     std::move(ctx->request), std::move(ctx->context));
-        }
+        curl_slist_free_all(ctx->headers);
+        ctx->curl = nullptr;
+        ctx->headers = nullptr;
+        curlContainer_->Release(curl, (res != CURLE_OK));
+
+        ctx->callback(std::move(ctx->response),
+                      std::move(ctx->request), std::move(ctx->context));
     }
 }
 
@@ -387,57 +384,25 @@ void CurlMultiTransport::cleanupInflight() {
         pending.swap(pendingRequests_);
     }
     for (auto& ctx : pending) {
-        auto callback = std::move(ctx->callback);
-        callback(std::make_error_code(std::errc::operation_canceled),
-                 std::move(ctx->request), std::move(ctx->context));
+        curlContainer_->Release(ctx->curl, false);
+        ctx->curl = nullptr;
+        ctx->callback(std::make_error_code(std::errc::operation_canceled),
+                      std::move(ctx->request), std::move(ctx->context));
     }
 
-    // Cancel all in-flight requests still in the multi handle
-#if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 84, 0)
-    CURL** handles = curl_multi_get_handles(multiHandle_);
-    if (handles) {
-        for (int i = 0; handles[i] != nullptr; i++) {
-            CURL* curl = handles[i];
-            AsyncTransferContext* raw = nullptr;
-            curl_easy_getinfo(curl, CURLINFO_PRIVATE, &raw);
-            curl_multi_remove_handle(multiHandle_, curl);
-            if (raw) {
-                std::unique_ptr<AsyncTransferContext> ctx(raw);
-                auto callback = std::move(ctx->callback);
-                cleanupTransferContext(ctx.get());
-                ctx->curl = nullptr;
-                ctx->headers = nullptr;
-                callback(std::make_error_code(std::errc::operation_canceled),
-                         std::move(ctx->request), std::move(ctx->context));
-            } else {
-                curl_easy_cleanup(curl);
-            }
-        }
-        curl_free(handles);
+    // Cancel all in-flight requests
+    for (auto* raw : inflightHandles_) {
+        std::unique_ptr<AsyncTransferContext> ctx(raw);
+        curl_multi_remove_handle(multiHandle_, ctx->curl);
+        curl_slist_free_all(ctx->headers);
+        CURL* curl = ctx->curl;
+        ctx->curl = nullptr;
+        ctx->headers = nullptr;
+        curlContainer_->Release(curl, false);
+        ctx->callback(std::make_error_code(std::errc::operation_canceled),
+                      std::move(ctx->request), std::move(ctx->context));
     }
-#else
-    CURLMsg* msg;
-    int msgs_left;
-    while ((msg = curl_multi_info_read(multiHandle_, &msgs_left)) != nullptr) {
-        if (msg->msg == CURLMSG_DONE) {
-            CURL* curl = msg->easy_handle;
-            AsyncTransferContext* raw = nullptr;
-            curl_easy_getinfo(curl, CURLINFO_PRIVATE, &raw);
-            curl_multi_remove_handle(multiHandle_, curl);
-            if (raw) {
-                std::unique_ptr<AsyncTransferContext> ctx(raw);
-                auto callback = std::move(ctx->callback);
-                cleanupTransferContext(ctx.get());
-                ctx->curl = nullptr;
-                ctx->headers = nullptr;
-                callback(std::make_error_code(std::errc::operation_canceled),
-                         std::move(ctx->request), std::move(ctx->context));
-            } else {
-                curl_easy_cleanup(curl);
-            }
-        }
-    }
-#endif
+    inflightHandles_.clear();
 }
 
 void CurlMultiTransport::ioLoop() {
@@ -456,7 +421,7 @@ void CurlMultiTransport::ioLoop() {
         }
 
         int numfds = 0;
-#if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 66, 0)
+#if LIBCURL_VERSION_NUM >= 0x074200 // 7.66.0
         curl_multi_poll(multiHandle_, nullptr, 0, 200, &numfds);
 #else
         curl_multi_wait(multiHandle_, nullptr, 0, 200, &numfds);

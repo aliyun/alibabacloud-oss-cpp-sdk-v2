@@ -1,5 +1,6 @@
 
 #include "CurlHttpClient.h"
+#include "CurlHelper.h"
 #include "src/utils/LogUtils.h"
 #include "CurlContainer.h"
 
@@ -21,17 +22,6 @@ namespace alibabacloud::oss2::transport::curl {
 const char* TAG = "CurlHttpClient";
 
 namespace detail {
-
-class CurlGlobalInit {
-  public:
-    CurlGlobalInit() {
-        curl_global_init(CURL_GLOBAL_ALL);
-    }
-
-    ~CurlGlobalInit() {
-        curl_global_cleanup();
-    }
-};
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -215,7 +205,7 @@ CurlHttpClient::CurlHttpClient(const struct HttpTransportOptions& options)
                   16,
                   options.readWriteTimeout.value_or(10000),
                   options.connectTimeout.value_or(5000))) {
-    const static detail::CurlGlobalInit curlInit_ = {};
+    (void)CurlHelper::instance();
 
     verifySSL_ = !options.insecureSkipVerify.value_or(false);
 

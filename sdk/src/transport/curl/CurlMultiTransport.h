@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CurlContainer.h"
 #include "alibabacloud/oss2/transport/HttpTransport.h"
 
 #include <curl/curl.h>
@@ -9,6 +10,7 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <unordered_set>
 #include <vector>
 
 namespace alibabacloud::oss2::transport::curl {
@@ -36,6 +38,7 @@ class CurlMultiTransport : public AsyncHttpTransport {
     void setupCurlHandle(AsyncTransferContext* ctx);
     static void cleanupTransferContext(AsyncTransferContext* ctx);
 
+    std::unique_ptr<CurlContainer> curlContainer_;
     CURLM* multiHandle_{};
     std::thread ioThread_;
     std::atomic<bool> stopped_{false};
@@ -43,14 +46,14 @@ class CurlMultiTransport : public AsyncHttpTransport {
     std::mutex pendingMutex_;
     std::vector<std::unique_ptr<AsyncTransferContext>> pendingRequests_;
 
+    std::unordered_set<AsyncTransferContext*> inflightHandles_;
+
     bool verifySSL_{true};
     std::string proxyHost_;
     unsigned int proxyPort_{};
     std::string proxyUserName_;
     std::string proxyPassword_;
 
-    long connectTimeout_{5000};
-    long requestTimeout_{10000};
 };
 
 } // namespace alibabacloud::oss2::transport::curl

@@ -8,6 +8,7 @@
 #include "src/transport/HttpTransportFactory.h"
 #include "src/utils/Utils.h"
 
+#include <cstring>
 #include <set>
 
 namespace alibabacloud {

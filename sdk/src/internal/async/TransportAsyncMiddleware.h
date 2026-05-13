@@ -24,7 +24,8 @@ class TransportAsyncMiddleware final : public AsyncExecuteMiddleware {
             [self, s](ResponseResult result, std::unique_ptr<RequestMessage> request,
                        RequestContext context) mutable {
                 s->request = std::move(request);
-                s->context.transportContext = std::move(context);
+                s->context.transportContext.errorCode = std::move(context.errorCode);
+                s->context.transportContext.errorMessage = std::move(context.errorMessage);
 
                 if (std::holds_alternative<std::error_code>(result)) {
                     s->context.errorContext.error = std::get<std::error_code>(result);
