@@ -126,7 +126,7 @@ void AsyncClientImpl::onOperationFinished(const std::shared_ptr<AsyncExecuteStat
                                               std::move(state->context.errorContext.snapshot));
                     }
                 }
-                return std::move(err);
+                return err;
             }
             if (std::holds_alternative<std::unique_ptr<ResponseMessage>>(state->result)) {
                 auto& response = std::get<std::unique_ptr<ResponseMessage>>(state->result);
