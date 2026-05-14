@@ -90,4 +90,6 @@ ConnectionOptions buildConnectionOptions(const CurlTransportOptions& options);
 
 bool headerNameEquals(const std::string& header, const std::string& expect);
 
+std::string curlVersionString();
+
 } // namespace alibabacloud::oss2::transport::curl

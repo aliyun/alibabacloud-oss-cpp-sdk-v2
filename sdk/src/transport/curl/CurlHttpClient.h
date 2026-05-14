@@ -12,9 +12,7 @@ class CurlHttpClient : public HttpTransport {
 
     ResponseResult send(std::unique_ptr<RequestMessage>& request, RequestContext& context) override;
 
-    std::string getName() const override {
-        return "curl";
-    }
+    std::string getName() const override;
 
   private:
     std::unique_ptr<CurlContainer> curlContainer_;

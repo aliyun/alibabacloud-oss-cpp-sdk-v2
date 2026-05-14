@@ -27,9 +27,7 @@ class CurlMultiTransport : public AsyncHttpTransport {
                    RequestContext context,
                    RequestCallback callback) override;
 
-    std::string getName() const override {
-        return "curl-multi";
-    }
+    std::string getName() const override;
 
   private:
     void ioLoop();

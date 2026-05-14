@@ -247,4 +247,12 @@ ConnectionOptions buildConnectionOptions(const CurlTransportOptions& options) {
     return opts;
 }
 
+std::string curlVersionString() {
+    auto* info = curl_version_info(CURLVERSION_NOW);
+    if (info == nullptr || info->version == nullptr) {
+        return "unknown";
+    }
+    return info->version;
+}
+
 } // namespace alibabacloud::oss2::transport::curl

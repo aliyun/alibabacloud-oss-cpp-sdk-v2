@@ -30,6 +30,10 @@ static int progressCallback(void* userdata, double, double, double, double) {
 }
 #endif
 
+std::string CurlHttpClient::getName() const {
+    return "curl/" + curlVersionString();
+}
+
 CurlHttpClient::CurlHttpClient(const HttpTransportOptions& options)
         : curlContainer_(std::make_unique<CurlContainer>(
                   kDefaultSyncPoolSize,

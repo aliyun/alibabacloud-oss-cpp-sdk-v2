@@ -234,14 +234,14 @@ TEST(CurlTransportFactoryTest, CreateHttpTransport) {
     CurlTransportOptions opts;
     auto transport = CurlTransportFactory::createHttpTransport(opts);
     ASSERT_NE(transport, nullptr);
-    EXPECT_EQ(transport->getName(), "curl");
+    EXPECT_TRUE(transport->getName().find("curl/") == 0);
 }
 
 TEST(CurlTransportFactoryTest, CreateAsyncHttpTransport) {
     CurlTransportOptions opts;
     auto transport = CurlTransportFactory::createAsyncHttpTransport(opts);
     ASSERT_NE(transport, nullptr);
-    EXPECT_EQ(transport->getName(), "curl-multi");
+    EXPECT_TRUE(transport->getName().find("curl-multi/") == 0);
 }
 
 // ---------- Default constants ----------

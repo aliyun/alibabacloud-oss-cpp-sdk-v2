@@ -22,6 +22,10 @@ struct AsyncTransferContext {
     char errbuf[CURL_ERROR_SIZE]{};
 };
 
+std::string CurlMultiTransport::getName() const {
+    return "curl-multi/" + curlVersionString();
+}
+
 CurlMultiTransport::CurlMultiTransport(const HttpTransportOptions& options)
         : curlContainer_(std::make_unique<CurlContainer>(
                   kDefaultAsyncPoolSize,
