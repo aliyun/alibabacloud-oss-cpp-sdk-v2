@@ -18,7 +18,7 @@ class ObjectTaggingTest : public ::testing::Test {
         auto client = ClientHelper::GetDefaultClient();
         bucketName_ = Config::GenBucketName();
         auto outcome = client->putBucket(models::PutBucketRequest().setBucket(bucketName_));
-        EXPECT_TRUE(outcome.isSuccess());
+        EXPECT_TRUE(outcome.has_value());
     }
 
     static void TearDownTestCase() {
@@ -45,7 +45,7 @@ TEST_F(ObjectTaggingTest, ObjectTagging_Normal) {
     auto body = RequestBody::FromString(content);
 
     auto putOutcome = client->putObject(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body));
-    EXPECT_TRUE(putOutcome.isSuccess());
+    EXPECT_TRUE(putOutcome.has_value());
 
     // Create tags
     std::vector<models::Tag> tags;
@@ -69,13 +69,13 @@ TEST_F(ObjectTaggingTest, ObjectTagging_Normal) {
     // Put object tagging
     auto putTaggingOutcome = client->putObjectTagging(
             models::PutObjectTaggingRequest().setBucket(bucketName_).setKey(key).setTagging(tagging));
-    EXPECT_TRUE(putTaggingOutcome.isSuccess());
+    EXPECT_TRUE(putTaggingOutcome.has_value());
 
     // Get object tagging
     auto getTaggingOutcome =
             client->getObjectTagging(models::GetObjectTaggingRequest().setBucket(bucketName_).setKey(key));
-    EXPECT_TRUE(getTaggingOutcome.isSuccess());
-    auto& result = getTaggingOutcome.getResult();
+    EXPECT_TRUE(getTaggingOutcome.has_value());
+    auto& result = getTaggingOutcome.value();
     EXPECT_TRUE(result.hasTagging());
     auto& resultTagging = result.getTagging();
     EXPECT_TRUE(resultTagging.tagSet.has_value());
@@ -89,13 +89,13 @@ TEST_F(ObjectTaggingTest, ObjectTagging_Normal) {
     // Delete object tagging
     auto deleteTaggingOutcome =
             client->deleteObjectTagging(models::DeleteObjectTaggingRequest().setBucket(bucketName_).setKey(key));
-    EXPECT_TRUE(deleteTaggingOutcome.isSuccess());
+    EXPECT_TRUE(deleteTaggingOutcome.has_value());
 
     // Verify tags are deleted
     Config::WaitForCacheExpire(2);
     getTaggingOutcome = client->getObjectTagging(models::GetObjectTaggingRequest().setBucket(bucketName_).setKey(key));
-    EXPECT_TRUE(getTaggingOutcome.isSuccess());
-    auto& resultAfterDelete = getTaggingOutcome.getResult();
+    EXPECT_TRUE(getTaggingOutcome.has_value());
+    auto& resultAfterDelete = getTaggingOutcome.value();
     if (resultAfterDelete.hasTagging() && resultAfterDelete.getTagging().tagSet.has_value()) {
         EXPECT_EQ(0, resultAfterDelete.getTagging().tagSet.value().tags.size());
     }
@@ -107,8 +107,8 @@ TEST_F(ObjectTaggingTest, PutObjectTagging_Fail) {
     models::Tagging tagging;
     auto outcome = client->putObjectTagging(
             models::PutObjectTaggingRequest().setBucket(bucketName_).setKey("test-key").setTagging(tagging));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 
@@ -116,8 +116,8 @@ TEST_F(ObjectTaggingTest, GetObjectTagging_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     auto outcome =
             client->getObjectTagging(models::GetObjectTaggingRequest().setBucket(bucketName_).setKey("test-key"));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 
@@ -125,8 +125,8 @@ TEST_F(ObjectTaggingTest, DeleteObjectTagging_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     auto outcome =
             client->deleteObjectTagging(models::DeleteObjectTaggingRequest().setBucket(bucketName_).setKey("test-key"));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 

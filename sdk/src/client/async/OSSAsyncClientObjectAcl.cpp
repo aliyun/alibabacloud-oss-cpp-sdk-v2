@@ -16,7 +16,7 @@ void OSSAsyncClient::putObjectAclAsync(const models::PutObjectAclRequest& reques
     auto input = transform::fromPutObjectAcl(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toPutObjectAcl(std::move(std::get<OperationOutput>(result))));
@@ -32,7 +32,7 @@ void OSSAsyncClient::getObjectAclAsync(const models::GetObjectAclRequest& reques
     auto input = transform::fromGetObjectAcl(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toGetObjectAcl(std::move(std::get<OperationOutput>(result))));

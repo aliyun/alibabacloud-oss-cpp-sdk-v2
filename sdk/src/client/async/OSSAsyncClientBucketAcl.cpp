@@ -15,7 +15,7 @@ void OSSAsyncClient::putBucketAclAsync(const models::PutBucketAclRequest& reques
     auto input = transform::fromPutBucketAcl(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toPutBucketAcl(std::move(std::get<OperationOutput>(result))));
@@ -30,7 +30,7 @@ void OSSAsyncClient::getBucketAclAsync(const models::GetBucketAclRequest& reques
     auto input = transform::fromGetBucketAcl(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toGetBucketAcl(std::move(std::get<OperationOutput>(result))));

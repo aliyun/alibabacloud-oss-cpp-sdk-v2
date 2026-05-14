@@ -15,9 +15,9 @@ alibabacloud-oss-cpp-sdk-v2 is the developer preview for the v2 of the OSS SDK f
 
 ## Running Environment
 
-> - C++17 or later
-> - CMake 3.10 or later
-> - Supported platforms: Linux, macOS, Windows
+> - C++17 or later (C++23 required for `std::expected` mode)
+> - CMake 3.15 or later
+> - Supported platforms: Linux, macOS, Windows, Android
 
 ## Installing
 
@@ -41,6 +41,29 @@ cmake --build .
 
 # Install (optional)
 sudo cmake --install .
+```
+
+### CMake Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `BUILD_SHARED_LIBS` | `OFF` | Build shared libraries instead of static |
+| `BUILD_TESTS` | `OFF` | Build unit tests |
+| `BUILD_SAMPLES` | `OFF` | Build sample programs |
+| `ENABLE_RTTI` | `ON` | Enable/disable building code with RTTI information |
+| `USE_SYSTEM_CURL` | `OFF` | Use system-installed libcurl |
+| `USE_SYSTEM_OPENSSL` | `OFF` | Use system-installed OpenSSL |
+| `USE_SYSTEM_MBEDTLS` | `OFF` | Use system-installed mbedTLS |
+| `USE_STD_EXPECTED` | `OFF` | Use `std::expected` instead of custom `Outcome` (requires C++23) |
+| `ENABLE_COVERAGE` | `OFF` | Generate coverage reports |
+| `ENABLE_CPPCHECK` | `OFF` | Enable Cppcheck static analysis |
+| `ENABLE_SANITIZER` | `OFF` | Enable sanitizers |
+
+To enable `std::expected` mode (C++23):
+
+```bash
+cmake -B build -DCMAKE_CXX_STANDARD=23 -DUSE_STD_EXPECTED=ON
+cmake --build build
 ```
 
 ### Using CMake in your project
@@ -87,15 +110,15 @@ int main() {
 
     // List buckets
     auto outcome = client.listBuckets(models::ListBucketsRequest());
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "ListBuckets fail, code: " << e.getCode()
                   << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
 
-    auto& result = outcome.getResult();
+    auto& result = outcome.value();
     for (const auto& bucket : result.getBuckets()) {
         std::cout << "Bucket: " << bucket.name
                   << ", Location: " << bucket.location
@@ -125,15 +148,15 @@ int main() {
         models::ListObjectsV2Request()
             .setBucket("your-bucket-name")
     );
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "ListObjectsV2 fail, code: " << e.getCode()
                   << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
 
-    auto& result = outcome.getResult();
+    auto& result = outcome.value();
     for (const auto& object : result.getContents()) {
         std::cout << "Object: " << object.key
                   << ", Size: " << object.size
@@ -169,15 +192,15 @@ int main() {
             .setKey("your-object-key")
             .setBody(body)
     );
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "PutObject fail, code: " << e.getCode()
                   << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
 
-    auto& result = outcome.getResult();
+    auto& result = outcome.value();
     std::cout << "Upload successful! statusCode: " << result.getStatusCode()
               << ", requestId: " << result.getRequestId() << std::endl;
     return 0;
@@ -206,15 +229,15 @@ int main() {
             .setBucket("your-bucket-name")
             .setKey("your-object-key")
     );
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "GetObject fail, code: " << e.getCode()
                   << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
 
-    auto& result = outcome.getResult();
+    auto& result = outcome.value();
     std::stringstream buffer;
     buffer << result.getBody()->rdbuf();
 
@@ -249,7 +272,24 @@ More example projects can be found in the `samples` folder.
 
 ## Error Handling
 
-The SDK provides detailed error information through the `Outcome` pattern:
+The SDK uses `Outcome<Result, Error>` which provides an interface compatible with `std::expected`:
+
+```cpp
+auto outcome = client.putObject(request);
+
+if (!outcome.has_value()) {
+    auto& err = outcome.error();
+    std::cerr << "Error Code: " << err.getCode() << std::endl;
+    std::cerr << "Error Message: " << err.getMessage() << std::endl;
+    std::cerr << "Request ID: " << err.getRequestId() << std::endl;
+    std::cerr << "Operation: " << err.getOpName() << std::endl;
+    std::cerr << "Method: " << err.getMethod() << std::endl;
+}
+```
+
+When built with `-DUSE_STD_EXPECTED=ON` (C++23), `Outcome` becomes a type alias for `std::expected`, enabling monadic operations like `.and_then()`, `.transform()`, and `.or_else()`.
+
+The legacy interface (`isSuccess()` / `getResult()` / `getError()`) is also available for compatibility with users migrating from [aliyun-oss-cpp-sdk](https://github.com/aliyun/aliyun-oss-cpp-sdk). Note that the legacy interface is not available in `std::expected` mode.
 
 ```cpp
 auto outcome = client.putObject(request);
@@ -258,10 +298,9 @@ if (!outcome.isSuccess()) {
     auto& error = outcome.getError();
     std::cerr << "Error Code: " << error.getCode() << std::endl;
     std::cerr << "Error Message: " << error.getMessage() << std::endl;
-    std::cerr << "Request ID: " << error.getRequestId() << std::endl;
-    std::cerr << "Operation: " << error.getOpName() << std::endl;
-    std::cerr << "Method: " << error.getMethod() << std::endl;
 }
+
+auto& result = outcome.getResult();
 ```
 
 ## Thread Safety

@@ -21,7 +21,7 @@ void OSSAsyncClient::initiateMultipartUploadAsync(const models::InitiateMultipar
     }
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toInitiateMultipartUpload(std::move(std::get<OperationOutput>(result))));
@@ -39,7 +39,7 @@ void OSSAsyncClient::uploadPartAsync(const models::UploadPartRequest& request,
     auto input = transform::fromUploadPart(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toUploadPart(std::move(std::get<OperationOutput>(result))));
@@ -56,7 +56,7 @@ void OSSAsyncClient::completeMultipartUploadAsync(const models::CompleteMultipar
     auto input = transform::fromCompleteMultipartUpload(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toCompleteMultipartUpload(std::move(std::get<OperationOutput>(result))));
@@ -75,7 +75,7 @@ void OSSAsyncClient::uploadPartCopyAsync(const models::UploadPartCopyRequest& re
     auto input = transform::fromUploadPartCopy(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toUploadPartCopy(std::move(std::get<OperationOutput>(result))));
@@ -92,7 +92,7 @@ void OSSAsyncClient::abortMultipartUploadAsync(const models::AbortMultipartUploa
     auto input = transform::fromAbortMultipartUpload(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toAbortMultipartUpload(std::move(std::get<OperationOutput>(result))));
@@ -107,7 +107,7 @@ void OSSAsyncClient::listMultipartUploadsAsync(const models::ListMultipartUpload
     auto input = transform::fromListMultipartUploads(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toListMultipartUploads(std::move(std::get<OperationOutput>(result))));
@@ -124,7 +124,7 @@ void OSSAsyncClient::listPartsAsync(const models::ListPartsRequest& request,
     auto input = transform::fromListParts(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toListParts(std::move(std::get<OperationOutput>(result))));

@@ -14,7 +14,7 @@ class AsyncBucketObjectsTest : public ::testing::Test {
         auto client = ClientHelper::GetDefaultClient();
         bucketName_ = Config::GenBucketName();
         auto future = client->asyncCall(models::PutBucketRequest().setBucket(bucketName_));
-        EXPECT_TRUE(future.get().isSuccess());
+        EXPECT_TRUE(future.get().has_value());
 
         for (int i = 0; i < 5; i++) {
             auto key = "test-object-" + std::to_string(i);
@@ -22,7 +22,7 @@ class AsyncBucketObjectsTest : public ::testing::Test {
                     .setBucket(bucketName_)
                     .setKey(key)
                     .setBody(RequestBody::FromString("content-" + std::to_string(i))));
-            EXPECT_TRUE(putFuture.get().isSuccess());
+            EXPECT_TRUE(putFuture.get().has_value());
         }
     }
 
@@ -40,8 +40,8 @@ TEST_F(AsyncBucketObjectsTest, ListObjects_Normal) {
     auto client = ClientHelper::GetDefaultClient();
     auto future = client->asyncCall(models::ListObjectsRequest().setBucket(bucketName_));
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_EQ(bucketName_, result.getName());
     EXPECT_GE(result.getContents().size(), 5);
 }
@@ -50,24 +50,24 @@ TEST_F(AsyncBucketObjectsTest, ListObjects_WithMaxKeys) {
     auto client = ClientHelper::GetDefaultClient();
     auto future = client->asyncCall(models::ListObjectsRequest().setBucket(bucketName_).setMaxKeys(2));
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_LE(outcome.getResult().getContents().size(), 2);
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_LE(outcome.value().getContents().size(), 2);
 }
 
 TEST_F(AsyncBucketObjectsTest, ListObjects_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     auto future = client->asyncCall(models::ListObjectsRequest().setBucket(bucketName_));
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("InvalidAccessKeyId", outcome.error().getCode());
 }
 
 TEST_F(AsyncBucketObjectsTest, ListObjectsV2_Normal) {
     auto client = ClientHelper::GetDefaultClient();
     auto future = client->asyncCall(models::ListObjectsV2Request().setBucket(bucketName_));
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_EQ(bucketName_, result.getName());
     EXPECT_GE(result.getContents().size(), 5);
 }
@@ -76,8 +76,8 @@ TEST_F(AsyncBucketObjectsTest, ListObjectsV2_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     auto future = client->asyncCall(models::ListObjectsV2Request().setBucket(bucketName_));
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("InvalidAccessKeyId", outcome.error().getCode());
 }
 
 TEST_F(AsyncBucketObjectsTest, DeleteMultipleObjects_Normal) {
@@ -90,7 +90,7 @@ TEST_F(AsyncBucketObjectsTest, DeleteMultipleObjects_Normal) {
                 .setBucket(bucketName_)
                 .setKey(key)
                 .setBody(RequestBody::FromString("content-" + std::to_string(i))));
-        EXPECT_TRUE(putFuture.get().isSuccess());
+        EXPECT_TRUE(putFuture.get().has_value());
 
         models::ObjectIdentifier obj;
         obj.setKey(key);
@@ -102,8 +102,8 @@ TEST_F(AsyncBucketObjectsTest, DeleteMultipleObjects_Normal) {
 
     auto future = client->asyncCall(models::DeleteMultipleObjectsRequest().setBucket(bucketName_).setDelete(deleteReq));
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ(3, outcome.getResult().getDeletedObjects().size());
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(3, outcome.value().getDeletedObjects().size());
 }
 
 TEST_F(AsyncBucketObjectsTest, DeleteMultipleObjects_Fail) {
@@ -118,8 +118,8 @@ TEST_F(AsyncBucketObjectsTest, DeleteMultipleObjects_Fail) {
 
     auto future = client->asyncCall(models::DeleteMultipleObjectsRequest().setBucket(bucketName_).setDelete(deleteReq));
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("InvalidAccessKeyId", outcome.error().getCode());
 }
 
 } // namespace async

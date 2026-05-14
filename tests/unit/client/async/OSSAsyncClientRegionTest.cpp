@@ -57,11 +57,11 @@ TEST(OSSAsyncClientRegionTest, DescribeRegionsAsync_Success) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ(200, outcome.getResult().getStatusCode());
-    EXPECT_EQ("id-1234", outcome.getResult().getRequestId());
-    EXPECT_EQ(1, outcome.getResult().getRegionInfoList().regionInfos.size());
-    EXPECT_EQ("oss-cn-hangzhou", outcome.getResult().getRegionInfoList().regionInfos.at(0).region);
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(200, outcome.value().getStatusCode());
+    EXPECT_EQ("id-1234", outcome.value().getRequestId());
+    EXPECT_EQ(1, outcome.value().getRegionInfoList().regionInfos.size());
+    EXPECT_EQ("oss-cn-hangzhou", outcome.value().getRegionInfoList().regionInfos.at(0).region);
 }
 
 TEST(OSSAsyncClientRegionTest, DescribeRegionsAsync_ErrorResponse) {
@@ -84,9 +84,9 @@ TEST(OSSAsyncClientRegionTest, DescribeRegionsAsync_ErrorResponse) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ(403, outcome.getError().getStatusCode());
-    EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ(403, outcome.error().getStatusCode());
+    EXPECT_EQ("InvalidAccessKeyId", outcome.error().getCode());
 }
 
 } // namespace alibabacloud::oss2

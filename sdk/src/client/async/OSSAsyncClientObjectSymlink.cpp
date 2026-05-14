@@ -16,7 +16,7 @@ void OSSAsyncClient::putSymlinkAsync(const models::PutSymlinkRequest& request,
     auto input = transform::fromPutSymlink(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toPutSymlink(std::move(std::get<OperationOutput>(result))));
@@ -32,7 +32,7 @@ void OSSAsyncClient::getSymlinkAsync(const models::GetSymlinkRequest& request,
     auto input = transform::fromGetSymlink(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toGetSymlink(std::move(std::get<OperationOutput>(result))));

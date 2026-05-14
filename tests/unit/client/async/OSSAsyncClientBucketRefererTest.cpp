@@ -44,8 +44,8 @@ TEST(OSSAsyncClientBucketRefererTest, PutBucketRefererAsync_RequiredField) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("ArgumentRequired", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("ArgumentRequired", outcome.error().getCode());
 }
 
 TEST(OSSAsyncClientBucketRefererTest, PutBucketRefererAsync_Success) {
@@ -64,8 +64,8 @@ TEST(OSSAsyncClientBucketRefererTest, PutBucketRefererAsync_Success) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ(200, outcome.getResult().getStatusCode());
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(200, outcome.value().getStatusCode());
 }
 
 TEST(OSSAsyncClientBucketRefererTest, GetBucketRefererAsync_RequiredField) {
@@ -80,8 +80,8 @@ TEST(OSSAsyncClientBucketRefererTest, GetBucketRefererAsync_RequiredField) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("ArgumentRequired", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("ArgumentRequired", outcome.error().getCode());
 }
 
 } // namespace alibabacloud::oss2

@@ -34,8 +34,8 @@ TEST(OSSClientObjectMultipartCallAsyncTest, InitiateMultipartUpload_Future_Succe
 
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ("upload-id-123", outcome.getResult().getUploadId());
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ("upload-id-123", outcome.value().getUploadId());
 }
 
 TEST(OSSClientObjectMultipartCallAsyncTest, AbortMultipartUpload_Callback_Success) {
@@ -66,7 +66,7 @@ TEST(OSSClientObjectMultipartCallAsyncTest, AbortMultipartUpload_Callback_Succes
         });
 
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
+    EXPECT_TRUE(outcome.has_value());
 }
 
 TEST(OSSClientObjectMultipartCallAsyncTest, ListMultipartUploads_Future_Success) {
@@ -92,7 +92,7 @@ TEST(OSSClientObjectMultipartCallAsyncTest, ListMultipartUploads_Future_Success)
 
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
+    EXPECT_TRUE(outcome.has_value());
 }
 
 TEST(OSSClientObjectMultipartCallAsyncTest, InitiateMultipartUpload_Future_NoExecutor) {
@@ -108,8 +108,8 @@ TEST(OSSClientObjectMultipartCallAsyncTest, InitiateMultipartUpload_Future_NoExe
 
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("NoExecutor", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("NoExecutor", outcome.error().getCode());
 }
 
 } // namespace alibabacloud::oss2

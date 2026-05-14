@@ -15,7 +15,7 @@ PutBucketAclOutcome OSSClient::putBucketAcl(const models::PutBucketAclRequest& r
     auto input = transform::fromPutBucketAcl(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toPutBucketAcl(std::move(std::get<OperationOutput>(result)));
 }
@@ -27,7 +27,7 @@ GetBucketAclOutcome OSSClient::getBucketAcl(const models::GetBucketAclRequest& r
     auto input = transform::fromGetBucketAcl(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toGetBucketAcl(std::move(std::get<OperationOutput>(result)));
 }

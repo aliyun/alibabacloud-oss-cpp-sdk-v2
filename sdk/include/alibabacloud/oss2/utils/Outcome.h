@@ -1,19 +1,35 @@
-
 #pragma once
 
+#include "alibabacloud/oss2/utils/OutcomeConfig.h"
+
+#ifdef ALIBABACLOUD_OSS_USE_STD_EXPECTED
+#include <expected>
+#endif
 
 namespace alibabacloud {
 namespace oss2 {
 
+#ifdef ALIBABACLOUD_OSS_USE_STD_EXPECTED
+
+template <typename R, typename E>
+using Outcome = std::expected<R, E>;
+
+template <typename E>
+std::unexpected<std::decay_t<E>> makeUnexpected(E&& e) {
+    return std::unexpected<std::decay_t<E>>(std::forward<E>(e));
+}
+
+#else
+
 template <typename R, typename E>
 class Outcome {
   public:
-    Outcome() : result(), error(), success(false) {}
-    Outcome(const R& r) : result(r), error(), success(true) {}
-    Outcome(const E& e) : result(), error(e), success(false) {}
-    Outcome(R&& r) : result(std::forward<R>(r)), error(), success(true) {}
-    Outcome(E&& e) : result(), error(std::forward<E>(e)), success(false) {}
-    Outcome(const Outcome& o) : result(o.result), error(o.error), success(o.success) {}
+    Outcome() : result_(), error_(), hasValue_(false) {}
+    Outcome(const R& r) : result_(r), error_(), hasValue_(true) {}
+    Outcome(const E& e) : result_(), error_(e), hasValue_(false) {}
+    Outcome(R&& r) : result_(std::forward<R>(r)), error_(), hasValue_(true) {}
+    Outcome(E&& e) : result_(), error_(std::forward<E>(e)), hasValue_(false) {}
+    Outcome(const Outcome& o) : result_(o.result_), error_(o.error_), hasValue_(o.hasValue_) {}
 
     template <typename RT, typename ET>
     friend class Outcome;
@@ -24,30 +40,30 @@ class Outcome {
     // Move both result and error from other type of outcome
     template <typename RT, typename ET,
               enable_if_t<std::is_convertible<RT, R>::value && std::is_convertible<ET, E>::value, int> = 0>
-    Outcome(Outcome<RT, ET>&& o) : result(std::move(o.result)), error(std::move(o.error)), success(o.success) {}
+    Outcome(Outcome<RT, ET>&& o) : result_(std::move(o.result_)), error_(std::move(o.error_)), hasValue_(o.hasValue_) {}
 
     // Move result from other type of outcome
     template <typename RT, typename ET,
               enable_if_t<std::is_convertible<RT, R>::value && !std::is_convertible<ET, E>::value, int> = 0>
-    Outcome(Outcome<RT, ET>&& o) : result(std::move(o.result)), success(o.success) {
-        assert(o.success);
+    Outcome(Outcome<RT, ET>&& o) : result_(std::move(o.result_)), hasValue_(o.hasValue_) {
+        assert(o.hasValue_);
     }
 
     // Move error from other type of outcome
     template <typename RT, typename ET,
               enable_if_t<!std::is_convertible<RT, R>::value && std::is_convertible<ET, E>::value, int> = 0>
-    Outcome(Outcome<RT, ET>&& o) : error(std::move(o.error)), success(o.success) {
-        assert(!o.success);
+    Outcome(Outcome<RT, ET>&& o) : error_(std::move(o.error_)), hasValue_(o.hasValue_) {
+        assert(!o.hasValue_);
     }
 
     template <typename ET, enable_if_t<std::is_convertible<ET, E>::value, int> = 0>
-    Outcome(ET&& e) : error(std::forward<ET>(e)), success(false) {}
+    Outcome(ET&& e) : error_(std::forward<ET>(e)), hasValue_(false) {}
 
     Outcome& operator=(const Outcome& o) {
         if (this != &o) {
-            result = o.result;
-            error = o.error;
-            success = o.success;
+            result_ = o.result_;
+            error_ = o.error_;
+            hasValue_ = o.hasValue_;
         }
 
         return *this;
@@ -55,43 +71,59 @@ class Outcome {
 
     Outcome(Outcome&& o)
             : // Required to force Move Constructor
-              result(std::move(o.result)), error(std::move(o.error)), success(o.success) {}
+              result_(std::move(o.result_)), error_(std::move(o.error_)), hasValue_(o.hasValue_) {}
 
     Outcome& operator=(Outcome&& o) {
         if (this != &o) {
-            result = std::move(o.result);
-            error = std::move(o.error);
-            success = o.success;
+            result_ = std::move(o.result_);
+            error_ = std::move(o.error_);
+            hasValue_ = o.hasValue_;
         }
 
         return *this;
     }
 
-    inline bool isSuccess() const {
-        return this->success;
+    // --- std::expected compatible interface ---
+
+    bool has_value() const { return hasValue_; }
+    explicit operator bool() const { return hasValue_; }
+
+    R& value() { return result_; }
+    const R& value() const { return result_; }
+
+    E& error() { return error_; }
+    const E& error() const { return error_; }
+
+    R& operator*() { return result_; }
+    const R& operator*() const { return result_; }
+    R* operator->() { return &result_; }
+    const R* operator->() const { return &result_; }
+
+    template <typename U>
+    R value_or(U&& default_value) const {
+        return hasValue_ ? result_ : static_cast<R>(std::forward<U>(default_value));
     }
 
-    inline const E& getError() const {
-        return error;
-    }
+    // --- Legacy interface (compatible with aliyun-oss-cpp-sdk) ---
 
-    inline E& getError() {
-        return error;
-    }
+    bool isSuccess() const { return hasValue_; }
 
-    inline const R& getResult() const {
-        return result;
-    }
+    const E& getError() const { return error_; }
+    E& getError() { return error_; }
 
-    inline R& getResult() {
-        return result;
-    }
+    const R& getResult() const { return result_; }
+    R& getResult() { return result_; }
 
   private:
-    R result;
-    E error;
-    bool success = false;
+    R result_;
+    E error_;
+    bool hasValue_ = false;
 };
+
+template <typename E>
+E&& makeUnexpected(E&& e) { return std::forward<E>(e); }
+
+#endif // !ALIBABACLOUD_OSS_USE_STD_EXPECTED
 
 } // namespace oss2
 } // namespace alibabacloud

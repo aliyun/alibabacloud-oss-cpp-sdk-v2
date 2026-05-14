@@ -67,8 +67,8 @@ TEST(OSSClientObjectSymlinkTest, GetSymlink_FullHeaders) {
     request.setBucket("bucket");
     request.setKey("key");
     auto outcome = client.getSymlink(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -96,8 +96,8 @@ TEST(OSSClientObjectSymlinkTest, GetSymlink_EmptyHeader) {
     request.setBucket("bucket");
     request.setKey("key");
     auto outcome = client.getSymlink(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -137,8 +137,8 @@ TEST(OSSClientObjectSymlinkTest, GetSymlink_ErrorResponse) {
     request.setKey("key");
     request.setVersionId("id");
     auto outcome = client.getSymlink(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(403, error.getStatusCode());
     EXPECT_EQ("GetSymlink", error.getOpName());
@@ -171,8 +171,8 @@ TEST(OSSClientObjectSymlinkTest, GetSymlink_RequiredField) {
 
     auto request = models::GetSymlinkRequest();
     auto outcome = client.getSymlink(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -180,8 +180,8 @@ TEST(OSSClientObjectSymlinkTest, GetSymlink_RequiredField) {
 
     request.setBucket("bucket");
     outcome = client.getSymlink(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -207,8 +207,8 @@ TEST(OSSClientObjectSymlinkTest, PutSymlink_NullXml) {
     request.setKey("key");
     request.setObjectAcl("public");
     auto outcome = client.putSymlink(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -235,8 +235,8 @@ TEST(OSSClientObjectSymlinkTest, PutSymlink_EmptyXml) {
     request.setKey("key");
     request.setObjectAcl("public");
     auto outcome = client.putSymlink(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -272,8 +272,8 @@ TEST(OSSClientObjectSymlinkTest, PutSymlink_ErrorResponse) {
     request.setKey("key");
     request.setObjectAcl("public");
     auto outcome = client.putSymlink(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(403, error.getStatusCode());
     EXPECT_EQ("PutSymlink", error.getOpName());
@@ -307,8 +307,8 @@ TEST(OSSClientObjectSymlinkTest, PutSymlink_RequiredField) {
 
     auto request = models::PutSymlinkRequest();
     auto outcome = client.putSymlink(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -316,8 +316,8 @@ TEST(OSSClientObjectSymlinkTest, PutSymlink_RequiredField) {
 
     request.setBucket("bucket");
     outcome = client.putSymlink(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());

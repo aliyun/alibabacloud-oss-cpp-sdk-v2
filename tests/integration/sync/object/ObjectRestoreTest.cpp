@@ -18,7 +18,7 @@ class ObjectRestoreTest : public ::testing::Test {
         auto client = ClientHelper::GetDefaultClient();
         bucketName_ = Config::GenBucketName();
         auto outcome = client->putBucket(models::PutBucketRequest().setBucket(bucketName_));
-        EXPECT_TRUE(outcome.isSuccess());
+        EXPECT_TRUE(outcome.has_value());
     }
 
     static void TearDownTestCase() {
@@ -46,7 +46,7 @@ TEST_F(ObjectRestoreTest, RestoreObject_Normal) {
 
     auto putOutcome = client->putObject(
             models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body).setStorageClass("Archive"));
-    EXPECT_TRUE(putOutcome.isSuccess());
+    EXPECT_TRUE(putOutcome.has_value());
 
     // Create restore request
     models::RestoreRequest restoreReq;
@@ -69,8 +69,8 @@ TEST_F(ObjectRestoreTest, RestoreObject_Fail) {
     models::RestoreRequest restoreReq;
     auto outcome = client->restoreObject(
             models::RestoreObjectRequest().setBucket(bucketName_).setKey("test-key").setRestoreRequest(restoreReq));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 
@@ -84,7 +84,7 @@ TEST_F(ObjectRestoreTest, CleanRestoredObject_Normal) {
     auto body = RequestBody::FromString(content);
     auto putOutcome = client->putObject(
             models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body).setStorageClass("Archive"));
-    EXPECT_TRUE(putOutcome.isSuccess());
+    EXPECT_TRUE(putOutcome.has_value());
 
     // Clean restored object
     auto outcome = client->cleanRestoredObject(models::CleanRestoredObjectRequest().setBucket(bucketName_).setKey(key));
@@ -96,8 +96,8 @@ TEST_F(ObjectRestoreTest, CleanRestoredObject_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     auto outcome =
             client->cleanRestoredObject(models::CleanRestoredObjectRequest().setBucket(bucketName_).setKey("test-key"));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 

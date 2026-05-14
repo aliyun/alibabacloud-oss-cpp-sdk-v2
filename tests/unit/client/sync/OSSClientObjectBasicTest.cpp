@@ -83,8 +83,8 @@ TEST(OSSClientObjectBasicTest, PutObject_Success) {
     request.setBody(std::make_shared<StringContent>("test data for put object"));
 
     auto outcome = client.putObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -127,8 +127,8 @@ TEST(OSSClientObjectBasicTest, PutObject_WithHeaders) {
     request.setBody(std::make_shared<StringContent>("test data for put object with headers"));
 
     auto outcome = client.putObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("123456789", result.getHashCrc64ecma());
@@ -163,8 +163,8 @@ TEST(OSSClientObjectBasicTest, PutObject_ErrorResponse) {
     request.setBody(std::make_shared<StringContent>("test data"));
 
     auto outcome = client.putObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(403, error.getStatusCode());
     EXPECT_EQ("PutObject", error.getOpName());
@@ -194,8 +194,8 @@ TEST(OSSClientObjectBasicTest, PutObject_RequiredField) {
 
     auto request = models::PutObjectRequest();
     auto outcome = client.putObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -203,8 +203,8 @@ TEST(OSSClientObjectBasicTest, PutObject_RequiredField) {
 
     request.setBucket("test-bucket");
     outcome = client.putObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -212,7 +212,7 @@ TEST(OSSClientObjectBasicTest, PutObject_RequiredField) {
 
     request.setKey("test-key");
     outcome = client.putObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
+    EXPECT_TRUE(outcome.has_value());
 }
 
 // Test GetObject operation
@@ -245,8 +245,8 @@ TEST(OSSClientObjectBasicTest, GetObject_Success) {
     request.setKey("test-key");
 
     auto outcome = client.getObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -292,8 +292,8 @@ TEST(OSSClientObjectBasicTest, GetObject_WithRange) {
     request.setRange("bytes=0-13");
 
     auto outcome = client.getObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(206, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -334,8 +334,8 @@ TEST(OSSClientObjectBasicTest, GetObject_ErrorResponse) {
     request.setKey("non-existent-key");
 
     auto outcome = client.getObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(404, error.getStatusCode());
     EXPECT_EQ("GetObject", error.getOpName());
@@ -365,8 +365,8 @@ TEST(OSSClientObjectBasicTest, GetObject_RequiredField) {
 
     auto request = models::GetObjectRequest();
     auto outcome = client.getObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -374,8 +374,8 @@ TEST(OSSClientObjectBasicTest, GetObject_RequiredField) {
 
     request.setBucket("test-bucket");
     outcome = client.getObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -417,8 +417,8 @@ TEST(OSSClientObjectBasicTest, CopyObject_Success) {
     request.setCopySource("/source-bucket/source-key");
 
     auto outcome = client.copyObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -466,8 +466,8 @@ TEST(OSSClientObjectBasicTest, CopyObject_WithHeaders) {
     request.setMetadata(metadata);
 
     auto outcome = client.copyObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -507,8 +507,8 @@ TEST(OSSClientObjectBasicTest, CopyObject_SourceKey) {
     request.setSourceKey("source-key:123");
 
     auto outcome = client.copyObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -536,8 +536,8 @@ TEST(OSSClientObjectBasicTest, CopyObject_SourceKey) {
     request.setSourceKey("source-key:123");
 
     outcome = client.copyObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -566,8 +566,8 @@ TEST(OSSClientObjectBasicTest, CopyObject_SourceKey) {
     request.setSourceVersionId("id-123");
 
     outcome = client.copyObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -594,8 +594,8 @@ TEST(OSSClientObjectBasicTest, CopyObject_SourceKey) {
     request.setCopySource("/source-key/source-key%3A1234");
 
     outcome = client.copyObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -637,8 +637,8 @@ TEST(OSSClientObjectBasicTest, CopyObject_ErrorResponse) {
     request.setCopySource("/source-bucket/non-existent-key");
 
     auto outcome = client.copyObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(404, error.getStatusCode());
     EXPECT_EQ("CopyObject", error.getOpName());
@@ -674,8 +674,8 @@ TEST(OSSClientObjectBasicTest, CopyObject_RequiredField) {
 
     auto request = models::CopyObjectRequest();
     auto outcome = client.copyObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -683,8 +683,8 @@ TEST(OSSClientObjectBasicTest, CopyObject_RequiredField) {
 
     request.setBucket("dest-bucket");
     outcome = client.copyObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -692,8 +692,8 @@ TEST(OSSClientObjectBasicTest, CopyObject_RequiredField) {
 
     request.setKey("dest-key");
     outcome = client.copyObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -702,7 +702,7 @@ TEST(OSSClientObjectBasicTest, CopyObject_RequiredField) {
     request.setKey("dest-key");
     request.setSourceKey("src-key");
     outcome = client.copyObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
+    EXPECT_TRUE(outcome.has_value());
 }
 
 // Test Append Object operation
@@ -733,8 +733,8 @@ TEST(OSSClientObjectBasicTest, AppendObject_Success) {
     request.setBody(RequestBody::FromString("hello"));
 
     auto outcome = client.appendObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -775,8 +775,8 @@ TEST(OSSClientObjectBasicTest, AppendObject_WithHeaders) {
     request.setBody(RequestBody::FromString("hello"));
 
     auto outcome = client.appendObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -815,8 +815,8 @@ TEST(OSSClientObjectBasicTest, AppendObject_ErrorResponse) {
     request.setPosition(0);
 
     auto outcome = client.appendObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(404, error.getStatusCode());
     EXPECT_EQ("AppendObject", error.getOpName());
@@ -846,8 +846,8 @@ TEST(OSSClientObjectBasicTest, AppendObject_RequiredField) {
 
     auto request = models::AppendObjectRequest();
     auto outcome = client.appendObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -855,8 +855,8 @@ TEST(OSSClientObjectBasicTest, AppendObject_RequiredField) {
 
     request.setBucket("dest-bucket");
     outcome = client.appendObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -864,8 +864,8 @@ TEST(OSSClientObjectBasicTest, AppendObject_RequiredField) {
 
     request.setKey("dest-key");
     outcome = client.appendObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -873,7 +873,7 @@ TEST(OSSClientObjectBasicTest, AppendObject_RequiredField) {
 
     request.setPosition(0);
     outcome = client.appendObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
+    EXPECT_TRUE(outcome.has_value());
 }
 
 // Test SealAppendObject operation
@@ -898,8 +898,8 @@ TEST(OSSClientObjectBasicTest, SealAppendObject_Success) {
     request.setPosition(11);
 
     auto outcome = client.sealAppendObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -934,8 +934,8 @@ TEST(OSSClientObjectBasicTest, SealAppendObject_ErrorResponse) {
     request.setPosition(11);
 
     auto outcome = client.sealAppendObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(404, error.getStatusCode());
     EXPECT_EQ("SealAppendObject", error.getOpName());
@@ -965,8 +965,8 @@ TEST(OSSClientObjectBasicTest, SealAppendObject_RequiredField) {
 
     auto request = models::SealAppendObjectRequest();
     auto outcome = client.sealAppendObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -974,8 +974,8 @@ TEST(OSSClientObjectBasicTest, SealAppendObject_RequiredField) {
 
     request.setBucket("dest-bucket");
     outcome = client.sealAppendObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -983,8 +983,8 @@ TEST(OSSClientObjectBasicTest, SealAppendObject_RequiredField) {
 
     request.setKey("dest-key");
     outcome = client.sealAppendObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -992,7 +992,7 @@ TEST(OSSClientObjectBasicTest, SealAppendObject_RequiredField) {
 
     request.setPosition(0);
     outcome = client.sealAppendObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
+    EXPECT_TRUE(outcome.has_value());
 }
 
 // Test HeadObject operation
@@ -1024,8 +1024,8 @@ TEST(OSSClientObjectBasicTest, HeadObject_Success) {
     request.setKey("test-key");
 
     auto outcome = client.headObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -1064,8 +1064,8 @@ TEST(OSSClientObjectBasicTest, HeadObject_ErrorResponse) {
     request.setKey("non-existent-key");
 
     auto outcome = client.headObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(404, error.getStatusCode());
     EXPECT_EQ("HeadObject", error.getOpName());
@@ -1095,8 +1095,8 @@ TEST(OSSClientObjectBasicTest, HeadObject_RequiredField) {
 
     auto request = models::HeadObjectRequest();
     auto outcome = client.headObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -1104,8 +1104,8 @@ TEST(OSSClientObjectBasicTest, HeadObject_RequiredField) {
 
     request.setBucket("test-bucket");
     outcome = client.headObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -1113,7 +1113,7 @@ TEST(OSSClientObjectBasicTest, HeadObject_RequiredField) {
 
     request.setKey("test-key");
     outcome = client.headObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
+    EXPECT_TRUE(outcome.has_value());
 }
 
 // Test DeleteObject operation
@@ -1139,8 +1139,8 @@ TEST(OSSClientObjectBasicTest, DeleteObject_Success) {
     request.setKey("test-key");
 
     auto outcome = client.deleteObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(204, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -1168,8 +1168,8 @@ TEST(OSSClientObjectBasicTest, DeleteObject_WithVersionId) {
     request.setVersionId("version-to-delete");
 
     auto outcome = client.deleteObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(204, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -1203,8 +1203,8 @@ TEST(OSSClientObjectBasicTest, DeleteObject_ErrorResponse) {
     request.setKey("non-existent-key");
 
     auto outcome = client.deleteObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(404, error.getStatusCode());
     EXPECT_EQ("DeleteObject", error.getOpName());
@@ -1234,8 +1234,8 @@ TEST(OSSClientObjectBasicTest, DeleteObject_RequiredField) {
 
     auto request = models::DeleteObjectRequest();
     auto outcome = client.deleteObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -1243,8 +1243,8 @@ TEST(OSSClientObjectBasicTest, DeleteObject_RequiredField) {
 
     request.setBucket("test-bucket");
     outcome = client.deleteObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -1252,7 +1252,7 @@ TEST(OSSClientObjectBasicTest, DeleteObject_RequiredField) {
 
     request.setKey("test-key");
     outcome = client.deleteObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
+    EXPECT_TRUE(outcome.has_value());
 }
 
 // Test GetObjectMeta operation
@@ -1283,8 +1283,8 @@ TEST(OSSClientObjectBasicTest, GetObjectMeta_Success) {
     request.setKey("test-key");
 
     auto outcome = client.getObjectMeta(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -1322,8 +1322,8 @@ TEST(OSSClientObjectBasicTest, GetObjectMeta_ErrorResponse) {
     request.setKey("non-existent-key");
 
     auto outcome = client.getObjectMeta(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(404, error.getStatusCode());
     EXPECT_EQ("GetObjectMeta", error.getOpName());
@@ -1353,8 +1353,8 @@ TEST(OSSClientObjectBasicTest, GetObjectMeta_RequiredField) {
 
     auto request = models::GetObjectMetaRequest();
     auto outcome = client.getObjectMeta(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -1362,8 +1362,8 @@ TEST(OSSClientObjectBasicTest, GetObjectMeta_RequiredField) {
 
     request.setBucket("test-bucket");
     outcome = client.getObjectMeta(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -1371,7 +1371,7 @@ TEST(OSSClientObjectBasicTest, GetObjectMeta_RequiredField) {
 
     request.setKey("test-key");
     outcome = client.getObjectMeta(request);
-    EXPECT_TRUE(outcome.isSuccess());
+    EXPECT_TRUE(outcome.has_value());
 }
 
 // Test RestoreObject operation
@@ -1406,8 +1406,8 @@ TEST(OSSClientObjectBasicTest, RestoreObject_Success) {
     request.setRestoreRequest(restoreReq);
 
     auto outcome = client.restoreObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(202, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -1446,8 +1446,8 @@ TEST(OSSClientObjectBasicTest, RestoreObject_ErrorResponse) {
     request.setRestoreRequest(restoreReq);
 
     auto outcome = client.restoreObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(409, error.getStatusCode());
     EXPECT_EQ("RestoreObject", error.getOpName());
@@ -1477,8 +1477,8 @@ TEST(OSSClientObjectBasicTest, RestoreObject_RequiredField) {
 
     auto request = models::RestoreObjectRequest();
     auto outcome = client.restoreObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -1486,8 +1486,8 @@ TEST(OSSClientObjectBasicTest, RestoreObject_RequiredField) {
 
     request.setBucket("test-bucket");
     outcome = client.restoreObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -1495,7 +1495,7 @@ TEST(OSSClientObjectBasicTest, RestoreObject_RequiredField) {
 
     request.setKey("test-key");
     outcome = client.restoreObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
+    EXPECT_TRUE(outcome.has_value());
 }
 
 // Test RestoreObject operation
@@ -1518,8 +1518,8 @@ TEST(OSSClientObjectBasicTest, CleanRestoredObject_Success) {
     request.setKey("test-key");
 
     auto outcome = client.cleanRestoredObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(202, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -1552,8 +1552,8 @@ TEST(OSSClientObjectBasicTest, CleanRestoredObject_ErrorResponse) {
     request.setKey("test-key");
 
     auto outcome = client.cleanRestoredObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(409, error.getStatusCode());
     EXPECT_EQ("CleanRestoredObject", error.getOpName());
@@ -1584,8 +1584,8 @@ TEST(OSSClientObjectBasicTest, CleanRestoredObject_RequiredField) {
 
     auto request = models::CleanRestoredObjectRequest();
     auto outcome = client.cleanRestoredObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -1593,8 +1593,8 @@ TEST(OSSClientObjectBasicTest, CleanRestoredObject_RequiredField) {
 
     request.setBucket("test-bucket");
     outcome = client.cleanRestoredObject(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -1602,7 +1602,7 @@ TEST(OSSClientObjectBasicTest, CleanRestoredObject_RequiredField) {
 
     request.setKey("test-key");
     outcome = client.cleanRestoredObject(request);
-    EXPECT_TRUE(outcome.isSuccess());
+    EXPECT_TRUE(outcome.has_value());
 }
 
 // Test DeleteMultipleObjects operation
@@ -1642,8 +1642,8 @@ TEST(OSSClientObjectBasicTest, DeleteMultipleObjects_Success) {
     request.setDelete(models::Delete{{models::ObjectIdentifier{"key1&1"}, {models::ObjectIdentifier{"key2", "id-2"}}}});
 
     auto outcome = client.deleteMultipleObjects(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(204, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -1700,8 +1700,8 @@ TEST(OSSClientObjectBasicTest, DeleteMultipleObjects_EncodingTypeUrl) {
     request.setDelete(models::Delete{{models::ObjectIdentifier{"key1&1"}, {models::ObjectIdentifier{"key2", "id-2"}}}});
 
     auto outcome = client.deleteMultipleObjects(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(204, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -1758,8 +1758,8 @@ TEST(OSSClientObjectBasicTest, DeleteMultipleObjects_EncodingTypeNone) {
     request.setDelete(models::Delete{{models::ObjectIdentifier{"key1&1"}, {models::ObjectIdentifier{"key2", "id-2"}}}});
 
     auto outcome = client.deleteMultipleObjects(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(204, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -1804,8 +1804,8 @@ TEST(OSSClientObjectBasicTest, DeleteMultipleObjects_ErrorResponse) {
     request.setDelete(models::Delete{{models::ObjectIdentifier{"multipart.data"}}});
 
     auto outcome = client.deleteMultipleObjects(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(404, error.getStatusCode());
     EXPECT_EQ("DeleteMultipleObjects", error.getOpName());
@@ -1843,8 +1843,8 @@ TEST(OSSClientObjectBasicTest, DeleteMultipleObjects_RequiredField) {
 
     auto request = models::DeleteMultipleObjectsRequest();
     auto outcome = client.deleteMultipleObjects(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -1852,8 +1852,8 @@ TEST(OSSClientObjectBasicTest, DeleteMultipleObjects_RequiredField) {
 
     request.setBucket("test-bucket");
     outcome = client.deleteMultipleObjects(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -1861,7 +1861,7 @@ TEST(OSSClientObjectBasicTest, DeleteMultipleObjects_RequiredField) {
 
     request.setDelete(models::Delete{{models::ObjectIdentifier{"multipart.data"}}});
     outcome = client.deleteMultipleObjects(request);
-    EXPECT_TRUE(outcome.isSuccess());
+    EXPECT_TRUE(outcome.has_value());
 }
 
 } // namespace alibabacloud::oss2

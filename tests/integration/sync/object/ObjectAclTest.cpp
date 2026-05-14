@@ -18,7 +18,7 @@ class ObjectAclTest : public ::testing::Test {
         auto client = ClientHelper::GetDefaultClient();
         bucketName_ = Config::GenBucketName();
         auto outcome = client->putBucket(models::PutBucketRequest().setBucket(bucketName_));
-        EXPECT_TRUE(outcome.isSuccess());
+        EXPECT_TRUE(outcome.has_value());
     }
 
     static void TearDownTestCase() {
@@ -44,19 +44,19 @@ TEST_F(ObjectAclTest, ObjectAcl_Normal) {
     // Put object first
     auto putOutcome = client->putObject(
             models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::FromString("content")));
-    EXPECT_TRUE(putOutcome.isSuccess());
+    EXPECT_TRUE(putOutcome.has_value());
 
     // Set object ACL to public-read
     auto putAclOutcome = client->putObjectAcl(
             models::PutObjectAclRequest().setBucket(bucketName_).setKey(key).setObjectAcl("private"));
-    EXPECT_TRUE(putAclOutcome.isSuccess());
+    EXPECT_TRUE(putAclOutcome.has_value());
 
     Config::WaitForCacheExpire(2);
 
     // Get object ACL
     auto getAclOutcome = client->getObjectAcl(models::GetObjectAclRequest().setBucket(bucketName_).setKey(key));
-    EXPECT_TRUE(getAclOutcome.isSuccess());
-    auto& result = getAclOutcome.getResult();
+    EXPECT_TRUE(getAclOutcome.has_value());
+    auto& result = getAclOutcome.value();
     EXPECT_TRUE(result.hasAccessControlPolicy());
     auto& acl = result.getAccessControlPolicy();
     EXPECT_TRUE(acl.accessControlList.has_value());
@@ -67,8 +67,8 @@ TEST_F(ObjectAclTest, PutObjectAcl_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     auto outcome = client->putObjectAcl(
             models::PutObjectAclRequest().setBucket(bucketName_).setKey("test-key").setObjectAcl("private"));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
     EXPECT_EQ("PutObjectAcl", error.getOpName());
 }
@@ -76,8 +76,8 @@ TEST_F(ObjectAclTest, PutObjectAcl_Fail) {
 TEST_F(ObjectAclTest, GetObjectAcl_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     auto outcome = client->getObjectAcl(models::GetObjectAclRequest().setBucket(bucketName_).setKey("test-key"));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
     EXPECT_EQ("GetObjectAcl", error.getOpName());
 }

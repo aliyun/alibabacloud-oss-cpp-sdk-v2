@@ -78,8 +78,8 @@ TEST(OSSClientObjectMultipartTest, InitiateMultipartUpload_Success) {
     request.setBucket("test-bucket");
     request.setKey("test-key");
     auto outcome = client.initiateMultipartUpload(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -116,8 +116,8 @@ TEST(OSSClientObjectMultipartTest, InitiateMultipartUpload_EncodingTypeUrl) {
     request.setBucket("test-bucket");
     request.setKey("test-key");
     auto outcome = client.initiateMultipartUpload(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -154,8 +154,8 @@ TEST(OSSClientObjectMultipartTest, InitiateMultipartUpload_EncodingTypeNone) {
     request.setBucket("test-bucket");
     request.setKey("test-key");
     auto outcome = client.initiateMultipartUpload(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -196,8 +196,8 @@ TEST(OSSClientObjectMultipartTest, InitiateMultipartUpload_WithHeaders) {
     request.setServerSideEncryption("AES256");
 
     auto outcome = client.initiateMultipartUpload(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("test-key", result.getKey());
@@ -234,8 +234,8 @@ TEST(OSSClientObjectMultipartTest, InitiateMultipartUpload_ErrorResponse) {
     request.setBucket("test-bucket");
     request.setKey("test-key");
     auto outcome = client.initiateMultipartUpload(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(403, error.getStatusCode());
     EXPECT_EQ("InitiateMultipartUpload", error.getOpName());
@@ -268,8 +268,8 @@ TEST(OSSClientObjectMultipartTest, InitiateMultipartUpload_RequiredField) {
 
     auto request = models::InitiateMultipartUploadRequest();
     auto outcome = client.initiateMultipartUpload(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -277,8 +277,8 @@ TEST(OSSClientObjectMultipartTest, InitiateMultipartUpload_RequiredField) {
 
     request.setBucket("test-bucket");
     outcome = client.initiateMultipartUpload(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -309,8 +309,8 @@ TEST(OSSClientObjectMultipartTest, UploadPart_Success) {
     request.setBody(RequestBody::FromString("test data for upload part"));
 
     auto outcome = client.uploadPart(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("\"test-etag\"", result.getETag());
@@ -348,8 +348,8 @@ TEST(OSSClientObjectMultipartTest, UploadPart_ErrorResponse) {
     request.setBody(RequestBody::FromString("too small data"));
 
     auto outcome = client.uploadPart(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(400, error.getStatusCode());
     EXPECT_EQ("UploadPart", error.getOpName());
@@ -380,8 +380,8 @@ TEST(OSSClientObjectMultipartTest, UploadPart_RequiredField) {
 
     auto request = models::UploadPartRequest();
     auto outcome = client.uploadPart(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -389,8 +389,8 @@ TEST(OSSClientObjectMultipartTest, UploadPart_RequiredField) {
 
     request.setBucket("test-bucket");
     outcome = client.uploadPart(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -398,8 +398,8 @@ TEST(OSSClientObjectMultipartTest, UploadPart_RequiredField) {
 
     request.setKey("test-key");
     outcome = client.uploadPart(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -407,8 +407,8 @@ TEST(OSSClientObjectMultipartTest, UploadPart_RequiredField) {
 
     request.setPartNumber(1);
     outcome = client.uploadPart(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -445,8 +445,8 @@ TEST(OSSClientObjectMultipartTest, UploadPartCopy_Success) {
     request.setCopySource("source-bucket/source-key");
 
     auto outcome = client.uploadPartCopy(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -482,8 +482,8 @@ TEST(OSSClientObjectMultipartTest, UploadPartCopy_SourceKey) {
     request.setSourceKey("source-key:123");
 
     auto outcome = client.uploadPartCopy(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -510,8 +510,8 @@ TEST(OSSClientObjectMultipartTest, UploadPartCopy_SourceKey) {
     request.setSourceKey("source-key:123");
 
     outcome = client.uploadPartCopy(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -541,8 +541,8 @@ TEST(OSSClientObjectMultipartTest, UploadPartCopy_SourceKey) {
     request.setSourceVersionId("id-123");
 
     outcome = client.uploadPartCopy(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -570,8 +570,8 @@ TEST(OSSClientObjectMultipartTest, UploadPartCopy_SourceKey) {
     request.setCopySource("/source-key/source-key%3A1234");
 
     outcome = client.uploadPartCopy(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -613,8 +613,8 @@ TEST(OSSClientObjectMultipartTest,  UploadPartCopy_ErrorResponse) {
     request.setSourceBucket("src-bucket");
 
     auto outcome = client. uploadPartCopy(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(400, error.getStatusCode());
     EXPECT_EQ("UploadPartCopy", error.getOpName());
@@ -654,8 +654,8 @@ TEST(OSSClientObjectMultipartTest, UploadPartCopy_RequiredField) {
 
     auto request = models::UploadPartCopyRequest();
     auto outcome = client.uploadPartCopy(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -663,8 +663,8 @@ TEST(OSSClientObjectMultipartTest, UploadPartCopy_RequiredField) {
 
     request.setBucket("test-bucket");
     outcome = client.uploadPartCopy(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -672,8 +672,8 @@ TEST(OSSClientObjectMultipartTest, UploadPartCopy_RequiredField) {
 
     request.setKey("test-key");
     outcome = client.uploadPartCopy(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -681,8 +681,8 @@ TEST(OSSClientObjectMultipartTest, UploadPartCopy_RequiredField) {
 
     request.setPartNumber(1);
     outcome = client.uploadPartCopy(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -690,8 +690,8 @@ TEST(OSSClientObjectMultipartTest, UploadPartCopy_RequiredField) {
 
     request.setUploadId("1");
     outcome = client.uploadPartCopy(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -699,7 +699,7 @@ TEST(OSSClientObjectMultipartTest, UploadPartCopy_RequiredField) {
 
     request.setSourceKey("src-key");
     outcome = client.uploadPartCopy(request);
-    EXPECT_TRUE(outcome.isSuccess());
+    EXPECT_TRUE(outcome.has_value());
 }
 
 
@@ -743,8 +743,8 @@ TEST(OSSClientObjectMultipartTest, CompleteMultipartUpload_Success) {
     request.setCompleteMultipartUpload(completeUpload);
 
     auto outcome = client.completeMultipartUpload(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -795,8 +795,8 @@ TEST(OSSClientObjectMultipartTest, CompleteMultipartUpload_EncodingTypeUrl) {
     request.setCompleteMultipartUpload(completeUpload);
 
     auto outcome = client.completeMultipartUpload(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -847,8 +847,8 @@ TEST(OSSClientObjectMultipartTest, CompleteMultipartUpload_EncodingTypeNone) {
     request.setCompleteMultipartUpload(completeUpload);
 
     auto outcome = client.completeMultipartUpload(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -894,8 +894,8 @@ TEST(OSSClientObjectMultipartTest, CompleteMultipartUpload_ErrorResponse) {
     request.setCompleteMultipartUpload(completeUpload);
 
     auto outcome = client.completeMultipartUpload(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(400, error.getStatusCode());
     EXPECT_EQ("CompleteMultipartUpload", error.getOpName());
@@ -926,8 +926,8 @@ TEST(OSSClientObjectMultipartTest, CompleteMultipartUpload_RequiredField) {
 
     auto request = models::CompleteMultipartUploadRequest();
     auto outcome = client.completeMultipartUpload(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -935,8 +935,8 @@ TEST(OSSClientObjectMultipartTest, CompleteMultipartUpload_RequiredField) {
 
     request.setBucket("test-bucket");
     outcome = client.completeMultipartUpload(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -944,8 +944,8 @@ TEST(OSSClientObjectMultipartTest, CompleteMultipartUpload_RequiredField) {
 
     request.setKey("test-key");
     outcome = client.completeMultipartUpload(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -973,8 +973,8 @@ TEST(OSSClientObjectMultipartTest, AbortMultipartUpload_Success) {
     request.setUploadId("test-upload-id");
 
     auto outcome = client.abortMultipartUpload(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(204, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -1008,8 +1008,8 @@ TEST(OSSClientObjectMultipartTest, AbortMultipartUpload_ErrorResponse) {
     request.setUploadId("invalid-upload-id");
 
     auto outcome = client.abortMultipartUpload(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(404, error.getStatusCode());
     EXPECT_EQ("AbortMultipartUpload", error.getOpName());
@@ -1040,8 +1040,8 @@ TEST(OSSClientObjectMultipartTest, AbortMultipartUpload_RequiredField) {
 
     auto request = models::AbortMultipartUploadRequest();
     auto outcome = client.abortMultipartUpload(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -1049,8 +1049,8 @@ TEST(OSSClientObjectMultipartTest, AbortMultipartUpload_RequiredField) {
 
     request.setBucket("test-bucket");
     outcome = client.abortMultipartUpload(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -1058,8 +1058,8 @@ TEST(OSSClientObjectMultipartTest, AbortMultipartUpload_RequiredField) {
 
     request.setKey("test-key");
     outcome = client.abortMultipartUpload(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -1109,8 +1109,8 @@ TEST(OSSClientObjectMultipartTest, ListMultipartUploads_Success) {
     request.setBucket("test-bucket");
 
     auto outcome = client.listMultipartUploads(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -1166,8 +1166,8 @@ TEST(OSSClientObjectMultipartTest, ListMultipartUploads_EncodingTypeUrl) {
     request.setBucket("test-bucket");
 
     auto outcome = client.listMultipartUploads(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -1228,8 +1228,8 @@ TEST(OSSClientObjectMultipartTest, ListMultipartUploads_EncodingTypeNone) {
     request.setBucket("test-bucket");
 
     auto outcome = client.listMultipartUploads(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -1273,8 +1273,8 @@ TEST(OSSClientObjectMultipartTest, ListMultipartUploads_ErrorResponse) {
     request.setBucket("test-bucket");
 
     auto outcome = client.listMultipartUploads(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(403, error.getStatusCode());
     EXPECT_EQ("ListMultipartUploads", error.getOpName());
@@ -1304,8 +1304,8 @@ TEST(OSSClientObjectMultipartTest, ListMultipartUploads_RequiredField) {
 
     auto request = models::ListMultipartUploadsRequest();
     auto outcome = client.listMultipartUploads(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -1357,8 +1357,8 @@ TEST(OSSClientObjectMultipartTest, ListParts_Success) {
     request.setUploadId("test-upload-id");
 
     auto outcome = client.listParts(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -1423,8 +1423,8 @@ TEST(OSSClientObjectMultipartTest, ListParts_EncodingTypeUrl) {
     request.setUploadId("test-upload-id");
 
     auto outcome = client.listParts(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -1486,8 +1486,8 @@ TEST(OSSClientObjectMultipartTest, ListParts_EncodingTypeNone) {
     request.setUploadId("test-upload-id");
 
     auto outcome = client.listParts(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -1533,8 +1533,8 @@ TEST(OSSClientObjectMultipartTest, ListParts_ErrorResponse) {
     request.setUploadId("invalid-upload-id");
 
     auto outcome = client.listParts(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(404, error.getStatusCode());
     EXPECT_EQ("ListParts", error.getOpName());
@@ -1565,8 +1565,8 @@ TEST(OSSClientObjectMultipartTest, ListParts_RequiredField) {
 
     auto request = models::ListPartsRequest();
     auto outcome = client.listParts(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -1574,8 +1574,8 @@ TEST(OSSClientObjectMultipartTest, ListParts_RequiredField) {
 
     request.setBucket("test-bucket");
     outcome = client.listParts(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -1583,8 +1583,8 @@ TEST(OSSClientObjectMultipartTest, ListParts_RequiredField) {
 
     request.setKey("test-key");
     outcome = client.listParts(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());

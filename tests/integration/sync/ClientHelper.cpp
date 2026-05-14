@@ -35,8 +35,8 @@ std::shared_ptr<OSSClient> ClientHelper::GetInvalidClient() {
 
 static void cleanBucket(OSSClient* client, const std::string& bucketName) {
     auto listOutcome = client->listMultipartUploads(models::ListMultipartUploadsRequest().setBucket(bucketName));
-    if (listOutcome.isSuccess()) {
-        for (auto const& upload : listOutcome.getResult().getUploads()) {
+    if (listOutcome.has_value()) {
+        for (auto const& upload : listOutcome.value().getUploads()) {
             client->abortMultipartUpload(models::AbortMultipartUploadRequest()
                                                  .setBucket(bucketName)
                                                  .setKey(upload.key)
@@ -50,16 +50,16 @@ static void cleanBucket(OSSClient* client, const std::string& bucketName) {
     bool IsTruncated = false;
     do {
         auto outcome = client->listObjectsV2(request);
-        if (outcome.isSuccess()) {
-            for (auto const &obj : outcome.getResult().getContents()) {
+        if (outcome.has_value()) {
+            for (auto const &obj : outcome.value().getContents()) {
                 client->deleteObject(models::DeleteObjectRequest().setBucket(bucketName).setKey(obj.key));
             }
         }
         else {
             break;
         }
-        request.setContinuationToken(outcome.getResult().getNextContinuationToken());
-        IsTruncated = outcome.getResult().getIsTruncated();
+        request.setContinuationToken(outcome.value().getNextContinuationToken());
+        IsTruncated = outcome.value().getIsTruncated();
     } while (IsTruncated);
 
     client->deleteBucket(models::DeleteBucketRequest().setBucket(bucketName));
@@ -78,11 +78,11 @@ void ClientHelper::CleanBucketsByPrefix(const std::string &prefix) {
     bool IsTruncated = false;
     do {
         auto outcome = client->listBuckets(request);
-        if (outcome.isSuccess()) {
-            cleanBucket(client.get(), outcome.getResult().getBuckets()[0].name);
+        if (outcome.has_value()) {
+            cleanBucket(client.get(), outcome.value().getBuckets()[0].name);
         }
-        request.setMarker(outcome.getResult().getNextMarker());
-        IsTruncated = outcome.getResult().getIsTruncated();
+        request.setMarker(outcome.value().getNextMarker());
+        IsTruncated = outcome.value().getIsTruncated();
     } while (IsTruncated);
 }
 

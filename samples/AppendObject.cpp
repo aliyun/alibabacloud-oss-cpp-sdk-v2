@@ -61,13 +61,13 @@ int main(int argc, char* argv[]) {
                                                .setKey(args.key)
                                                .setPosition(0)
                                                .setBody(RequestBody::FromString(data1)));
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "AppendObject fail, code: " << e.getCode() << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
-    auto& result1 = outcome.getResult();
+    auto& result1 = outcome.value();
     std::cout << "status code: " << result1.getStatusCode() << ", requestId: " << result1.getRequestId()
               << ", nextAppendPosition: " << result1.getNextAppendPosition()
               << ", hashCrc64ecma: " << result1.getHashCrc64ecma() << std::endl;
@@ -79,12 +79,12 @@ int main(int argc, char* argv[]) {
                                                 .setKey(args.key)
                                                 .setPosition(result1.getNextAppendPosition())
                                                 .setBody(RequestBody::FromString(data2)));
-    if (!outcome2.isSuccess()) {
-        auto& e = outcome2.getError();
+    if (!outcome2.has_value()) {
+        auto& e = outcome2.error();
         std::cerr << "AppendObject(2) fail, code: " << e.getCode() << ", message: " << e.getMessage() << std::endl;
         return 1;
     }
-    auto& result2 = outcome2.getResult();
+    auto& result2 = outcome2.value();
     std::cout << "status code: " << result2.getStatusCode() << ", requestId: " << result2.getRequestId()
               << ", nextAppendPosition: " << result2.getNextAppendPosition()
               << ", hashCrc64ecma: " << result2.getHashCrc64ecma() << std::endl;

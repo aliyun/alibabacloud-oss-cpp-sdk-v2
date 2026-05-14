@@ -59,13 +59,13 @@ int main(int argc, char* argv[]) {
 
     auto outcome = client.restoreObject(
             models::RestoreObjectRequest().setBucket(args.bucket).setKey(args.key).setRestoreRequest(restoreReq));
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "RestoreObject fail, code: " << e.getCode() << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
-    auto& result = outcome.getResult();
+    auto& result = outcome.value();
     std::cout << "status code: " << result.getStatusCode() << ", requestId: " << result.getRequestId()
               << ", objectRestorePriority: " << result.getObjectRestorePriority()
               << ", versionId: " << result.getVersionId() << std::endl;

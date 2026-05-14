@@ -74,13 +74,13 @@ int main(int argc, char* argv[]) {
                                                  .setPartNumber(partNumber)
                                                  .setSourceBucket(sourceBucket)
                                                  .setSourceKey(sourceKey));
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "UploadPartCopy fail, code: " << e.getCode() << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
-    auto& result = outcome.getResult();
+    auto& result = outcome.value();
     std::cout << "status code: " << result.getStatusCode() << ", requestId: " << result.getRequestId()
               << ", eTag: " << result.getETag() << ", lastModified: " << result.getLastModified()
               << ", copySourceVersionId: " << result.getCopySourceVersionId() << std::endl;

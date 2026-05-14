@@ -29,8 +29,8 @@ TEST(OSSClientObjectAclCallAsyncTest, PutObjectAcl_Future_Success) {
 
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ("id-acl-1", outcome.getResult().getRequestId());
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ("id-acl-1", outcome.value().getRequestId());
 }
 
 TEST(OSSClientObjectAclCallAsyncTest, GetObjectAcl_Future_Success) {
@@ -62,8 +62,8 @@ TEST(OSSClientObjectAclCallAsyncTest, GetObjectAcl_Future_Success) {
 
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ("private", outcome.getResult().getAccessControlPolicy().accessControlList.value().grant);
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ("private", outcome.value().getAccessControlPolicy().accessControlList.value().grant);
 }
 
 TEST(OSSClientObjectAclCallAsyncTest, GetObjectAcl_Callback_Success) {
@@ -98,8 +98,8 @@ TEST(OSSClientObjectAclCallAsyncTest, GetObjectAcl_Callback_Success) {
         });
 
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ("public-read", outcome.getResult().getAccessControlPolicy().accessControlList.value().grant);
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ("public-read", outcome.value().getAccessControlPolicy().accessControlList.value().grant);
 }
 
 TEST(OSSClientObjectAclCallAsyncTest, PutObjectAcl_Future_NoExecutor) {
@@ -116,8 +116,8 @@ TEST(OSSClientObjectAclCallAsyncTest, PutObjectAcl_Future_NoExecutor) {
 
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("NoExecutor", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("NoExecutor", outcome.error().getCode());
 }
 
 } // namespace alibabacloud::oss2

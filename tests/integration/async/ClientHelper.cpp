@@ -35,8 +35,8 @@ std::shared_ptr<OSSAsyncClient> ClientHelper::GetInvalidClient() {
 
 static void cleanBucket(OSSAsyncClient* client, const std::string& bucketName) {
     auto listOutcome = client->asyncCall(models::ListMultipartUploadsRequest().setBucket(bucketName)).get();
-    if (listOutcome.isSuccess()) {
-        for (auto const& upload : listOutcome.getResult().getUploads()) {
+    if (listOutcome.has_value()) {
+        for (auto const& upload : listOutcome.value().getUploads()) {
             client->asyncCall(models::AbortMultipartUploadRequest()
                     .setBucket(bucketName)
                     .setKey(upload.key)
@@ -50,12 +50,12 @@ static void cleanBucket(OSSAsyncClient* client, const std::string& bucketName) {
     bool IsTruncated = false;
     do {
         auto outcome = client->asyncCall(request).get();
-        if (outcome.isSuccess()) {
-            for (auto const& obj : outcome.getResult().getContents()) {
+        if (outcome.has_value()) {
+            for (auto const& obj : outcome.value().getContents()) {
                 client->asyncCall(models::DeleteObjectRequest().setBucket(bucketName).setKey(obj.key)).get();
             }
-            request.setContinuationToken(outcome.getResult().getNextContinuationToken());
-            IsTruncated = outcome.getResult().getIsTruncated();
+            request.setContinuationToken(outcome.value().getNextContinuationToken());
+            IsTruncated = outcome.value().getIsTruncated();
         } else {
             break;
         }
@@ -77,10 +77,10 @@ void ClientHelper::CleanBucketsByPrefix(const std::string& prefix) {
     bool IsTruncated = false;
     do {
         auto outcome = client->asyncCall(request).get();
-        if (outcome.isSuccess()) {
-            cleanBucket(client.get(), outcome.getResult().getBuckets()[0].name);
-            request.setMarker(outcome.getResult().getNextMarker());
-            IsTruncated = outcome.getResult().getIsTruncated();
+        if (outcome.has_value()) {
+            cleanBucket(client.get(), outcome.value().getBuckets()[0].name);
+            request.setMarker(outcome.value().getNextMarker());
+            IsTruncated = outcome.value().getIsTruncated();
         } else {
             break;
         }

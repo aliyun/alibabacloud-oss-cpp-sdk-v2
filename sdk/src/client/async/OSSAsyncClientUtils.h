@@ -5,8 +5,8 @@
 #define requiredFieldAsync(field)                                                                  \
     do {                                                                                           \
         if (isFieldMissing(request.get##field())) {                                                \
-            callback(OperationError(SdkErrorCode::ARGUMENT_REQUIRED,                               \
-                                    {{"Code", "ArgumentRequired"}, {"Message", "Missing field " #field ""}})); \
+            callback(makeUnexpected(OperationError(SdkErrorCode::ARGUMENT_REQUIRED,                               \
+                                    {{"Code", "ArgumentRequired"}, {"Message", "Missing field " #field ""}}))); \
             return;                                                                                \
         }                                                                                          \
     } while (false)
@@ -14,9 +14,9 @@
 #define requiredFieldsOrAsync2_(f1, f2)                                                                \
     do {                                                                                               \
         if (isFieldMissing(request.get##f1()) && isFieldMissing(request.get##f2())) {                  \
-            callback(OperationError(                                                                   \
+            callback(makeUnexpected(OperationError(                                                                   \
                     SdkErrorCode::ARGUMENT_REQUIRED,                                                   \
-                    {{"Code", "ArgumentRequired"}, {"Message", "Missing field " #f1 " or " #f2 ""}})); \
+                    {{"Code", "ArgumentRequired"}, {"Message", "Missing field " #f1 " or " #f2 ""}}))); \
             return;                                                                                    \
         }                                                                                              \
     } while (false)
@@ -25,10 +25,10 @@
     do {                                                                                                 \
         if (isFieldMissing(request.get##f1()) && isFieldMissing(request.get##f2())                       \
             && isFieldMissing(request.get##f3())) {                                                      \
-            callback(OperationError(                                                                     \
+            callback(makeUnexpected(OperationError(                                                                     \
                     SdkErrorCode::ARGUMENT_REQUIRED,                                                     \
                     {{"Code", "ArgumentRequired"},                                                       \
-                     {"Message", "Missing field " #f1 " or " #f2 " or " #f3 ""}}));                     \
+                     {"Message", "Missing field " #f1 " or " #f2 " or " #f3 ""}})));                     \
             return;                                                                                      \
         }                                                                                                \
     } while (false)
@@ -37,10 +37,10 @@
     do {                                                                                                 \
         if (isFieldMissing(request.get##f1()) && isFieldMissing(request.get##f2())                       \
             && isFieldMissing(request.get##f3()) && isFieldMissing(request.get##f4())) {                 \
-            callback(OperationError(                                                                     \
+            callback(makeUnexpected(OperationError(                                                                     \
                     SdkErrorCode::ARGUMENT_REQUIRED,                                                     \
                     {{"Code", "ArgumentRequired"},                                                       \
-                     {"Message", "Missing field " #f1 " or " #f2 " or " #f3 " or " #f4 ""}}));         \
+                     {"Message", "Missing field " #f1 " or " #f2 " or " #f3 " or " #f4 ""}})));         \
             return;                                                                                      \
         }                                                                                                \
     } while (false)
@@ -53,8 +53,8 @@
 #define requiredHasFieldAsync(field)                                                                  \
     do {                                                                                              \
         if (!request.has##field()) {                                                                  \
-            callback(OperationError(SdkErrorCode::ARGUMENT_REQUIRED,                                  \
-                                    {{"Code", "ArgumentRequired"}, {"Message", "Missing field " #field ""}})); \
+            callback(makeUnexpected(OperationError(SdkErrorCode::ARGUMENT_REQUIRED,                                  \
+                                    {{"Code", "ArgumentRequired"}, {"Message", "Missing field " #field ""}}))); \
             return;                                                                                   \
         }                                                                                             \
     } while (false)

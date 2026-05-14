@@ -23,7 +23,7 @@ void OSSAsyncClient::putObjectAsync(const models::PutObjectRequest& request,
     }
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toPutObject(std::move(std::get<OperationOutput>(result))));
@@ -40,7 +40,7 @@ void OSSAsyncClient::copyObjectAsync(const models::CopyObjectRequest& request,
     auto input = transform::fromCopyObject(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toCopyObject(std::move(std::get<OperationOutput>(result))));
@@ -56,7 +56,7 @@ void OSSAsyncClient::getObjectAsync(const models::GetObjectRequest& request,
     auto input = transform::fromGetObject(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toGetObject(std::move(std::get<OperationOutput>(result))));
@@ -77,7 +77,7 @@ void OSSAsyncClient::appendObjectAsync(const models::AppendObjectRequest& reques
     }
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toAppendObject(std::move(std::get<OperationOutput>(result))));
@@ -94,7 +94,7 @@ void OSSAsyncClient::sealAppendObjectAsync(const models::SealAppendObjectRequest
     auto input = transform::fromSealAppendObject(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toSealAppendObject(std::move(std::get<OperationOutput>(result))));
@@ -110,7 +110,7 @@ void OSSAsyncClient::deleteObjectAsync(const models::DeleteObjectRequest& reques
     auto input = transform::fromDeleteObject(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toDeleteObject(std::move(std::get<OperationOutput>(result))));
@@ -126,7 +126,7 @@ void OSSAsyncClient::deleteMultipleObjectsAsync(const models::DeleteMultipleObje
     auto input = transform::fromDeleteMultipleObjects(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toDeleteMultipleObjects(std::move(std::get<OperationOutput>(result))));
@@ -142,7 +142,7 @@ void OSSAsyncClient::headObjectAsync(const models::HeadObjectRequest& request,
     auto input = transform::fromHeadObject(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toHeadObject(std::move(std::get<OperationOutput>(result))));
@@ -158,7 +158,7 @@ void OSSAsyncClient::getObjectMetaAsync(const models::GetObjectMetaRequest& requ
     auto input = transform::fromGetObjectMeta(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toGetObjectMeta(std::move(std::get<OperationOutput>(result))));
@@ -174,7 +174,7 @@ void OSSAsyncClient::restoreObjectAsync(const models::RestoreObjectRequest& requ
     auto input = transform::fromRestoreObject(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toRestoreObject(std::move(std::get<OperationOutput>(result))));
@@ -190,7 +190,7 @@ void OSSAsyncClient::cleanRestoredObjectAsync(const models::CleanRestoredObjectR
     auto input = transform::fromCleanRestoredObject(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toCleanRestoredObject(std::move(std::get<OperationOutput>(result))));

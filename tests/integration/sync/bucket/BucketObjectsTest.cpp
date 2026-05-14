@@ -18,7 +18,7 @@ class BucketObjectsTest : public ::testing::Test {
         auto client = ClientHelper::GetDefaultClient();
         bucketName_ = Config::GenBucketName();
         auto outcome = client->putBucket(models::PutBucketRequest().setBucket(bucketName_));
-        EXPECT_TRUE(outcome.isSuccess());
+        EXPECT_TRUE(outcome.has_value());
 
         // Upload some test objects
         for (int i = 0; i < 5; i++) {
@@ -28,7 +28,7 @@ class BucketObjectsTest : public ::testing::Test {
                                               .setBucket(bucketName_)
                                               .setKey(key)
                                               .setBody(RequestBody::FromString("content-" + std::to_string(i))));
-            EXPECT_TRUE(putOutcome.isSuccess());
+            EXPECT_TRUE(putOutcome.has_value());
         }
     }
 
@@ -50,8 +50,8 @@ std::string BucketObjectsTest::bucketName_ = "";
 TEST_F(BucketObjectsTest, ListObjects_Normal) {
     auto client = ClientHelper::GetDefaultClient();
     auto outcome = client->listObjects(models::ListObjectsRequest().setBucket(bucketName_));
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_EQ(bucketName_, result.getName());
     EXPECT_GE(result.getContents().size(), 5);
 }
@@ -59,24 +59,24 @@ TEST_F(BucketObjectsTest, ListObjects_Normal) {
 TEST_F(BucketObjectsTest, ListObjects_WithPrefix) {
     auto client = ClientHelper::GetDefaultClient();
     auto outcome = client->listObjects(models::ListObjectsRequest().setBucket(bucketName_).setPrefix("test-object-"));
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_GE(result.getContents().size(), 5);
 }
 
 TEST_F(BucketObjectsTest, ListObjects_WithMaxKeys) {
     auto client = ClientHelper::GetDefaultClient();
     auto outcome = client->listObjects(models::ListObjectsRequest().setBucket(bucketName_).setMaxKeys(2));
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_LE(result.getContents().size(), 2);
 }
 
 TEST_F(BucketObjectsTest, ListObjects_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     auto outcome = client->listObjects(models::ListObjectsRequest().setBucket(bucketName_));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 
@@ -84,8 +84,8 @@ TEST_F(BucketObjectsTest, ListObjects_Fail) {
 TEST_F(BucketObjectsTest, ListObjectsV2_Normal) {
     auto client = ClientHelper::GetDefaultClient();
     auto outcome = client->listObjectsV2(models::ListObjectsV2Request().setBucket(bucketName_));
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_EQ(bucketName_, result.getName());
     EXPECT_GE(result.getContents().size(), 5);
 }
@@ -94,24 +94,24 @@ TEST_F(BucketObjectsTest, ListObjectsV2_WithPrefix) {
     auto client = ClientHelper::GetDefaultClient();
     auto outcome =
             client->listObjectsV2(models::ListObjectsV2Request().setBucket(bucketName_).setPrefix("test-object-"));
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_GE(result.getContents().size(), 5);
 }
 
 TEST_F(BucketObjectsTest, ListObjectsV2_WithMaxKeys) {
     auto client = ClientHelper::GetDefaultClient();
     auto outcome = client->listObjectsV2(models::ListObjectsV2Request().setBucket(bucketName_).setMaxKeys(2));
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_LE(result.getContents().size(), 2);
 }
 
 TEST_F(BucketObjectsTest, ListObjectsV2_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     auto outcome = client->listObjectsV2(models::ListObjectsV2Request().setBucket(bucketName_));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 
@@ -127,7 +127,7 @@ TEST_F(BucketObjectsTest, DeleteMultipleObjects_Normal) {
                                                     .setBucket(bucketName_)
                                                     .setKey(key)
                                                     .setBody(RequestBody::FromString("content-" + std::to_string(i))));
-        EXPECT_TRUE(putOutcome.isSuccess());
+        EXPECT_TRUE(putOutcome.has_value());
 
         models::ObjectIdentifier obj;
         obj.setKey(key);
@@ -139,8 +139,8 @@ TEST_F(BucketObjectsTest, DeleteMultipleObjects_Normal) {
 
     auto outcome = client->deleteMultipleObjects(
             models::DeleteMultipleObjectsRequest().setBucket(bucketName_).setDelete(deleteReq));
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_EQ(3, result.getDeletedObjects().size());
 }
 
@@ -156,8 +156,8 @@ TEST_F(BucketObjectsTest, DeleteMultipleObjects_Fail) {
 
     auto outcome = client->deleteMultipleObjects(
             models::DeleteMultipleObjectsRequest().setBucket(bucketName_).setDelete(deleteReq));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 

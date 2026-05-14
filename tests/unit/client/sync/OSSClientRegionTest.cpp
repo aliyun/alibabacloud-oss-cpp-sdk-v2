@@ -79,8 +79,8 @@ TEST(OSSClientRegionTest, DescribeRegions_FullXml) {
 
     auto request = models::DescribeRegionsRequest();
     auto outcome = client.describeRegions(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -122,8 +122,8 @@ TEST(OSSClientRegionTest, DescribeRegions_EmptyXml) {
 
     auto request = models::DescribeRegionsRequest();
     auto outcome = client.describeRegions(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -151,8 +151,8 @@ TEST(OSSClientRegionTest, DescribeRegions_ErrorXml) {
 
     auto request = models::DescribeRegionsRequest();
     auto outcome = client.describeRegions(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ("XMLError:10", error.getCode());
     EXPECT_EQ("Error=XML_ERROR_PARSING_TEXT ErrorID=10 (0xa) Line number=1", error.getMessage());
@@ -188,8 +188,8 @@ TEST(OSSClientRegionTest, DescribeRegions_ErrorResponse) {
 
     auto request = models::DescribeRegionsRequest();
     auto outcome = client.describeRegions(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(403, error.getStatusCode());
     EXPECT_EQ("DescribeRegions", error.getOpName());

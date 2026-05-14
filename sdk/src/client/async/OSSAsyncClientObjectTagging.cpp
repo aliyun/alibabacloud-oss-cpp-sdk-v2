@@ -16,7 +16,7 @@ void OSSAsyncClient::putObjectTaggingAsync(const models::PutObjectTaggingRequest
     auto input = transform::fromPutObjectTagging(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toPutObjectTagging(std::move(std::get<OperationOutput>(result))));
@@ -32,7 +32,7 @@ void OSSAsyncClient::getObjectTaggingAsync(const models::GetObjectTaggingRequest
     auto input = transform::fromGetObjectTagging(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toGetObjectTagging(std::move(std::get<OperationOutput>(result))));
@@ -48,7 +48,7 @@ void OSSAsyncClient::deleteObjectTaggingAsync(const models::DeleteObjectTaggingR
     auto input = transform::fromDeleteObjectTagging(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toDeleteObjectTagging(std::move(std::get<OperationOutput>(result))));

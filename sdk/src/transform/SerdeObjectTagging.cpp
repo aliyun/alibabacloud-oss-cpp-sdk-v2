@@ -198,7 +198,7 @@ Outcome<models::GetObjectTaggingResult, OperationError> toGetObjectTagging(Opera
                                                 {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
-            return opErr;
+            return makeUnexpected(std::move(opErr));
         }
     }
 

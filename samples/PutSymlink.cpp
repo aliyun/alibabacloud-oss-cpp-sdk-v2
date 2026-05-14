@@ -61,13 +61,13 @@ int main(int argc, char* argv[]) {
 
     auto outcome = client.putSymlink(
             models::PutSymlinkRequest().setBucket(args.bucket).setKey(args.key).setSymlinkTarget(target));
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "PutSymlink fail, code: " << e.getCode() << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
-    auto& result = outcome.getResult();
+    auto& result = outcome.value();
     std::cout << "status code: " << result.getStatusCode() << ", requestId: " << result.getRequestId()
               << ", versionId: " << result.getVersionId() << std::endl;
     return 0;

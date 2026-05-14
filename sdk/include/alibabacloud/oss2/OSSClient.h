@@ -506,8 +506,8 @@ class ALIBABACLOUD_OSS_API OSSClient final {
         using OutcomeT = typename Traits::OutcomeType;
         if (!executor_) {
             std::promise<OutcomeT> p;
-            p.set_value(OutcomeT(OperationError(SdkErrorCode::ARGUMENT_INVALID,
-                {{"Code", "NoExecutor"}, {"Message", "No executor configured for async operations"}})));
+            p.set_value(OutcomeT(makeUnexpected(OperationError(SdkErrorCode::ARGUMENT_INVALID,
+                {{"Code", "NoExecutor"}, {"Message", "No executor configured for async operations"}}))));
             return p.get_future();
         }
         auto opts = options ? std::make_optional(*options) : std::nullopt;
@@ -547,8 +547,8 @@ class ALIBABACLOUD_OSS_API OSSClient final {
         using Traits = OperationTraits<std::decay_t<RequestT>>;
         using OutcomeT = typename Traits::OutcomeType;
         if (!executor_) {
-            handler(this, request, OutcomeT(OperationError(SdkErrorCode::ARGUMENT_INVALID,
-                {{"Code", "NoExecutor"}, {"Message", "No executor configured for async operations"}})));
+            handler(this, request, OutcomeT(makeUnexpected(OperationError(SdkErrorCode::ARGUMENT_INVALID,
+                {{"Code", "NoExecutor"}, {"Message", "No executor configured for async operations"}}))));
             return;
         }
         auto opts = options ? std::make_optional(*options) : std::nullopt;

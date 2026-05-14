@@ -17,7 +17,7 @@ PutObjectAclOutcome OSSClient::putObjectAcl(const models::PutObjectAclRequest& r
     auto input = transform::fromPutObjectAcl(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toPutObjectAcl(std::move(std::get<OperationOutput>(result)));
 }
@@ -30,7 +30,7 @@ GetObjectAclOutcome OSSClient::getObjectAcl(const models::GetObjectAclRequest& r
     auto input = transform::fromGetObjectAcl(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toGetObjectAcl(std::move(std::get<OperationOutput>(result)));
 }

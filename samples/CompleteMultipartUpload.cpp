@@ -57,11 +57,11 @@ int main(int argc, char* argv[]) {
     // Step 1: Initiate multipart upload
     auto initOutcome = client.initiateMultipartUpload(
             models::InitiateMultipartUploadRequest().setBucket(args.bucket).setKey(args.key));
-    if (!initOutcome.isSuccess()) {
-        std::cerr << "InitiateMultipartUpload fail: " << initOutcome.getError().getMessage() << std::endl;
+    if (!initOutcome.has_value()) {
+        std::cerr << "InitiateMultipartUpload fail: " << initOutcome.error().getMessage() << std::endl;
         return 1;
     }
-    auto uploadId = initOutcome.getResult().getUploadId();
+    auto uploadId = initOutcome.value().getUploadId();
     std::cout << "uploadId: " << uploadId << std::endl;
 
     // Step 2: Upload parts
@@ -75,12 +75,12 @@ int main(int argc, char* argv[]) {
                                          .setUploadId(uploadId)
                                          .setPartNumber(1)
                                          .setBody(RequestBody::FromString(data1)));
-    if (!up1.isSuccess()) {
-        std::cerr << "UploadPart 1 fail: " << up1.getError().getMessage() << std::endl;
+    if (!up1.has_value()) {
+        std::cerr << "UploadPart 1 fail: " << up1.error().getMessage() << std::endl;
         return 1;
     }
-    parts.push_back(models::Part().setETag(up1.getResult().getETag()).setPartNumber(1));
-    std::cout << "Part 1 uploaded, eTag: " << up1.getResult().getETag() << std::endl;
+    parts.push_back(models::Part().setETag(up1.value().getETag()).setPartNumber(1));
+    std::cout << "Part 1 uploaded, eTag: " << up1.value().getETag() << std::endl;
 
     auto up2 = client.uploadPart(models::UploadPartRequest()
                                          .setBucket(args.bucket)
@@ -88,12 +88,12 @@ int main(int argc, char* argv[]) {
                                          .setUploadId(uploadId)
                                          .setPartNumber(2)
                                          .setBody(RequestBody::FromString(data2)));
-    if (!up2.isSuccess()) {
-        std::cerr << "UploadPart 2 fail: " << up2.getError().getMessage() << std::endl;
+    if (!up2.has_value()) {
+        std::cerr << "UploadPart 2 fail: " << up2.error().getMessage() << std::endl;
         return 1;
     }
-    parts.push_back(models::Part().setETag(up2.getResult().getETag()).setPartNumber(2));
-    std::cout << "Part 2 uploaded, eTag: " << up2.getResult().getETag() << std::endl;
+    parts.push_back(models::Part().setETag(up2.value().getETag()).setPartNumber(2));
+    std::cout << "Part 2 uploaded, eTag: " << up2.value().getETag() << std::endl;
 
     // Step 3: Complete multipart upload
     models::CompleteMultipartUpload complete;
@@ -104,13 +104,13 @@ int main(int argc, char* argv[]) {
                                                           .setKey(args.key)
                                                           .setUploadId(uploadId)
                                                           .setCompleteMultipartUpload(complete));
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "CompleteMultipartUpload fail, code: " << e.getCode() << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
-    auto& result = outcome.getResult();
+    auto& result = outcome.value();
     std::cout << "status code: " << result.getStatusCode() << ", requestId: " << result.getRequestId()
               << ", bucket: " << result.getBucket() << ", key: " << result.getKey() << ", eTag: " << result.getETag()
               << ", location: " << result.getLocation() << ", versionId: " << result.getVersionId() << std::endl;

@@ -44,9 +44,9 @@ TEST(OSSAsyncClientBucketBasicTest, GetBucketStatAsync_RequiredField) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("ArgumentRequired", outcome.getError().getCode());
-    EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("ArgumentRequired", outcome.error().getCode());
+    EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
 }
 
 TEST(OSSAsyncClientBucketBasicTest, GetBucketStatAsync_Success) {
@@ -67,10 +67,10 @@ TEST(OSSAsyncClientBucketBasicTest, GetBucketStatAsync_Success) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ(200, outcome.getResult().getStatusCode());
-    EXPECT_EQ("id-1234", outcome.getResult().getRequestId());
-    EXPECT_EQ(1024, outcome.getResult().getBucketStat().storage.value());
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(200, outcome.value().getStatusCode());
+    EXPECT_EQ("id-1234", outcome.value().getRequestId());
+    EXPECT_EQ(1024, outcome.value().getBucketStat().storage.value());
 }
 
 TEST(OSSAsyncClientBucketBasicTest, PutBucketAsync_RequiredField) {
@@ -85,9 +85,9 @@ TEST(OSSAsyncClientBucketBasicTest, PutBucketAsync_RequiredField) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("ArgumentRequired", outcome.getError().getCode());
-    EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("ArgumentRequired", outcome.error().getCode());
+    EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
 }
 
 TEST(OSSAsyncClientBucketBasicTest, PutBucketAsync_Success) {
@@ -106,8 +106,8 @@ TEST(OSSAsyncClientBucketBasicTest, PutBucketAsync_Success) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ(200, outcome.getResult().getStatusCode());
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(200, outcome.value().getStatusCode());
 }
 
 TEST(OSSAsyncClientBucketBasicTest, DeleteBucketAsync_RequiredField) {
@@ -122,8 +122,8 @@ TEST(OSSAsyncClientBucketBasicTest, DeleteBucketAsync_RequiredField) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("ArgumentRequired", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("ArgumentRequired", outcome.error().getCode());
 }
 
 TEST(OSSAsyncClientBucketBasicTest, DeleteBucketAsync_Success) {
@@ -142,8 +142,8 @@ TEST(OSSAsyncClientBucketBasicTest, DeleteBucketAsync_Success) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ(204, outcome.getResult().getStatusCode());
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(204, outcome.value().getStatusCode());
 }
 
 TEST(OSSAsyncClientBucketBasicTest, ListObjectsAsync_RequiredField) {
@@ -158,8 +158,8 @@ TEST(OSSAsyncClientBucketBasicTest, ListObjectsAsync_RequiredField) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("ArgumentRequired", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("ArgumentRequired", outcome.error().getCode());
 }
 
 TEST(OSSAsyncClientBucketBasicTest, ListObjectsV2Async_RequiredField) {
@@ -174,8 +174,8 @@ TEST(OSSAsyncClientBucketBasicTest, ListObjectsV2Async_RequiredField) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("ArgumentRequired", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("ArgumentRequired", outcome.error().getCode());
 }
 
 TEST(OSSAsyncClientBucketBasicTest, GetBucketInfoAsync_RequiredField) {
@@ -190,8 +190,8 @@ TEST(OSSAsyncClientBucketBasicTest, GetBucketInfoAsync_RequiredField) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("ArgumentRequired", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("ArgumentRequired", outcome.error().getCode());
 }
 
 TEST(OSSAsyncClientBucketBasicTest, GetBucketLocationAsync_RequiredField) {
@@ -206,8 +206,8 @@ TEST(OSSAsyncClientBucketBasicTest, GetBucketLocationAsync_RequiredField) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("ArgumentRequired", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("ArgumentRequired", outcome.error().getCode());
 }
 
 } // namespace alibabacloud::oss2

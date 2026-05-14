@@ -79,8 +79,8 @@ TEST(OSSClientObjectTaggingTest, GetObjectTagging_FullXml) {
     request.setBucket("bucket");
     request.setKey("key");
     auto outcome = client.getObjectTagging(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -120,8 +120,8 @@ TEST(OSSClientObjectTaggingTest, GetObjectTagging_EmptyXml) {
     request.setBucket("bucket");
     request.setKey("key");
     auto outcome = client.getObjectTagging(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -143,8 +143,8 @@ TEST(OSSClientObjectTaggingTest, GetObjectTagging_EmptyXml) {
     request.setBucket("bucket");
     request.setKey("key");
     outcome = client.getObjectTagging(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -174,8 +174,8 @@ TEST(OSSClientObjectTaggingTest, GetObjectTagging_ErrorXml) {
     request.setBucket("bucket");
     request.setKey("key");
     auto outcome = client.getObjectTagging(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ("XMLError:10", error.getCode());
     EXPECT_EQ("Error=XML_ERROR_PARSING_TEXT ErrorID=10 (0xa) Line number=1", error.getMessage());
@@ -214,8 +214,8 @@ TEST(OSSClientObjectTaggingTest, GetObjectTagging_ErrorResponse) {
     request.setKey("key");
     request.setVersionId("id");
     auto outcome = client.getObjectTagging(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(403, error.getStatusCode());
     EXPECT_EQ("GetObjectTagging", error.getOpName());
@@ -248,8 +248,8 @@ TEST(OSSClientObjectTaggingTest, GetObjectTagging_RequiredField) {
 
     auto request = models::GetObjectTaggingRequest();
     auto outcome = client.getObjectTagging(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -257,8 +257,8 @@ TEST(OSSClientObjectTaggingTest, GetObjectTagging_RequiredField) {
 
     request.setBucket("bucket");
     outcome = client.getObjectTagging(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -286,8 +286,8 @@ TEST(OSSClientObjectTaggingTest, PutObjectTagging_NullXml) {
     request.setTagging(
             {models::Tagging{models::TagSet{{models::Tag{"key1", "value1"}, models::Tag{"key2", "value2"}}}}});
     auto outcome = client.putObjectTagging(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -316,8 +316,8 @@ TEST(OSSClientObjectTaggingTest, PutObjectTagging_EmptyXml) {
     request.setTagging(
             {models::Tagging{models::TagSet{{models::Tag{"key1", "value1"}, models::Tag{"key2", "value2"}}}}});
     auto outcome = client.putObjectTagging(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -355,8 +355,8 @@ TEST(OSSClientObjectTaggingTest, PutObjectTagging_ErrorResponse) {
             {models::Tagging{models::TagSet{{models::Tag{"key1", "value1"}, models::Tag{"key2", "value2"}}}}});
     request.setVersionId("id");
     auto outcome = client.putObjectTagging(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(403, error.getStatusCode());
     EXPECT_EQ("PutObjectTagging", error.getOpName());
@@ -390,8 +390,8 @@ TEST(OSSClientObjectTaggingTest, PutObjectTagging_RequiredField) {
 
     auto request = models::PutObjectTaggingRequest();
     auto outcome = client.putObjectTagging(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -399,8 +399,8 @@ TEST(OSSClientObjectTaggingTest, PutObjectTagging_RequiredField) {
 
     request.setBucket("bucket");
     outcome = client.putObjectTagging(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -426,8 +426,8 @@ TEST(OSSClientObjectTaggingTest, DeleteObjectTagging_NullXml) {
     request.setBucket("bucket");
     request.setKey("key");
     auto outcome = client.deleteObjectTagging(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -454,8 +454,8 @@ TEST(OSSClientObjectTaggingTest, DeleteObjectTagging_EmptyXml) {
     request.setBucket("bucket");
     request.setKey("key");
     auto outcome = client.deleteObjectTagging(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -491,8 +491,8 @@ TEST(OSSClientObjectTaggingTest, DeleteObjectTagging_ErrorResponse) {
     request.setKey("key");
     request.setVersionId("id");
     auto outcome = client.deleteObjectTagging(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(403, error.getStatusCode());
     EXPECT_EQ("DeleteObjectTagging", error.getOpName());
@@ -526,8 +526,8 @@ TEST(OSSClientObjectTaggingTest, DeleteObjectTagging_RequiredField) {
 
     auto request = models::DeleteObjectTaggingRequest();
     auto outcome = client.deleteObjectTagging(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -535,8 +535,8 @@ TEST(OSSClientObjectTaggingTest, DeleteObjectTagging_RequiredField) {
 
     request.setBucket("bucket");
     outcome = client.deleteObjectTagging(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());

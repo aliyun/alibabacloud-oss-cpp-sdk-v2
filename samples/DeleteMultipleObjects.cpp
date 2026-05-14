@@ -59,13 +59,13 @@ int main(int argc, char* argv[]) {
 
     auto outcome =
             client.deleteMultipleObjects(models::DeleteMultipleObjectsRequest().setBucket(args.bucket).setDelete(del));
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "DeleteMultipleObjects fail, code: " << e.getCode() << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
-    auto& result = outcome.getResult();
+    auto& result = outcome.value();
     std::cout << "status code: " << result.getStatusCode() << ", requestId: " << result.getRequestId() << std::endl;
     for (const auto& d : result.getDeletedObjects()) {
         std::cout << "Deleted: " << d.key << ", versionId: " << d.versionId.value_or("")

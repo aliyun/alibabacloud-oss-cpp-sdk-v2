@@ -12,7 +12,7 @@ void OSSAsyncClient::listBucketsAsync(const models::ListBucketsRequest& request,
     auto input = transform::fromListBuckets(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toListBuckets(std::move(std::get<OperationOutput>(result))));

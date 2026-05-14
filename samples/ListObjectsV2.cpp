@@ -54,13 +54,13 @@ int main(int argc, char* argv[]) {
     auto client = createClient(args);
 
     auto outcome = client.listObjectsV2(models::ListObjectsV2Request().setBucket(args.bucket).setMaxKeys(100));
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "ListObjectsV2 fail, code: " << e.getCode() << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
-    auto& result = outcome.getResult();
+    auto& result = outcome.value();
     std::cout << "status code: " << result.getStatusCode() << ", requestId: " << result.getRequestId()
               << ", keyCount: " << result.getKeyCount() << ", isTruncated: " << result.getIsTruncated() << std::endl;
 

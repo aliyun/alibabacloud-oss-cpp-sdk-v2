@@ -57,11 +57,11 @@ TEST(OSSAsyncClientServiceTest, ListBucketsAsync_Success) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ(200, outcome.getResult().getStatusCode());
-    EXPECT_EQ("id-1234", outcome.getResult().getRequestId());
-    EXPECT_EQ(1, outcome.getResult().getBuckets().size());
-    EXPECT_EQ("bucket-1", outcome.getResult().getBuckets().at(0).name);
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(200, outcome.value().getStatusCode());
+    EXPECT_EQ("id-1234", outcome.value().getRequestId());
+    EXPECT_EQ(1, outcome.value().getBuckets().size());
+    EXPECT_EQ("bucket-1", outcome.value().getBuckets().at(0).name);
 }
 
 TEST(OSSAsyncClientServiceTest, ListBucketsAsync_ErrorResponse) {
@@ -84,9 +84,9 @@ TEST(OSSAsyncClientServiceTest, ListBucketsAsync_ErrorResponse) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ(403, outcome.getError().getStatusCode());
-    EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ(403, outcome.error().getStatusCode());
+    EXPECT_EQ("InvalidAccessKeyId", outcome.error().getCode());
 }
 
 TEST(OSSAsyncClientServiceTest, ListBucketsAsync_TransportError) {
@@ -101,7 +101,7 @@ TEST(OSSAsyncClientServiceTest, ListBucketsAsync_TransportError) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_FALSE(outcome.isSuccess());
+    EXPECT_FALSE(outcome.has_value());
 }
 
 } // namespace alibabacloud::oss2

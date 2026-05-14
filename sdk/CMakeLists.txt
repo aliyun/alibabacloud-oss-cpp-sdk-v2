@@ -2,6 +2,8 @@
 project(cpp-sdk-v2 VERSION ${version})
 
 configure_file(src/Config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/alibabacloud/oss2/Config.h @ONLY)
+set(ALIBABACLOUD_OSS_USE_STD_EXPECTED ${USE_STD_EXPECTED})
+configure_file(src/utils/OutcomeConfig.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/alibabacloud/oss2/utils/OutcomeConfig.h)
 
 #common header
 file(GLOB sdk_base_header "include/alibabacloud/oss2/*.h")

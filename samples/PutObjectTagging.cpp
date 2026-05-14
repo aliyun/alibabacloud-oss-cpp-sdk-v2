@@ -62,13 +62,13 @@ int main(int argc, char* argv[]) {
 
     auto outcome = client.putObjectTagging(
             models::PutObjectTaggingRequest().setBucket(args.bucket).setKey(args.key).setTagging(tagging));
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "PutObjectTagging fail, code: " << e.getCode() << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
-    auto& result = outcome.getResult();
+    auto& result = outcome.value();
     std::cout << "status code: " << result.getStatusCode() << ", requestId: " << result.getRequestId()
               << ", versionId: " << result.getVersionId() << std::endl;
     return 0;

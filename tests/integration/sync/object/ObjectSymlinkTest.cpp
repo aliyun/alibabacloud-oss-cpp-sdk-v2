@@ -18,7 +18,7 @@ class ObjectSymlinkTest : public ::testing::Test {
         auto client = ClientHelper::GetDefaultClient();
         bucketName_ = Config::GenBucketName();
         auto outcome = client->putBucket(models::PutBucketRequest().setBucket(bucketName_));
-        EXPECT_TRUE(outcome.isSuccess());
+        EXPECT_TRUE(outcome.has_value());
     }
 
     static void TearDownTestCase() {
@@ -47,17 +47,17 @@ TEST_F(ObjectSymlinkTest, Symlink_Normal) {
 
     auto putOutcome =
             client->putObject(models::PutObjectRequest().setBucket(bucketName_).setKey(targetKey).setBody(body));
-    EXPECT_TRUE(putOutcome.isSuccess());
+    EXPECT_TRUE(putOutcome.has_value());
 
     // Create symlink
     auto putSymlinkOutcome = client->putSymlink(
             models::PutSymlinkRequest().setBucket(bucketName_).setKey(symlinkKey).setSymlinkTarget(targetKey));
-    EXPECT_TRUE(putSymlinkOutcome.isSuccess());
+    EXPECT_TRUE(putSymlinkOutcome.has_value());
 
     // Get symlink
     auto getSymlinkOutcome = client->getSymlink(models::GetSymlinkRequest().setBucket(bucketName_).setKey(symlinkKey));
-    EXPECT_TRUE(getSymlinkOutcome.isSuccess());
-    auto& result = getSymlinkOutcome.getResult();
+    EXPECT_TRUE(getSymlinkOutcome.has_value());
+    auto& result = getSymlinkOutcome.value();
     EXPECT_EQ(targetKey, result.getSymlinkTarget());
 }
 
@@ -65,16 +65,16 @@ TEST_F(ObjectSymlinkTest, PutSymlink_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     auto outcome = client->putSymlink(
             models::PutSymlinkRequest().setBucket(bucketName_).setKey("symlink-key").setSymlinkTarget("target-key"));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 
 TEST_F(ObjectSymlinkTest, GetSymlink_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     auto outcome = client->getSymlink(models::GetSymlinkRequest().setBucket(bucketName_).setKey("symlink-key"));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 

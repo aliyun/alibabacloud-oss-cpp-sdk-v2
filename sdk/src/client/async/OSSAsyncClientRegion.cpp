@@ -12,7 +12,7 @@ void OSSAsyncClient::describeRegionsAsync(const models::DescribeRegionsRequest& 
     auto input = transform::fromDescribeRegions(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toDescribeRegions(std::move(std::get<OperationOutput>(result))));

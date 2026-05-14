@@ -12,7 +12,7 @@ TEST(AsyncBucketRefererTest, PutBucketReferer_normal) {
     auto client = ClientHelper::GetDefaultClient();
     auto bucket = Config::GenBucketName();
     auto future = client->asyncCall(models::PutBucketRequest().setBucket(bucket));
-    EXPECT_TRUE(future.get().isSuccess());
+    EXPECT_TRUE(future.get().has_value());
 
     auto rrequest = models::PutBucketRefererRequest();
     rrequest.setBucket(bucket);
@@ -21,15 +21,15 @@ TEST(AsyncBucketRefererTest, PutBucketReferer_normal) {
     refererConfiguration.setRefererList({{"http://www.aliyun.com", "https://www.aliyun.com"}});
     rrequest.setRefererConfiguration(std::move(refererConfiguration));
     auto rfuture = client->asyncCall(rrequest);
-    EXPECT_TRUE(rfuture.get().isSuccess());
+    EXPECT_TRUE(rfuture.get().has_value());
 
     auto grequest = models::GetBucketRefererRequest();
     grequest.setBucket(bucket);
     auto gfuture = client->asyncCall(grequest);
     auto goutcome = gfuture.get();
-    EXPECT_TRUE(goutcome.isSuccess());
-    EXPECT_TRUE(goutcome.getResult().hasRefererConfiguration());
-    auto& config = goutcome.getResult().getRefererConfiguration();
+    EXPECT_TRUE(goutcome.has_value());
+    EXPECT_TRUE(goutcome.value().hasRefererConfiguration());
+    auto& config = goutcome.value().getRefererConfiguration();
     EXPECT_TRUE(config.allowEmptyReferer.has_value());
     EXPECT_TRUE(config.refererList.has_value());
 

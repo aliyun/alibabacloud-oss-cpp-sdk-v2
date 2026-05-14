@@ -354,7 +354,7 @@ Outcome<models::InitiateMultipartUploadResult, OperationError> toInitiateMultipa
                                                 {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
-            return opErr;
+            return makeUnexpected(std::move(opErr));
         }
     }
 
@@ -444,7 +444,7 @@ Outcome<models::CompleteMultipartUploadResult, OperationError> toCompleteMultipa
                                                     {"Code", "XMLError"},
                                                     {"Message", "RootElement is null"},
                                             }};
-                return opErr;
+                return makeUnexpected(std::move(opErr));
             }
             auto result = models::CompleteMultipartUploadResult(output.statusCode, std::move(output.headers));
             auto node = root->FirstChildElement("EncodingType");
@@ -482,7 +482,7 @@ Outcome<models::CompleteMultipartUploadResult, OperationError> toCompleteMultipa
                                                 {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
-            return opErr;
+            return makeUnexpected(std::move(opErr));
         }
     }
 
@@ -550,7 +550,7 @@ Outcome<models::UploadPartCopyResult, OperationError> toUploadPartCopy(Operation
                                                 {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
-            return opErr;
+            return makeUnexpected(std::move(opErr));
         }
     }
 
@@ -644,7 +644,7 @@ Outcome<models::ListMultipartUploadsResult, OperationError> toListMultipartUploa
                                                 {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
-            return opErr;
+            return makeUnexpected(std::move(opErr));
         }
     }
 
@@ -700,7 +700,7 @@ Outcome<models::ListPartsResult, OperationError> toListParts(OperationOutput&& o
                                                 {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
-            return opErr;
+            return makeUnexpected(std::move(opErr));
         }
     }
 

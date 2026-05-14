@@ -15,9 +15,9 @@ alibabacloud-oss-cpp-sdk-v2 是 OSS 在 C++ 编程语言下的第二版 SDK
 
 ## 运行环境
 
-> - C++17 及以上版本
-> - CMake 3.10 及以上版本
-> - 支持平台：Linux、macOS、Windows
+> - C++17 及以上版本（`std::expected` 模式需要 C++23）
+> - CMake 3.15 及以上版本
+> - 支持平台：Linux、macOS、Windows、Android
 
 ## 安装方法
 
@@ -41,6 +41,29 @@ cmake --build .
 
 # 安装（可选）
 sudo cmake --install .
+```
+
+### CMake 选项
+
+| 选项 | 默认值 | 说明 |
+|------|--------|------|
+| `BUILD_SHARED_LIBS` | `OFF` | 构建动态库而非静态库 |
+| `BUILD_TESTS` | `OFF` | 构建单元测试 |
+| `BUILD_SAMPLES` | `OFF` | 构建示例程序 |
+| `ENABLE_RTTI` | `ON` | 启用/禁用 RTTI 信息 |
+| `USE_SYSTEM_CURL` | `OFF` | 使用系统已安装的 libcurl |
+| `USE_SYSTEM_OPENSSL` | `OFF` | 使用系统已安装的 OpenSSL |
+| `USE_SYSTEM_MBEDTLS` | `OFF` | 使用系统已安装的 mbedTLS |
+| `USE_STD_EXPECTED` | `OFF` | 使用 `std::expected` 替代自定义 `Outcome`（需要 C++23） |
+| `ENABLE_COVERAGE` | `OFF` | 生成代码覆盖率报告 |
+| `ENABLE_CPPCHECK` | `OFF` | 启用 Cppcheck 静态分析 |
+| `ENABLE_SANITIZER` | `OFF` | 启用 Sanitizer 检测 |
+
+启用 `std::expected` 模式（C++23）：
+
+```bash
+cmake -B build -DCMAKE_CXX_STANDARD=23 -DUSE_STD_EXPECTED=ON
+cmake --build build
 ```
 
 ### 在您的项目中使用 CMake
@@ -87,15 +110,15 @@ int main() {
 
     // 列举存储空间
     auto outcome = client.listBuckets(models::ListBucketsRequest());
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "ListBuckets fail, code: " << e.getCode()
                   << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
 
-    auto& result = outcome.getResult();
+    auto& result = outcome.value();
     for (const auto& bucket : result.getBuckets()) {
         std::cout << "存储空间: " << bucket.name
                   << ", 地域: " << bucket.location
@@ -125,15 +148,15 @@ int main() {
         models::ListObjectsV2Request()
             .setBucket("your-bucket-name")
     );
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "ListObjectsV2 fail, code: " << e.getCode()
                   << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
 
-    auto& result = outcome.getResult();
+    auto& result = outcome.value();
     for (const auto& object : result.getContents()) {
         std::cout << "文件: " << object.key
                   << ", 大小: " << object.size
@@ -169,15 +192,15 @@ int main() {
             .setKey("your-object-key")
             .setBody(body)
     );
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "PutObject fail, code: " << e.getCode()
                   << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
 
-    auto& result = outcome.getResult();
+    auto& result = outcome.value();
     std::cout << "上传成功! statusCode: " << result.getStatusCode()
               << ", requestId: " << result.getRequestId() << std::endl;
     return 0;
@@ -206,15 +229,15 @@ int main() {
             .setBucket("your-bucket-name")
             .setKey("your-object-key")
     );
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "GetObject fail, code: " << e.getCode()
                   << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
 
-    auto& result = outcome.getResult();
+    auto& result = outcome.value();
     std::stringstream buffer;
     buffer << result.getBody()->rdbuf();
 
@@ -249,7 +272,24 @@ int main() {
 
 ## 错误处理
 
-SDK 通过 `Outcome` 模式提供详细的错误信息：
+SDK 使用 `Outcome<Result, Error>`，接口兼容 `std::expected`：
+
+```cpp
+auto outcome = client.putObject(request);
+
+if (!outcome.has_value()) {
+    auto& err = outcome.error();
+    std::cerr << "错误码: " << err.getCode() << std::endl;
+    std::cerr << "错误信息: " << err.getMessage() << std::endl;
+    std::cerr << "请求 ID: " << err.getRequestId() << std::endl;
+    std::cerr << "操作名称: " << err.getOpName() << std::endl;
+    std::cerr << "请求方法: " << err.getMethod() << std::endl;
+}
+```
+
+使用 `-DUSE_STD_EXPECTED=ON`（C++23）构建时，`Outcome` 将成为 `std::expected` 的类型别名，支持 `.and_then()`、`.transform()`、`.or_else()` 等一元操作。
+
+为兼容从 [aliyun-oss-cpp-sdk](https://github.com/aliyun/aliyun-oss-cpp-sdk) 迁移的用户，SDK 同时保留了旧版接口（`isSuccess()` / `getResult()` / `getError()`）。注意：旧版接口在 `std::expected` 模式下不可用。
 
 ```cpp
 auto outcome = client.putObject(request);
@@ -258,10 +298,9 @@ if (!outcome.isSuccess()) {
     auto& error = outcome.getError();
     std::cerr << "错误码: " << error.getCode() << std::endl;
     std::cerr << "错误信息: " << error.getMessage() << std::endl;
-    std::cerr << "请求 ID: " << error.getRequestId() << std::endl;
-    std::cerr << "操作名称: " << error.getOpName() << std::endl;
-    std::cerr << "请求方法: " << error.getMethod() << std::endl;
 }
+
+auto& result = outcome.getResult();
 ```
 
 ## 线程安全
