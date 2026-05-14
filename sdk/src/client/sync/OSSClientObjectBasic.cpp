@@ -23,7 +23,7 @@ PutObjectOutcome OSSClient::putObject(const models::PutObjectRequest& request, c
     }
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toPutObject(std::move(std::get<OperationOutput>(result)));
 }
@@ -36,7 +36,7 @@ CopyObjectOutcome OSSClient::copyObject(const models::CopyObjectRequest& request
     auto input = transform::fromCopyObject(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toCopyObject(std::move(std::get<OperationOutput>(result)));
 }
@@ -48,7 +48,7 @@ GetObjectOutcome OSSClient::getObject(const models::GetObjectRequest& request, c
     auto input = transform::fromGetObject(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toGetObject(std::move(std::get<OperationOutput>(result)));
 }
@@ -67,7 +67,7 @@ AppendObjectOutcome OSSClient::appendObject(const models::AppendObjectRequest& r
 
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toAppendObject(std::move(std::get<OperationOutput>(result)));
 }
@@ -81,7 +81,7 @@ SealAppendObjectOutcome OSSClient::sealAppendObject(const models::SealAppendObje
     auto input = transform::fromSealAppendObject(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toSealAppendObject(std::move(std::get<OperationOutput>(result)));
 }
@@ -94,7 +94,7 @@ DeleteObjectOutcome OSSClient::deleteObject(const models::DeleteObjectRequest& r
     auto input = transform::fromDeleteObject(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toDeleteObject(std::move(std::get<OperationOutput>(result)));
 }
@@ -107,7 +107,7 @@ DeleteMultipleObjectsOutcome OSSClient::deleteMultipleObjects(const models::Dele
     auto input = transform::fromDeleteMultipleObjects(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toDeleteMultipleObjects(std::move(std::get<OperationOutput>(result)));
 }
@@ -119,7 +119,7 @@ HeadObjectOutcome OSSClient::headObject(const models::HeadObjectRequest& request
     auto input = transform::fromHeadObject(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toHeadObject(std::move(std::get<OperationOutput>(result)));
 }
@@ -132,7 +132,7 @@ GetObjectMetaOutcome OSSClient::getObjectMeta(const models::GetObjectMetaRequest
     auto input = transform::fromGetObjectMeta(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toGetObjectMeta(std::move(std::get<OperationOutput>(result)));
 }
@@ -145,7 +145,7 @@ RestoreObjectOutcome OSSClient::restoreObject(const models::RestoreObjectRequest
     auto input = transform::fromRestoreObject(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toRestoreObject(std::move(std::get<OperationOutput>(result)));
 }
@@ -158,7 +158,7 @@ CleanRestoredObjectOutcome OSSClient::cleanRestoredObject(const models::CleanRes
     auto input = transform::fromCleanRestoredObject(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toCleanRestoredObject(std::move(std::get<OperationOutput>(result)));
 }

@@ -138,6 +138,10 @@ struct ALIBABACLOUD_OSS_API OperationOutput {
 class ALIBABACLOUD_OSS_API OperationError {
   public:
     OperationError() = default;
+    OperationError(const OperationError&) = default;
+    OperationError& operator=(const OperationError&) = default;
+    OperationError(OperationError&&) noexcept = default;
+    OperationError& operator=(OperationError&&) noexcept = default;
 
     /// Constructs an error from a client-side error code and detail fields.
     OperationError(std::error_code errorCode, std::map<std::string, std::string> errorFields)

@@ -15,7 +15,7 @@ PutBucketRefererOutcome OSSClient::putBucketReferer(const models::PutBucketRefer
     auto input = transform::fromPutBucketReferer(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toPutBucketReferer(std::move(std::get<OperationOutput>(result)));
 }
@@ -27,7 +27,7 @@ GetBucketRefererOutcome OSSClient::getBucketReferer(const models::GetBucketRefer
     auto input = transform::fromGetBucketReferer(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toGetBucketReferer(std::move(std::get<OperationOutput>(result)));
 }

@@ -70,13 +70,13 @@ int main(int argc, char* argv[]) {
                                              .setUploadId(uploadId)
                                              .setPartNumber(partNumber)
                                              .setBody(RequestBody::FromString(data)));
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "UploadPart fail, code: " << e.getCode() << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
-    auto& result = outcome.getResult();
+    auto& result = outcome.value();
     std::cout << "status code: " << result.getStatusCode() << ", requestId: " << result.getRequestId()
               << ", eTag: " << result.getETag() << ", hashCrc64ecma: " << result.getHashCrc64ecma() << std::endl;
     return 0;

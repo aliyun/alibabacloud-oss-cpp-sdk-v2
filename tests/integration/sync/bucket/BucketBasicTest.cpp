@@ -19,7 +19,7 @@ class BucketBasicTest : public ::testing::Test {
         auto client = ClientHelper::GetDefaultClient();
         bucketName_ = Config::GenBucketName();
         auto outcome = client->putBucket(models::PutBucketRequest().setBucket(bucketName_));
-        EXPECT_TRUE(outcome.isSuccess());
+        EXPECT_TRUE(outcome.has_value());
     }
 
     // Tears down the stuff shared by all tests in this test case.
@@ -43,8 +43,8 @@ std::string BucketBasicTest::bucketName_ = "";
 TEST_F(BucketBasicTest, GetBucketInfo_Noraml) {
     auto client = ClientHelper::GetDefaultClient();
     auto outcome = client->getBucketInfo(models::GetBucketInfoRequest().setBucket(bucketName_));
-    EXPECT_EQ(true, outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_EQ(true, outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_EQ(true, result.hasBucketInfo());
     auto& info = result.getBucketInfo();
     EXPECT_EQ(bucketName_, info.name);
@@ -54,8 +54,8 @@ TEST_F(BucketBasicTest, GetBucketInfo_Noraml) {
 TEST_F(BucketBasicTest, GetBucketInfo_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     auto outcome = client->getBucketInfo(models::GetBucketInfoRequest().setBucket(bucketName_));
-    EXPECT_EQ(false, outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_EQ(false, outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
     EXPECT_EQ("GetBucketInfo", error.getOpName());
     EXPECT_EQ("GET", error.getMethod());
@@ -65,16 +65,16 @@ TEST_F(BucketBasicTest, GetBucketInfo_Fail) {
 TEST_F(BucketBasicTest, BucketLocation_Noraml) {
     auto client = ClientHelper::GetDefaultClient();
     auto outcome = client->getBucketLocation(models::GetBucketLocationRequest().setBucket(bucketName_));
-    EXPECT_EQ(true, outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_EQ(true, outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_EQ("oss-" + Config::Region, result.getLocationConstraint());
 }
 
 TEST_F(BucketBasicTest, BucketLocation_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     auto outcome = client->getBucketLocation(models::GetBucketLocationRequest().setBucket(bucketName_));
-    EXPECT_EQ(false, outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_EQ(false, outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
     EXPECT_EQ("GetBucketLocation", error.getOpName());
     EXPECT_EQ("GET", error.getMethod());

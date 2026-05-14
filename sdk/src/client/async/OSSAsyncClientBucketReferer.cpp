@@ -15,7 +15,7 @@ void OSSAsyncClient::putBucketRefererAsync(const models::PutBucketRefererRequest
     auto input = transform::fromPutBucketReferer(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toPutBucketReferer(std::move(std::get<OperationOutput>(result))));
@@ -30,7 +30,7 @@ void OSSAsyncClient::getBucketRefererAsync(const models::GetBucketRefererRequest
     auto input = transform::fromGetBucketReferer(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toGetBucketReferer(std::move(std::get<OperationOutput>(result))));

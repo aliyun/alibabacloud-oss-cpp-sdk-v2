@@ -11,7 +11,7 @@ DescribeRegionsOutcome OSSClient::describeRegions(const models::DescribeRegionsR
     auto input = transform::fromDescribeRegions(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toDescribeRegions(std::move(std::get<OperationOutput>(result)));
 }

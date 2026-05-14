@@ -63,13 +63,13 @@ int main(int argc, char* argv[]) {
 
     auto outcome = client.putBucketReferer(
             models::PutBucketRefererRequest().setBucket(args.bucket).setRefererConfiguration(refConf));
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "PutBucketReferer fail, code: " << e.getCode() << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
-    auto& result = outcome.getResult();
+    auto& result = outcome.value();
     std::cout << "status code: " << result.getStatusCode() << ", requestId: " << result.getRequestId() << std::endl;
     return 0;
 }

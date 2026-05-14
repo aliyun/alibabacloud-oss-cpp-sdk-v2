@@ -61,9 +61,9 @@ TEST_F(OSSClientPresignTest, presignPutObject) {
     options.setExpirationDuration(std::chrono::seconds(3600));
 
     auto outcome = client.presign(request, &options);
-    ASSERT_TRUE(outcome.isSuccess());
+    ASSERT_TRUE(outcome.has_value());
 
-    const auto& result = outcome.getResult();
+    const auto& result = outcome.value();
     EXPECT_FALSE(result.getUrl().empty());
     EXPECT_EQ("PUT", result.getMethod());
     EXPECT_NE(0, result.getExpiration());
@@ -90,9 +90,9 @@ TEST_F(OSSClientPresignTest, presignPutObject_noOptions) {
     auto outcome = client.presign(request, nullptr);
     std::time_t afterCall = std::time(nullptr);
 
-    ASSERT_TRUE(outcome.isSuccess());
+    ASSERT_TRUE(outcome.has_value());
 
-    const auto& result = outcome.getResult();
+    const auto& result = outcome.value();
     EXPECT_FALSE(result.getUrl().empty());
     EXPECT_EQ("PUT", result.getMethod());
 
@@ -119,9 +119,9 @@ TEST_F(OSSClientPresignTest, presignGetObject) {
     options.setExpiration(expiration);
 
     auto outcome = client.presign(request, &options);
-    ASSERT_TRUE(outcome.isSuccess());
+    ASSERT_TRUE(outcome.has_value());
 
-    const auto& result = outcome.getResult();
+    const auto& result = outcome.value();
     EXPECT_FALSE(result.getUrl().empty());
     EXPECT_EQ("GET", result.getMethod());
     EXPECT_EQ(expiration, result.getExpiration());
@@ -146,9 +146,9 @@ TEST_F(OSSClientPresignTest, presignHeadObject) {
     options.setExpirationDuration(std::chrono::seconds(7200));
 
     auto outcome = client.presign(request, &options);
-    ASSERT_TRUE(outcome.isSuccess());
+    ASSERT_TRUE(outcome.has_value());
 
-    const auto& result = outcome.getResult();
+    const auto& result = outcome.value();
     EXPECT_FALSE(result.getUrl().empty());
     EXPECT_EQ("HEAD", result.getMethod());
     EXPECT_NE(0, result.getExpiration());
@@ -172,9 +172,9 @@ TEST_F(OSSClientPresignTest, presignUploadPart) {
     options.setExpirationDuration(std::chrono::seconds(3600));
 
     auto outcome = client.presign(request, &options);
-    ASSERT_TRUE(outcome.isSuccess());
+    ASSERT_TRUE(outcome.has_value());
 
-    const auto& result = outcome.getResult();
+    const auto& result = outcome.value();
     EXPECT_FALSE(result.getUrl().empty());
     EXPECT_EQ("PUT", result.getMethod());
     EXPECT_NE(0, result.getExpiration());
@@ -198,9 +198,9 @@ TEST_F(OSSClientPresignTest, presignWithToken) {
     options.setExpirationDuration(std::chrono::seconds(3600));
 
     auto outcome = client.presign(request, &options);
-    ASSERT_TRUE(outcome.isSuccess());
+    ASSERT_TRUE(outcome.has_value());
 
-    const auto& result = outcome.getResult();
+    const auto& result = outcome.value();
     EXPECT_FALSE(result.getUrl().empty());
     EXPECT_EQ("GET", result.getMethod());
     EXPECT_NE(std::string::npos, result.getUrl().find("x-oss-security-token"));
@@ -223,9 +223,9 @@ TEST_F(OSSClientPresignTest, presignWithV1Signature) {
     options.setExpirationDuration(std::chrono::seconds(3600));
 
     auto outcome = client.presign(request, &options);
-    ASSERT_TRUE(outcome.isSuccess());
+    ASSERT_TRUE(outcome.has_value());
 
-    const auto& result = outcome.getResult();
+    const auto& result = outcome.value();
     EXPECT_FALSE(result.getUrl().empty());
     EXPECT_EQ("GET", result.getMethod());
     EXPECT_NE(std::string::npos, result.getUrl().find("OSSAccessKeyId="));
@@ -246,8 +246,8 @@ TEST_F(OSSClientPresignTest, presignEmptyCredentials) {
     request.setKey("test-key");
 
     auto outcome = client.presign(request, nullptr);
-    ASSERT_FALSE(outcome.isSuccess());
-    EXPECT_EQ(SdkErrorCode::CREDENTIALS_EMPTYNULL, outcome.getError().getErrorCode());
+    ASSERT_FALSE(outcome.has_value());
+    EXPECT_EQ(SdkErrorCode::CREDENTIALS_EMPTYNULL, outcome.error().getErrorCode());
 }
 
 TEST_F(OSSClientPresignTest, presignGetObject_withSignedHeaders) {
@@ -270,9 +270,9 @@ TEST_F(OSSClientPresignTest, presignGetObject_withSignedHeaders) {
     options.setExpirationDuration(std::chrono::seconds(3600));
 
     auto outcome = client.presign(request, &options);
-    ASSERT_TRUE(outcome.isSuccess());
+    ASSERT_TRUE(outcome.has_value());
 
-    const auto& result = outcome.getResult();
+    const auto& result = outcome.value();
     EXPECT_FALSE(result.getUrl().empty());
     EXPECT_EQ("GET", result.getMethod());
     EXPECT_NE(0, result.getExpiration());
@@ -305,9 +305,9 @@ TEST_F(OSSClientPresignTest, presignUploadPart_withSignedHeaders) {
     options.setExpirationDuration(std::chrono::seconds(3600));
 
     auto outcome = client.presign(request, &options);
-    ASSERT_TRUE(outcome.isSuccess());
+    ASSERT_TRUE(outcome.has_value());
 
-    const auto& result = outcome.getResult();
+    const auto& result = outcome.value();
     EXPECT_FALSE(result.getUrl().empty());
     EXPECT_EQ("PUT", result.getMethod());
 
@@ -336,9 +336,9 @@ TEST_F(OSSClientPresignTest, presignWithV1Signature_checkSignedHeaders) {
     options.setExpirationDuration(std::chrono::seconds(3600));
 
     auto outcome = client.presign(request, &options);
-    ASSERT_TRUE(outcome.isSuccess());
+    ASSERT_TRUE(outcome.has_value());
 
-    const auto& result = outcome.getResult();
+    const auto& result = outcome.value();
     EXPECT_FALSE(result.getUrl().empty());
     EXPECT_EQ("GET", result.getMethod());
 
@@ -379,9 +379,9 @@ TEST_F(OSSClientPresignTest, presignPutObject_withAdditionalHeaders) {
     options.setExpirationDuration(std::chrono::seconds(3600));
 
     auto outcome = client.presign(request, &options);
-    ASSERT_TRUE(outcome.isSuccess());
+    ASSERT_TRUE(outcome.has_value());
 
-    const auto& result = outcome.getResult();
+    const auto& result = outcome.value();
     EXPECT_FALSE(result.getUrl().empty());
     EXPECT_EQ("PUT", result.getMethod());
     EXPECT_NE(0, result.getExpiration());
@@ -408,9 +408,9 @@ TEST_F(OSSClientPresignTest, presignPutObject_emptyBucket) {
     request.setKey("test-key");
 
     auto outcome = client.presign(request, nullptr);
-    ASSERT_FALSE(outcome.isSuccess());
-    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.getError().getErrorCode());
-    EXPECT_NE(std::string::npos, outcome.getError().getMessage().find("Bucket"));
+    ASSERT_FALSE(outcome.has_value());
+    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.error().getErrorCode());
+    EXPECT_NE(std::string::npos, outcome.error().getMessage().find("Bucket"));
 }
 
 TEST_F(OSSClientPresignTest, presignPutObject_emptyKey) {
@@ -426,9 +426,9 @@ TEST_F(OSSClientPresignTest, presignPutObject_emptyKey) {
     request.setKey("");
 
     auto outcome = client.presign(request, nullptr);
-    ASSERT_FALSE(outcome.isSuccess());
-    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.getError().getErrorCode());
-    EXPECT_NE(std::string::npos, outcome.getError().getMessage().find("Key"));
+    ASSERT_FALSE(outcome.has_value());
+    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.error().getErrorCode());
+    EXPECT_NE(std::string::npos, outcome.error().getMessage().find("Key"));
 }
 
 TEST_F(OSSClientPresignTest, presignGetObject_emptyBucket) {
@@ -444,8 +444,8 @@ TEST_F(OSSClientPresignTest, presignGetObject_emptyBucket) {
     request.setKey("test-key");
 
     auto outcome = client.presign(request, nullptr);
-    ASSERT_FALSE(outcome.isSuccess());
-    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.getError().getErrorCode());
+    ASSERT_FALSE(outcome.has_value());
+    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.error().getErrorCode());
 }
 
 TEST_F(OSSClientPresignTest, presignGetObject_emptyKey) {
@@ -461,8 +461,8 @@ TEST_F(OSSClientPresignTest, presignGetObject_emptyKey) {
     request.setKey("");
 
     auto outcome = client.presign(request, nullptr);
-    ASSERT_FALSE(outcome.isSuccess());
-    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.getError().getErrorCode());
+    ASSERT_FALSE(outcome.has_value());
+    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.error().getErrorCode());
 }
 
 TEST_F(OSSClientPresignTest, presignHeadObject_emptyBucket) {
@@ -478,8 +478,8 @@ TEST_F(OSSClientPresignTest, presignHeadObject_emptyBucket) {
     request.setKey("test-key");
 
     auto outcome = client.presign(request, nullptr);
-    ASSERT_FALSE(outcome.isSuccess());
-    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.getError().getErrorCode());
+    ASSERT_FALSE(outcome.has_value());
+    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.error().getErrorCode());
 }
 
 TEST_F(OSSClientPresignTest, presignUploadPart_emptyBucket) {
@@ -497,8 +497,8 @@ TEST_F(OSSClientPresignTest, presignUploadPart_emptyBucket) {
     request.setPartNumber(1);
 
     auto outcome = client.presign(request, nullptr);
-    ASSERT_FALSE(outcome.isSuccess());
-    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.getError().getErrorCode());
+    ASSERT_FALSE(outcome.has_value());
+    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.error().getErrorCode());
 }
 
 TEST_F(OSSClientPresignTest, presignUploadPart_emptyUploadId) {
@@ -516,8 +516,8 @@ TEST_F(OSSClientPresignTest, presignUploadPart_emptyUploadId) {
     request.setPartNumber(1);
 
     auto outcome = client.presign(request, nullptr);
-    ASSERT_FALSE(outcome.isSuccess());
-    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.getError().getErrorCode());
+    ASSERT_FALSE(outcome.has_value());
+    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.error().getErrorCode());
 }
 
 TEST_F(OSSClientPresignTest, presignUploadPart_invalidPartNumber) {
@@ -535,8 +535,8 @@ TEST_F(OSSClientPresignTest, presignUploadPart_invalidPartNumber) {
     request.setPartNumber(-1);
 
     auto outcome = client.presign(request, nullptr);
-    ASSERT_FALSE(outcome.isSuccess());
-    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.getError().getErrorCode());
+    ASSERT_FALSE(outcome.has_value());
+    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.error().getErrorCode());
 }
 
 } // namespace oss2

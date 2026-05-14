@@ -55,13 +55,13 @@ int main(int argc, char* argv[]) {
 
     auto outcome = client.listMultipartUploads(
             models::ListMultipartUploadsRequest().setBucket(args.bucket).setMaxUploads(100));
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "ListMultipartUploads fail, code: " << e.getCode() << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
-    auto& result = outcome.getResult();
+    auto& result = outcome.value();
     std::cout << "status code: " << result.getStatusCode() << ", requestId: " << result.getRequestId()
               << ", bucket: " << result.getBucket() << ", isTruncated: " << result.getIsTruncated() << std::endl;
 

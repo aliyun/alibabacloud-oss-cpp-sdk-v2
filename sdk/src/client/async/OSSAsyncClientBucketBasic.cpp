@@ -15,7 +15,7 @@ void OSSAsyncClient::getBucketStatAsync(const models::GetBucketStatRequest& requ
     auto input = transform::fromGetBucketStat(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toGetBucketStat(std::move(std::get<OperationOutput>(result))));
@@ -30,7 +30,7 @@ void OSSAsyncClient::putBucketAsync(const models::PutBucketRequest& request,
     auto input = transform::fromPutBucket(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toPutBucket(std::move(std::get<OperationOutput>(result))));
@@ -45,7 +45,7 @@ void OSSAsyncClient::deleteBucketAsync(const models::DeleteBucketRequest& reques
     auto input = transform::fromDeleteBucket(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toDeleteBucket(std::move(std::get<OperationOutput>(result))));
@@ -60,7 +60,7 @@ void OSSAsyncClient::listObjectsAsync(const models::ListObjectsRequest& request,
     auto input = transform::fromListObjects(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toListObjects(std::move(std::get<OperationOutput>(result))));
@@ -75,7 +75,7 @@ void OSSAsyncClient::listObjectsV2Async(const models::ListObjectsV2Request& requ
     auto input = transform::fromListObjectsV2(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toListObjectsV2(std::move(std::get<OperationOutput>(result))));
@@ -90,7 +90,7 @@ void OSSAsyncClient::getBucketInfoAsync(const models::GetBucketInfoRequest& requ
     auto input = transform::fromGetBucketInfo(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toGetBucketInfo(std::move(std::get<OperationOutput>(result))));
@@ -105,7 +105,7 @@ void OSSAsyncClient::getBucketLocationAsync(const models::GetBucketLocationReque
     auto input = transform::fromGetBucketLocation(request);
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
-            callback(std::get<OperationError>(std::move(result)));
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toGetBucketLocation(std::move(std::get<OperationOutput>(result))));

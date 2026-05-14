@@ -18,7 +18,7 @@ class ObjectBasicTest : public ::testing::Test {
         auto client = ClientHelper::GetDefaultClient();
         bucketName_ = Config::GenBucketName();
         auto outcome = client->putBucket(models::PutBucketRequest().setBucket(bucketName_));
-        EXPECT_TRUE(outcome.isSuccess());
+        EXPECT_TRUE(outcome.has_value());
     }
 
     static void TearDownTestCase() {
@@ -47,7 +47,7 @@ TEST_F(ObjectBasicTest, PutObject_Normal) {
             .setBucket(bucketName_)
             .setKey(key)
             .setBody(body));
-    EXPECT_TRUE(outcome.isSuccess());
+    EXPECT_TRUE(outcome.has_value());
 }
 
 TEST_F(ObjectBasicTest, PutObject_WithMetadata) {
@@ -64,7 +64,7 @@ TEST_F(ObjectBasicTest, PutObject_WithMetadata) {
             .setBody(body)
             .setObjectAcl("private")
             .setStorageClass("Standard"));
-    EXPECT_TRUE(outcome.isSuccess());
+    EXPECT_TRUE(outcome.has_value());
 }
 
 TEST_F(ObjectBasicTest, PutObject_Fail) {
@@ -79,8 +79,8 @@ TEST_F(ObjectBasicTest, PutObject_Fail) {
             .setBucket(bucketName_)
             .setKey(key)
             .setBody(body));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 
@@ -98,15 +98,15 @@ TEST_F(ObjectBasicTest, GetObject_Normal) {
             .setBucket(bucketName_)
             .setKey(key)
             .setBody(body));
-    EXPECT_TRUE(putOutcome.isSuccess());
+    EXPECT_TRUE(putOutcome.has_value());
 
     // Get object
     auto outcome = client->getObject(
         models::GetObjectRequest()
             .setBucket(bucketName_)
             .setKey(key));
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_EQ(content.size(), result.getContentLength());
     EXPECT_FALSE(result.getETag().empty());
 }
@@ -117,7 +117,7 @@ TEST_F(ObjectBasicTest, GetObject_NotFound) {
         models::GetObjectRequest()
             .setBucket(bucketName_)
             .setKey("non-existent-object"));
-    EXPECT_FALSE(outcome.isSuccess());
+    EXPECT_FALSE(outcome.has_value());
 }
 
 TEST_F(ObjectBasicTest, GetObject_Fail) {
@@ -126,8 +126,8 @@ TEST_F(ObjectBasicTest, GetObject_Fail) {
         models::GetObjectRequest()
             .setBucket(bucketName_)
             .setKey("test-key"));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 
@@ -146,7 +146,7 @@ TEST_F(ObjectBasicTest, CopyObject_Normal) {
             .setBucket(bucketName_)
             .setKey(sourceKey)
             .setBody(body));
-    EXPECT_TRUE(putOutcome.isSuccess());
+    EXPECT_TRUE(putOutcome.has_value());
 
     // Copy object
     auto outcome = client->copyObject(
@@ -155,8 +155,8 @@ TEST_F(ObjectBasicTest, CopyObject_Normal) {
             .setKey(destKey)
             .setSourceBucket(bucketName_)
             .setSourceKey(sourceKey));
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_FALSE(result.getETag().empty());
 }
 
@@ -168,8 +168,8 @@ TEST_F(ObjectBasicTest, CopyObject_Fail) {
             .setKey("dest-key")
             .setSourceBucket(bucketName_)
             .setSourceKey("source-key"));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 
@@ -187,14 +187,14 @@ TEST_F(ObjectBasicTest, DeleteObject_Normal) {
             .setBucket(bucketName_)
             .setKey(key)
             .setBody(body));
-    EXPECT_TRUE(putOutcome.isSuccess());
+    EXPECT_TRUE(putOutcome.has_value());
 
     // Delete object
     auto outcome = client->deleteObject(
         models::DeleteObjectRequest()
             .setBucket(bucketName_)
             .setKey(key));
-    EXPECT_TRUE(outcome.isSuccess());
+    EXPECT_TRUE(outcome.has_value());
 }
 
 TEST_F(ObjectBasicTest, DeleteObject_Fail) {
@@ -203,8 +203,8 @@ TEST_F(ObjectBasicTest, DeleteObject_Fail) {
         models::DeleteObjectRequest()
             .setBucket(bucketName_)
             .setKey("test-key"));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 
@@ -222,15 +222,15 @@ TEST_F(ObjectBasicTest, HeadObject_Normal) {
             .setBucket(bucketName_)
             .setKey(key)
             .setBody(body));
-    EXPECT_TRUE(putOutcome.isSuccess());
+    EXPECT_TRUE(putOutcome.has_value());
 
     // Head object
     auto outcome = client->headObject(
         models::HeadObjectRequest()
             .setBucket(bucketName_)
             .setKey(key));
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_EQ(content.size(), result.getContentLength());
     EXPECT_FALSE(result.getETag().empty());
 }
@@ -241,7 +241,7 @@ TEST_F(ObjectBasicTest, HeadObject_NotFound) {
         models::HeadObjectRequest()
             .setBucket(bucketName_)
             .setKey("non-existent-object"));
-    EXPECT_FALSE(outcome.isSuccess());
+    EXPECT_FALSE(outcome.has_value());
 }
 
 TEST_F(ObjectBasicTest, HeadObject_Fail) {
@@ -250,8 +250,8 @@ TEST_F(ObjectBasicTest, HeadObject_Fail) {
         models::HeadObjectRequest()
             .setBucket(bucketName_)
             .setKey("test-key"));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 
@@ -269,15 +269,15 @@ TEST_F(ObjectBasicTest, GetObjectMeta_Normal) {
             .setBucket(bucketName_)
             .setKey(key)
             .setBody(body));
-    EXPECT_TRUE(putOutcome.isSuccess());
+    EXPECT_TRUE(putOutcome.has_value());
 
     // Get object meta
     auto outcome = client->getObjectMeta(
         models::GetObjectMetaRequest()
             .setBucket(bucketName_)
             .setKey(key));
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_EQ(content.size(), result.getContentLength());
     EXPECT_FALSE(result.getETag().empty());
 }
@@ -288,8 +288,8 @@ TEST_F(ObjectBasicTest, GetObjectMeta_Fail) {
         models::GetObjectMetaRequest()
             .setBucket(bucketName_)
             .setKey("test-key"));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 

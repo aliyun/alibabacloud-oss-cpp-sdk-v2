@@ -14,7 +14,7 @@ class AsyncObjectAclTest : public ::testing::Test {
         auto client = ClientHelper::GetDefaultClient();
         bucketName_ = Config::GenBucketName();
         auto future = client->asyncCall(models::PutBucketRequest().setBucket(bucketName_));
-        EXPECT_TRUE(future.get().isSuccess());
+        EXPECT_TRUE(future.get().has_value());
     }
 
     static void TearDownTestCase() {
@@ -32,17 +32,17 @@ TEST_F(AsyncObjectAclTest, ObjectAcl_Normal) {
     std::string key = "test-acl-object";
 
     auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::FromString("content")));
-    EXPECT_TRUE(putFuture.get().isSuccess());
+    EXPECT_TRUE(putFuture.get().has_value());
 
     auto putAclFuture = client->asyncCall(models::PutObjectAclRequest().setBucket(bucketName_).setKey(key).setObjectAcl("private"));
-    EXPECT_TRUE(putAclFuture.get().isSuccess());
+    EXPECT_TRUE(putAclFuture.get().has_value());
 
     Config::WaitForCacheExpire(2);
 
     auto getAclFuture = client->asyncCall(models::GetObjectAclRequest().setBucket(bucketName_).setKey(key));
     auto outcome = getAclFuture.get();
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_TRUE(result.hasAccessControlPolicy());
     auto& acl = result.getAccessControlPolicy();
     EXPECT_TRUE(acl.accessControlList.has_value());
@@ -53,18 +53,18 @@ TEST_F(AsyncObjectAclTest, PutObjectAcl_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     auto future = client->asyncCall(models::PutObjectAclRequest().setBucket(bucketName_).setKey("test-key").setObjectAcl("private"));
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
-    EXPECT_EQ("PutObjectAcl", outcome.getError().getOpName());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("InvalidAccessKeyId", outcome.error().getCode());
+    EXPECT_EQ("PutObjectAcl", outcome.error().getOpName());
 }
 
 TEST_F(AsyncObjectAclTest, GetObjectAcl_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     auto future = client->asyncCall(models::GetObjectAclRequest().setBucket(bucketName_).setKey("test-key"));
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
-    EXPECT_EQ("GetObjectAcl", outcome.getError().getOpName());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("InvalidAccessKeyId", outcome.error().getCode());
+    EXPECT_EQ("GetObjectAcl", outcome.error().getOpName());
 }
 
 } // namespace async

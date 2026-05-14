@@ -10,7 +10,7 @@ ListBucketsOutcome OSSClient::listBuckets(const models::ListBucketsRequest& requ
     auto input = transform::fromListBuckets(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toListBuckets(std::move(std::get<OperationOutput>(result)));
 }

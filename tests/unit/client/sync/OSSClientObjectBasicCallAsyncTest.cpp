@@ -32,9 +32,9 @@ TEST(OSSClientObjectBasicCallAsyncTest, PutObject_Future_Success) {
 
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ(200, outcome.getResult().getStatusCode());
-    EXPECT_EQ("id-1234", outcome.getResult().getRequestId());
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(200, outcome.value().getStatusCode());
+    EXPECT_EQ("id-1234", outcome.value().getRequestId());
 }
 
 TEST(OSSClientObjectBasicCallAsyncTest, PutObject_Callback_Success) {
@@ -65,8 +65,8 @@ TEST(OSSClientObjectBasicCallAsyncTest, PutObject_Callback_Success) {
         });
 
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ("id-5678", outcome.getResult().getRequestId());
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ("id-5678", outcome.value().getRequestId());
 }
 
 TEST(OSSClientObjectBasicCallAsyncTest, PutObject_Future_NoExecutor) {
@@ -83,8 +83,8 @@ TEST(OSSClientObjectBasicCallAsyncTest, PutObject_Future_NoExecutor) {
 
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("NoExecutor", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("NoExecutor", outcome.error().getCode());
 }
 
 TEST(OSSClientObjectBasicCallAsyncTest, PutObject_Callback_NoExecutor) {
@@ -108,8 +108,8 @@ TEST(OSSClientObjectBasicCallAsyncTest, PutObject_Callback_NoExecutor) {
         });
 
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("NoExecutor", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("NoExecutor", outcome.error().getCode());
 }
 
 TEST(OSSClientObjectBasicCallAsyncTest, GetObject_Future_Success) {
@@ -134,8 +134,8 @@ TEST(OSSClientObjectBasicCallAsyncTest, GetObject_Future_Success) {
 
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ(200, outcome.getResult().getStatusCode());
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(200, outcome.value().getStatusCode());
 }
 
 TEST(OSSClientObjectBasicCallAsyncTest, HeadObject_Future_Success) {
@@ -160,8 +160,8 @@ TEST(OSSClientObjectBasicCallAsyncTest, HeadObject_Future_Success) {
 
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ(200, outcome.getResult().getStatusCode());
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(200, outcome.value().getStatusCode());
 }
 
 TEST(OSSClientObjectBasicCallAsyncTest, DeleteObject_Future_Success) {
@@ -184,7 +184,7 @@ TEST(OSSClientObjectBasicCallAsyncTest, DeleteObject_Future_Success) {
 
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
+    EXPECT_TRUE(outcome.has_value());
 }
 
 TEST(OSSClientObjectBasicCallAsyncTest, CopyObject_Future_Success) {
@@ -214,7 +214,7 @@ TEST(OSSClientObjectBasicCallAsyncTest, CopyObject_Future_Success) {
 
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
+    EXPECT_TRUE(outcome.has_value());
 }
 
 TEST(OSSClientObjectBasicCallAsyncTest, PutObject_Future_ErrorResponse) {
@@ -242,8 +242,8 @@ TEST(OSSClientObjectBasicCallAsyncTest, PutObject_Future_ErrorResponse) {
 
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("AccessDenied", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("AccessDenied", outcome.error().getCode());
 }
 
 } // namespace alibabacloud::oss2

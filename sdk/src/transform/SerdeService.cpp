@@ -191,7 +191,7 @@ Outcome<models::ListBucketsResult, OperationError> toListBuckets(OperationOutput
                                                 {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
-            return opErr;
+            return makeUnexpected(std::move(opErr));
         }
     }
     return models::ListBucketsResult(output.statusCode, std::move(output.headers));

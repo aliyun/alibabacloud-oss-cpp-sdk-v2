@@ -14,8 +14,8 @@ TEST(AsyncServiceTest, ListBuckets_normal) {
     auto request = models::ListBucketsRequest();
     auto future = client->asyncCall(request);
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_EQ(24, result.getRequestId().size());
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ(false, result.getBuckets().empty());
@@ -23,7 +23,7 @@ TEST(AsyncServiceTest, ListBuckets_normal) {
     request.setMaxKeys(1);
     auto future2 = client->asyncCall(request);
     auto outcome2 = future2.get();
-    auto& result2 = outcome2.getResult();
+    auto& result2 = outcome2.value();
     EXPECT_EQ(1, result2.getBuckets().size());
 }
 
@@ -33,9 +33,9 @@ TEST(AsyncServiceTest, ListBuckets_fail) {
     auto request = models::ListBucketsRequest();
     auto future = client->asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
+    EXPECT_FALSE(outcome.has_value());
 
-    auto& error = outcome.getError();
+    auto& error = outcome.error();
     EXPECT_EQ(403, error.getStatusCode());
     EXPECT_EQ("ListBuckets", error.getOpName());
     EXPECT_EQ("GET", error.getMethod());

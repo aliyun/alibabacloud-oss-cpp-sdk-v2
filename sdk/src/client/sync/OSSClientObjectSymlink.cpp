@@ -15,7 +15,7 @@ PutSymlinkOutcome OSSClient::putSymlink(const models::PutSymlinkRequest& request
     auto input = transform::fromPutSymlink(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toPutSymlink(std::move(std::get<OperationOutput>(result)));
 }
@@ -27,7 +27,7 @@ GetSymlinkOutcome OSSClient::getSymlink(const models::GetSymlinkRequest& request
     auto input = transform::fromGetSymlink(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toGetSymlink(std::move(std::get<OperationOutput>(result)));
 }

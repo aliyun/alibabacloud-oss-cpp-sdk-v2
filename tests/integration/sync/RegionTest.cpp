@@ -14,8 +14,8 @@ TEST(RegionTest, DescribeRegions_normal) {
     // all
     auto request = models::DescribeRegionsRequest();
     auto outcome = client->describeRegions(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_EQ(24, result.getRequestId().size());
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ(true, result.hasRegionInfoList());
@@ -30,7 +30,7 @@ TEST(RegionTest, DescribeRegions_normal) {
     // oss-cn-hangzhou
     request.setRegions("oss-cn-hangzhou");
     outcome = client->describeRegions(request);
-    result = outcome.getResult();
+    result = outcome.value();
     EXPECT_EQ(1, result.getRegionInfoList().regionInfos.size());
     EXPECT_EQ("oss-cn-hangzhou", result.getRegionInfoList().regionInfos.at(0).region);
     EXPECT_EQ("oss-cn-hangzhou.aliyuncs.com", result.getRegionInfoList().regionInfos.at(0).internetEndpoint);
@@ -43,9 +43,9 @@ TEST(RegionTest, DescribeRegions_fail) {
 
     auto request = models::DescribeRegionsRequest();
     auto outcome = client->describeRegions(request);
-    EXPECT_FALSE(outcome.isSuccess());
+    EXPECT_FALSE(outcome.has_value());
 
-    auto& error = outcome.getError();
+    auto& error = outcome.error();
     EXPECT_EQ(403, error.getStatusCode());
     EXPECT_EQ("DescribeRegions", error.getOpName());
     EXPECT_EQ("GET", error.getMethod());

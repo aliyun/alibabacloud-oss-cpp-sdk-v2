@@ -14,8 +14,8 @@ TEST(AsyncRegionTest, DescribeRegions_normal) {
     auto request = models::DescribeRegionsRequest();
     auto future = client->asyncCall(request);
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_EQ(24, result.getRequestId().size());
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ(true, result.hasRegionInfoList());
@@ -25,7 +25,7 @@ TEST(AsyncRegionTest, DescribeRegions_normal) {
     request.setRegions("oss-cn-hangzhou");
     auto future2 = client->asyncCall(request);
     auto outcome2 = future2.get();
-    auto& result2 = outcome2.getResult();
+    auto& result2 = outcome2.value();
     EXPECT_EQ(1, result2.getRegionInfoList().regionInfos.size());
     EXPECT_EQ("oss-cn-hangzhou", result2.getRegionInfoList().regionInfos.at(0).region);
 }
@@ -36,9 +36,9 @@ TEST(AsyncRegionTest, DescribeRegions_fail) {
     auto request = models::DescribeRegionsRequest();
     auto future = client->asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
+    EXPECT_FALSE(outcome.has_value());
 
-    auto& error = outcome.getError();
+    auto& error = outcome.error();
     EXPECT_EQ(403, error.getStatusCode());
     EXPECT_EQ("DescribeRegions", error.getOpName());
     EXPECT_EQ("GET", error.getMethod());

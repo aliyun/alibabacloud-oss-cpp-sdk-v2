@@ -13,7 +13,7 @@ using internal::PresignInnerResult;
 #define requiredField(field)                                                                              \
     do {                                                                                                  \
         if (isFieldMissing(request.get##field())) {                                                       \
-            return PresignOutcome(OperationError(SdkErrorCode::ARGUMENT_REQUIRED,                         \
+            return makeUnexpected(OperationError(SdkErrorCode::ARGUMENT_REQUIRED,                         \
                                   {{"Code", "ArgumentRequired"}, {"Message", "Missing field " #field ""}})); \
         }                                                                                                 \
     } while (false)
@@ -29,7 +29,7 @@ static PresignOutcome doPresign(internal::ClientImpl* impl, const OperationInput
     auto result = impl->Presign(opInput, nullptr);
 
     if (auto* error = std::get_if<OperationError>(&result)) {
-        return PresignOutcome(std::move(*error));
+        return makeUnexpected(std::move(*error));
     }
 
     if (auto* output = std::get_if<PresignInnerOutput>(&result)) {
@@ -41,7 +41,7 @@ static PresignOutcome doPresign(internal::ClientImpl* impl, const OperationInput
         return PresignOutcome(std::move(presignResult));
     }
 
-    return PresignOutcome(OperationError{SdkErrorCode::SIGN_ERROR, {{"Code", "Unknown"}, {"Message", "Unknown error"}}});
+    return makeUnexpected(OperationError{SdkErrorCode::SIGN_ERROR, {{"Code", "Unknown"}, {"Message", "Unknown error"}}});
 }
 
 PresignOutcome OSSClient::presign(const models::PutObjectRequest& request, const models::PresignOptions* options) {

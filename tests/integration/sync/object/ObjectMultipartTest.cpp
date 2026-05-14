@@ -35,7 +35,7 @@ class ObjectMultipartTest : public ::testing::Test {
         auto client = ClientHelper::GetDefaultClient();
         bucketName_ = Config::GenBucketName();
         auto outcome = client->putBucket(models::PutBucketRequest().setBucket(bucketName_));
-        EXPECT_TRUE(outcome.isSuccess());
+        EXPECT_TRUE(outcome.has_value());
     }
 
     static void TearDownTestCase() {
@@ -61,8 +61,8 @@ TEST_F(ObjectMultipartTest, InitiateMultipartUpload_Normal) {
         models::InitiateMultipartUploadRequest()
             .setBucket(bucketName_)
             .setKey(key));
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_EQ(bucketName_, result.getBucket());
     EXPECT_EQ(key, result.getKey());
     EXPECT_FALSE(result.getUploadId().empty());
@@ -74,8 +74,8 @@ TEST_F(ObjectMultipartTest, InitiateMultipartUpload_Fail) {
         models::InitiateMultipartUploadRequest()
             .setBucket(bucketName_)
             .setKey("test-key"));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 
@@ -91,8 +91,8 @@ TEST_F(ObjectMultipartTest, MultipartUpload_Normal) {
         models::InitiateMultipartUploadRequest()
             .setBucket(bucketName_)
             .setKey(key));
-    EXPECT_TRUE(initiateOutcome.isSuccess());
-    std::string uploadId = initiateOutcome.getResult().getUploadId();
+    EXPECT_TRUE(initiateOutcome.has_value());
+    std::string uploadId = initiateOutcome.value().getUploadId();
 
     // Upload part 1
     auto body1 = RequestBody::FromString(content1);
@@ -104,8 +104,8 @@ TEST_F(ObjectMultipartTest, MultipartUpload_Normal) {
             .setUploadId(uploadId)
             .setPartNumber(1)
             .setBody(body1));
-    EXPECT_TRUE(part1Outcome.isSuccess());
-    std::string etag1 = part1Outcome.getResult().getETag();
+    EXPECT_TRUE(part1Outcome.has_value());
+    std::string etag1 = part1Outcome.value().getETag();
     EXPECT_FALSE(etag1.empty());
 
     // Upload part 2
@@ -118,8 +118,8 @@ TEST_F(ObjectMultipartTest, MultipartUpload_Normal) {
             .setUploadId(uploadId)
             .setPartNumber(2)
             .setBody(body2));
-    EXPECT_TRUE(part2Outcome.isSuccess());
-    std::string etag2 = part2Outcome.getResult().getETag();
+    EXPECT_TRUE(part2Outcome.has_value());
+    std::string etag2 = part2Outcome.value().getETag();
     EXPECT_FALSE(etag2.empty());
 
     // List parts
@@ -128,8 +128,8 @@ TEST_F(ObjectMultipartTest, MultipartUpload_Normal) {
             .setBucket(bucketName_)
             .setKey(key)
             .setUploadId(uploadId));
-    EXPECT_TRUE(listPartsOutcome.isSuccess());
-    auto& listResult = listPartsOutcome.getResult();
+    EXPECT_TRUE(listPartsOutcome.has_value());
+    auto& listResult = listPartsOutcome.value();
     EXPECT_EQ(2, listResult.getParts().size());
 
     // Complete multipart upload
@@ -153,8 +153,8 @@ TEST_F(ObjectMultipartTest, MultipartUpload_Normal) {
             .setKey(key)
             .setUploadId(uploadId)
             .setCompleteMultipartUpload(completeReq));
-    EXPECT_TRUE(completeOutcome.isSuccess());
-    auto& result = completeOutcome.getResult();
+    EXPECT_TRUE(completeOutcome.has_value());
+    auto& result = completeOutcome.value();
     EXPECT_EQ(bucketName_, result.getBucket());
     EXPECT_EQ(key, result.getKey());
     EXPECT_FALSE(result.getETag().empty());
@@ -173,8 +173,8 @@ TEST_F(ObjectMultipartTest, UploadPart_Fail) {
             .setUploadId("test-upload-id")
             .setPartNumber(1)
             .setBody(body));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 
@@ -188,8 +188,8 @@ TEST_F(ObjectMultipartTest, CompleteMultipartUpload_Fail) {
             .setKey("test-key")
             .setUploadId("test-upload-id")
             .setCompleteMultipartUpload(completeReq));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 
@@ -203,8 +203,8 @@ TEST_F(ObjectMultipartTest, AbortMultipartUpload_Normal) {
         models::InitiateMultipartUploadRequest()
             .setBucket(bucketName_)
             .setKey(key));
-    EXPECT_TRUE(initiateOutcome.isSuccess());
-    std::string uploadId = initiateOutcome.getResult().getUploadId();
+    EXPECT_TRUE(initiateOutcome.has_value());
+    std::string uploadId = initiateOutcome.value().getUploadId();
 
     // Abort multipart upload
     auto outcome = client->abortMultipartUpload(
@@ -212,7 +212,7 @@ TEST_F(ObjectMultipartTest, AbortMultipartUpload_Normal) {
             .setBucket(bucketName_)
             .setKey(key)
             .setUploadId(uploadId));
-    EXPECT_TRUE(outcome.isSuccess());
+    EXPECT_TRUE(outcome.has_value());
 }
 
 TEST_F(ObjectMultipartTest, AbortMultipartUpload_Fail) {
@@ -222,8 +222,8 @@ TEST_F(ObjectMultipartTest, AbortMultipartUpload_Fail) {
             .setBucket(bucketName_)
             .setKey("test-key")
             .setUploadId("test-upload-id"));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 
@@ -237,14 +237,14 @@ TEST_F(ObjectMultipartTest, ListMultipartUploads_Normal) {
         models::InitiateMultipartUploadRequest()
             .setBucket(bucketName_)
             .setKey(key));
-    EXPECT_TRUE(initiateOutcome.isSuccess());
+    EXPECT_TRUE(initiateOutcome.has_value());
 
     // List multipart uploads
     auto outcome = client->listMultipartUploads(
         models::ListMultipartUploadsRequest()
             .setBucket(bucketName_));
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_EQ(bucketName_, result.getBucket());
     EXPECT_FALSE(result.getUploads().empty());
 }
@@ -254,8 +254,8 @@ TEST_F(ObjectMultipartTest, ListMultipartUploads_Fail) {
     auto outcome = client->listMultipartUploads(
         models::ListMultipartUploadsRequest()
             .setBucket(bucketName_));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 
@@ -267,8 +267,8 @@ TEST_F(ObjectMultipartTest, ListParts_Fail) {
             .setBucket(bucketName_)
             .setKey("test-key")
             .setUploadId("test-upload-id"));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 
@@ -287,15 +287,15 @@ TEST_F(ObjectMultipartTest, UploadPartCopy_Normal) {
             .setBucket(bucketName_)
             .setKey(sourceKey)
             .setBody(body));
-    EXPECT_TRUE(putOutcome.isSuccess());
+    EXPECT_TRUE(putOutcome.has_value());
 
     // Initiate multipart upload for destination
     auto initiateOutcome = client->initiateMultipartUpload(
         models::InitiateMultipartUploadRequest()
             .setBucket(bucketName_)
             .setKey(destKey));
-    EXPECT_TRUE(initiateOutcome.isSuccess());
-    std::string uploadId = initiateOutcome.getResult().getUploadId();
+    EXPECT_TRUE(initiateOutcome.has_value());
+    std::string uploadId = initiateOutcome.value().getUploadId();
 
     // Upload part copy
     auto outcome = client->uploadPartCopy(
@@ -306,8 +306,8 @@ TEST_F(ObjectMultipartTest, UploadPartCopy_Normal) {
             .setSourceKey(sourceKey)
             .setUploadId(uploadId)
             .setPartNumber(1));
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_FALSE(result.getETag().empty());
 }
 
@@ -321,8 +321,8 @@ TEST_F(ObjectMultipartTest, UploadPartCopy_Fail) {
             .setSourceKey("source-key")
             .setUploadId("test-upload-id")
             .setPartNumber(1));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 

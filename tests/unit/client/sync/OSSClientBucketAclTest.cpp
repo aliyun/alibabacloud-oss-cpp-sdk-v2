@@ -75,8 +75,8 @@ TEST(OSSClientBucketAclTest, GetBucketAcl_FullXml) {
     auto request = models::GetBucketAclRequest();
     request.setBucket("bucket");
     auto outcome = client.getBucketAcl(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -111,8 +111,8 @@ TEST(OSSClientBucketAclTest, GetBucketAcl_EmptyXml) {
     auto request = models::GetBucketAclRequest();
     request.setBucket("bucket");
     auto outcome = client.getBucketAcl(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -142,8 +142,8 @@ TEST(OSSClientBucketAclTest, GetBucketAcl_ErrorXml) {
     auto request = models::GetBucketAclRequest();
     request.setBucket("bucket");
     auto outcome = client.getBucketAcl(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ("XMLError:10", error.getCode());
     EXPECT_EQ("Error=XML_ERROR_PARSING_TEXT ErrorID=10 (0xa) Line number=1", error.getMessage());
@@ -180,8 +180,8 @@ TEST(OSSClientBucketAclTest, GetBucketAcl_ErrorResponse) {
     auto request = models::GetBucketAclRequest();
     request.setBucket("bucket");
     auto outcome = client.getBucketAcl(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(403, error.getStatusCode());
     EXPECT_EQ("GetBucketAcl", error.getOpName());
@@ -214,8 +214,8 @@ TEST(OSSClientBucketAclTest, GetBucketAcl_RequiredField) {
 
     auto request = models::GetBucketAclRequest();
     auto outcome = client.getBucketAcl(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -240,8 +240,8 @@ TEST(OSSClientBucketAclTest, PutBucketAcl_NullXml) {
     request.setBucket("bucket");
     request.setAcl("public");
     auto outcome = client.putBucketAcl(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -268,8 +268,8 @@ TEST(OSSClientBucketAclTest, PutBucketAcl_EmptyXml) {
     request.setBucket("bucket");
     request.setAcl("public");
     auto outcome = client.putBucketAcl(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -304,8 +304,8 @@ TEST(OSSClientBucketAclTest, PutBucketAcl_ErrorResponse) {
     request.setBucket("bucket");
     request.setAcl("public");
     auto outcome = client.putBucketAcl(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(403, error.getStatusCode());
     EXPECT_EQ("PutBucketAcl", error.getOpName());
@@ -339,8 +339,8 @@ TEST(OSSClientBucketAclTest, PutBucketAcl_RequiredField) {
 
     auto request = models::PutBucketAclRequest();
     auto outcome = client.putBucketAcl(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());

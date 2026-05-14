@@ -40,6 +40,8 @@ sdk_option(USE_SYSTEM_CURL "If enabled we will use the curl lib already installe
 sdk_option(USE_SYSTEM_OPENSSL "If enabled we will use the openssl lib already installed on this system." OFF)
 sdk_option(USE_SYSTEM_MBEDTLS "If enabled we will use the mbedtls lib already installed on this system." OFF)
 
+sdk_option(USE_STD_EXPECTED "Use std::expected instead of Outcome (requires C++23)" OFF)
+
 sdk_option(ENABLE_COVERAGE "Set to ON to generate coverage reports." OFF)
 sdk_option(ENABLE_CPPCHECK "Set to ON to enable Cppcheck static analysis." OFF)
 sdk_option(ENABLE_SANITIZER "Set to ON to enable sanitizers." OFF)

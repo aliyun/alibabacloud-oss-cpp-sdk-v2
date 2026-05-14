@@ -58,13 +58,13 @@ int main(int argc, char* argv[]) {
     auto body = RequestBody::FromString(data);
 
     auto outcome = client.putObject(models::PutObjectRequest().setBucket(args.bucket).setKey(args.key).setBody(body));
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "PutObject fail, code: " << e.getCode() << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
-    auto& result = outcome.getResult();
+    auto& result = outcome.value();
     std::cout << "status code: " << result.getStatusCode() << ", requestId: " << result.getRequestId()
               << ", hashCrc64ecma: " << result.getHashCrc64ecma() << ", versionId: " << result.getVersionId()
               << std::endl;

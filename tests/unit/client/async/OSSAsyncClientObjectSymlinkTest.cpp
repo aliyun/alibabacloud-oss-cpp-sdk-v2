@@ -43,14 +43,14 @@ TEST(OSSAsyncClientObjectSymlinkTest, PutSymlinkAsync_RequiredField) {
     auto request = models::PutSymlinkRequest();
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
 
     request.setBucket("test-bucket");
     auto future2 = client.asyncCall(request);
     auto outcome2 = future2.get();
-    EXPECT_FALSE(outcome2.isSuccess());
-    EXPECT_EQ("Missing field Key", outcome2.getError().getMessage());
+    EXPECT_FALSE(outcome2.has_value());
+    EXPECT_EQ("Missing field Key", outcome2.error().getMessage());
 }
 
 TEST(OSSAsyncClientObjectSymlinkTest, PutSymlinkAsync_Success) {
@@ -69,8 +69,8 @@ TEST(OSSAsyncClientObjectSymlinkTest, PutSymlinkAsync_Success) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ(200, outcome.getResult().getStatusCode());
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(200, outcome.value().getStatusCode());
 }
 
 TEST(OSSAsyncClientObjectSymlinkTest, GetSymlinkAsync_RequiredField) {
@@ -84,8 +84,8 @@ TEST(OSSAsyncClientObjectSymlinkTest, GetSymlinkAsync_RequiredField) {
     auto request = models::GetSymlinkRequest();
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
 }
 
 } // namespace alibabacloud::oss2

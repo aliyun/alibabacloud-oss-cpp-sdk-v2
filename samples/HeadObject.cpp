@@ -54,13 +54,13 @@ int main(int argc, char* argv[]) {
     auto client = createClient(args);
 
     auto outcome = client.headObject(models::HeadObjectRequest().setBucket(args.bucket).setKey(args.key));
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "HeadObject fail, code: " << e.getCode() << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
-    auto& result = outcome.getResult();
+    auto& result = outcome.value();
     std::cout << "status code: " << result.getStatusCode() << ", requestId: " << result.getRequestId()
               << ", contentLength: " << result.getContentLength() << ", contentType: " << result.getContentType()
               << ", eTag: " << result.getETag() << ", lastModified: " << result.getLastModified()

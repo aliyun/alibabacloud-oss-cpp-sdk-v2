@@ -65,13 +65,13 @@ int main(int argc, char* argv[]) {
         request.setRegions(regions);
 
     auto outcome = client.describeRegions(request);
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "DescribeRegions fail, code: " << e.getCode() << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
-    auto& result = outcome.getResult();
+    auto& result = outcome.value();
     std::cout << "status code: " << result.getStatusCode() << ", requestId: " << result.getRequestId() << std::endl;
 
     for (const auto& rg : result.getRegionInfoList().regionInfos) {

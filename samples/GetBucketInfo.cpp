@@ -54,13 +54,13 @@ int main(int argc, char* argv[]) {
     auto client = createClient(args);
 
     auto outcome = client.getBucketInfo(models::GetBucketInfoRequest().setBucket(args.bucket));
-    if (!outcome.isSuccess()) {
-        auto& e = outcome.getError();
+    if (!outcome.has_value()) {
+        auto& e = outcome.error();
         std::cerr << "GetBucketInfo fail, code: " << e.getCode() << ", message: " << e.getMessage()
                   << ", requestId: " << e.getRequestId() << std::endl;
         return 1;
     }
-    auto& result = outcome.getResult();
+    auto& result = outcome.value();
     auto& info = result.getBucketInfo();
     std::cout << "status code: " << result.getStatusCode() << ", requestId: " << result.getRequestId() << std::endl;
     std::cout << "Name: " << info.name << ", Location: " << info.location << ", StorageClass: " << info.storageClass

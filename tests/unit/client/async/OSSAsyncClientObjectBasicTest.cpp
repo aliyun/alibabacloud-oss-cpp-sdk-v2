@@ -43,15 +43,15 @@ TEST(OSSAsyncClientObjectBasicTest, PutObjectAsync_RequiredField) {
     auto request = models::PutObjectRequest();
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("ArgumentRequired", outcome.getError().getCode());
-    EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("ArgumentRequired", outcome.error().getCode());
+    EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
 
     request.setBucket("test-bucket");
     auto future2 = client.asyncCall(request);
     auto outcome2 = future2.get();
-    EXPECT_FALSE(outcome2.isSuccess());
-    EXPECT_EQ("Missing field Key", outcome2.getError().getMessage());
+    EXPECT_FALSE(outcome2.has_value());
+    EXPECT_EQ("Missing field Key", outcome2.error().getMessage());
 }
 
 TEST(OSSAsyncClientObjectBasicTest, PutObjectAsync_Success) {
@@ -73,9 +73,9 @@ TEST(OSSAsyncClientObjectBasicTest, PutObjectAsync_Success) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ(200, outcome.getResult().getStatusCode());
-    EXPECT_EQ("id-1234", outcome.getResult().getRequestId());
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(200, outcome.value().getStatusCode());
+    EXPECT_EQ("id-1234", outcome.value().getRequestId());
 }
 
 TEST(OSSAsyncClientObjectBasicTest, CopyObjectAsync_RequiredField) {
@@ -89,14 +89,14 @@ TEST(OSSAsyncClientObjectBasicTest, CopyObjectAsync_RequiredField) {
     auto request = models::CopyObjectRequest();
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
 
     request.setBucket("test-bucket").setKey("test-key");
     auto future2 = client.asyncCall(request);
     auto outcome2 = future2.get();
-    EXPECT_FALSE(outcome2.isSuccess());
-    EXPECT_EQ("Missing field SourceKey or CopySource", outcome2.getError().getMessage());
+    EXPECT_FALSE(outcome2.has_value());
+    EXPECT_EQ("Missing field SourceKey or CopySource", outcome2.error().getMessage());
 }
 
 TEST(OSSAsyncClientObjectBasicTest, GetObjectAsync_RequiredField) {
@@ -110,8 +110,8 @@ TEST(OSSAsyncClientObjectBasicTest, GetObjectAsync_RequiredField) {
     auto request = models::GetObjectRequest();
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
 }
 
 TEST(OSSAsyncClientObjectBasicTest, GetObjectAsync_Success) {
@@ -132,8 +132,8 @@ TEST(OSSAsyncClientObjectBasicTest, GetObjectAsync_Success) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ(200, outcome.getResult().getStatusCode());
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(200, outcome.value().getStatusCode());
 }
 
 TEST(OSSAsyncClientObjectBasicTest, AppendObjectAsync_RequiredField) {
@@ -147,14 +147,14 @@ TEST(OSSAsyncClientObjectBasicTest, AppendObjectAsync_RequiredField) {
     auto request = models::AppendObjectRequest();
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
 
     request.setBucket("test-bucket").setKey("test-key");
     auto future2 = client.asyncCall(request);
     auto outcome2 = future2.get();
-    EXPECT_FALSE(outcome2.isSuccess());
-    EXPECT_EQ("Missing field Position", outcome2.getError().getMessage());
+    EXPECT_FALSE(outcome2.has_value());
+    EXPECT_EQ("Missing field Position", outcome2.error().getMessage());
 }
 
 TEST(OSSAsyncClientObjectBasicTest, SealAppendObjectAsync_RequiredField) {
@@ -168,8 +168,8 @@ TEST(OSSAsyncClientObjectBasicTest, SealAppendObjectAsync_RequiredField) {
     auto request = models::SealAppendObjectRequest();
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
 }
 
 TEST(OSSAsyncClientObjectBasicTest, DeleteObjectAsync_RequiredField) {
@@ -183,8 +183,8 @@ TEST(OSSAsyncClientObjectBasicTest, DeleteObjectAsync_RequiredField) {
     auto request = models::DeleteObjectRequest();
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
 }
 
 TEST(OSSAsyncClientObjectBasicTest, DeleteObjectAsync_Success) {
@@ -203,8 +203,8 @@ TEST(OSSAsyncClientObjectBasicTest, DeleteObjectAsync_Success) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ(204, outcome.getResult().getStatusCode());
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(204, outcome.value().getStatusCode());
 }
 
 TEST(OSSAsyncClientObjectBasicTest, DeleteMultipleObjectsAsync_RequiredField) {
@@ -218,8 +218,8 @@ TEST(OSSAsyncClientObjectBasicTest, DeleteMultipleObjectsAsync_RequiredField) {
     auto request = models::DeleteMultipleObjectsRequest();
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
 }
 
 TEST(OSSAsyncClientObjectBasicTest, HeadObjectAsync_RequiredField) {
@@ -233,8 +233,8 @@ TEST(OSSAsyncClientObjectBasicTest, HeadObjectAsync_RequiredField) {
     auto request = models::HeadObjectRequest();
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
 }
 
 TEST(OSSAsyncClientObjectBasicTest, GetObjectMetaAsync_RequiredField) {
@@ -248,8 +248,8 @@ TEST(OSSAsyncClientObjectBasicTest, GetObjectMetaAsync_RequiredField) {
     auto request = models::GetObjectMetaRequest();
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
 }
 
 TEST(OSSAsyncClientObjectBasicTest, RestoreObjectAsync_RequiredField) {
@@ -263,8 +263,8 @@ TEST(OSSAsyncClientObjectBasicTest, RestoreObjectAsync_RequiredField) {
     auto request = models::RestoreObjectRequest();
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
 }
 
 TEST(OSSAsyncClientObjectBasicTest, CleanRestoredObjectAsync_RequiredField) {
@@ -278,8 +278,8 @@ TEST(OSSAsyncClientObjectBasicTest, CleanRestoredObjectAsync_RequiredField) {
     auto request = models::CleanRestoredObjectRequest();
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
 }
 
 } // namespace alibabacloud::oss2

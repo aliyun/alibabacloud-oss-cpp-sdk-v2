@@ -664,7 +664,7 @@ Outcome<models::GetBucketStatResult, OperationError> toGetBucketStat(OperationOu
                                                 {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
-            return opErr;
+            return makeUnexpected(std::move(opErr));
         }
     }
 
@@ -797,7 +797,7 @@ Outcome<models::ListObjectsResult, OperationError> toListObjects(OperationOutput
                                                 {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
-            return opErr;
+            return makeUnexpected(std::move(opErr));
         }
     }
 
@@ -855,7 +855,7 @@ Outcome<models::ListObjectsV2Result, OperationError> toListObjectsV2(OperationOu
                                                 {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
-            return opErr;
+            return makeUnexpected(std::move(opErr));
         }
     }
 
@@ -915,7 +915,7 @@ Outcome<models::GetBucketInfoResult, OperationError> toGetBucketInfo(OperationOu
                                                 {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
-            return opErr;
+            return makeUnexpected(std::move(opErr));
         }
     }
 
@@ -975,7 +975,7 @@ Outcome<models::GetBucketLocationResult, OperationError> toGetBucketLocation(Ope
                                                 {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
-            return opErr;
+            return makeUnexpected(std::move(opErr));
         }
     }
 

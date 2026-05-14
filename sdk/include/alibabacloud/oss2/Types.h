@@ -206,6 +206,10 @@ class ALIBABACLOUD_OSS_API RequestModel {
 class ALIBABACLOUD_OSS_API ResultModel {
   public:
     ResultModel() = default;
+    ResultModel(const ResultModel&) = default;
+    ResultModel& operator=(const ResultModel&) = default;
+    ResultModel(ResultModel&&) noexcept = default;
+    ResultModel& operator=(ResultModel&&) noexcept = default;
 
     /// Constructs a result from an HTTP status code and response headers.
     ResultModel(int statusCode, HeaderCollection headers)

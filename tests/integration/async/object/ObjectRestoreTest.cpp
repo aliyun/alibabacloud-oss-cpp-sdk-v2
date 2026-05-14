@@ -14,7 +14,7 @@ class AsyncObjectRestoreTest : public ::testing::Test {
         auto client = ClientHelper::GetDefaultClient();
         bucketName_ = Config::GenBucketName();
         auto future = client->asyncCall(models::PutBucketRequest().setBucket(bucketName_));
-        EXPECT_TRUE(future.get().isSuccess());
+        EXPECT_TRUE(future.get().has_value());
     }
 
     static void TearDownTestCase() {
@@ -33,7 +33,7 @@ TEST_F(AsyncObjectRestoreTest, RestoreObject_Normal) {
 
     auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key)
             .setBody(RequestBody::FromString("Archive content")).setStorageClass("Archive"));
-    EXPECT_TRUE(putFuture.get().isSuccess());
+    EXPECT_TRUE(putFuture.get().has_value());
 
     models::RestoreRequest restoreReq;
     restoreReq.setDays(1);
@@ -50,8 +50,8 @@ TEST_F(AsyncObjectRestoreTest, RestoreObject_Fail) {
     models::RestoreRequest restoreReq;
     auto future = client->asyncCall(models::RestoreObjectRequest().setBucket(bucketName_).setKey("test-key").setRestoreRequest(restoreReq));
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("InvalidAccessKeyId", outcome.error().getCode());
 }
 
 TEST_F(AsyncObjectRestoreTest, CleanRestoredObject_Normal) {
@@ -60,7 +60,7 @@ TEST_F(AsyncObjectRestoreTest, CleanRestoredObject_Normal) {
 
     auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key)
             .setBody(RequestBody::FromString("Content to clean")).setStorageClass("Archive"));
-    EXPECT_TRUE(putFuture.get().isSuccess());
+    EXPECT_TRUE(putFuture.get().has_value());
 
     auto future = client->asyncCall(models::CleanRestoredObjectRequest().setBucket(bucketName_).setKey(key));
     future.get();
@@ -70,8 +70,8 @@ TEST_F(AsyncObjectRestoreTest, CleanRestoredObject_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     auto future = client->asyncCall(models::CleanRestoredObjectRequest().setBucket(bucketName_).setKey("test-key"));
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("InvalidAccessKeyId", outcome.error().getCode());
 }
 
 } // namespace async

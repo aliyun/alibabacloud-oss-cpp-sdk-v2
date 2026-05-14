@@ -15,8 +15,8 @@ TEST(ServiceTest, ListBuckets_normal) {
     // all
     auto request = models::ListBucketsRequest();
     auto outcome = client->listBuckets(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_EQ(24, result.getRequestId().size());
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ(false, result.getBuckets().empty());
@@ -24,7 +24,7 @@ TEST(ServiceTest, ListBuckets_normal) {
     // oss-cn-hangzhou
     request.setMaxKeys(1);
     outcome = client->listBuckets(request);
-    result = outcome.getResult();
+    result = outcome.value();
     EXPECT_EQ(1, result.getBuckets().size());
 }
 
@@ -33,9 +33,9 @@ TEST(ServiceTest, ListBuckets_fail) {
 
     auto request = models::ListBucketsRequest();
     auto outcome = client->listBuckets(request);
-    EXPECT_FALSE(outcome.isSuccess());
+    EXPECT_FALSE(outcome.has_value());
 
-    auto& error = outcome.getError();
+    auto& error = outcome.error();
     EXPECT_EQ(403, error.getStatusCode());
     EXPECT_EQ("ListBuckets", error.getOpName());
     EXPECT_EQ("GET", error.getMethod());

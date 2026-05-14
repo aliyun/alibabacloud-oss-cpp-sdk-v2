@@ -21,7 +21,7 @@ class ObjectPresignTest : public ::testing::Test {
         bucketName_ = Config::GenBucketName();
         auto outcome = client->putBucket(
             models::PutBucketRequest().setBucket(bucketName_));
-        EXPECT_TRUE(outcome.isSuccess());
+        EXPECT_TRUE(outcome.has_value());
     }
 
     static void TearDownTestCase() {
@@ -50,11 +50,11 @@ TEST_F(ObjectPresignTest, PresignGetAndPutObjectOnlyBody) {
             .setBucket(bucketName_)
             .setKey(key));
 
-    ASSERT_TRUE(presignResult.isSuccess());
-    std::string putUrl = presignResult.getResult().getUrl();
+    ASSERT_TRUE(presignResult.has_value());
+    std::string putUrl = presignResult.value().getUrl();
     EXPECT_NE(putUrl.find("x-oss-expires"), std::string::npos);
     EXPECT_NE(putUrl.find("x-oss-signature-version=OSS4-HMAC-SHA256"), std::string::npos);
-    EXPECT_EQ("PUT", presignResult.getResult().getMethod());
+    EXPECT_EQ("PUT", presignResult.value().getMethod());
 
     test::HttpClient httpClient;
     auto putResponse = httpClient.put(putUrl, content);
@@ -66,11 +66,11 @@ TEST_F(ObjectPresignTest, PresignGetAndPutObjectOnlyBody) {
             .setBucket(bucketName_)
             .setKey(key));
 
-    ASSERT_TRUE(presignResult.isSuccess());
-    std::string getUrl = presignResult.getResult().getUrl();
+    ASSERT_TRUE(presignResult.has_value());
+    std::string getUrl = presignResult.value().getUrl();
     EXPECT_NE(getUrl.find("x-oss-expires"), std::string::npos);
     EXPECT_NE(getUrl.find("x-oss-signature-version=OSS4-HMAC-SHA256"), std::string::npos);
-    EXPECT_EQ("GET", presignResult.getResult().getMethod());
+    EXPECT_EQ("GET", presignResult.value().getMethod());
 
     auto getResponse = httpClient.get(getUrl);
     EXPECT_EQ(200, getResponse.statusCode);
@@ -82,11 +82,11 @@ TEST_F(ObjectPresignTest, PresignGetAndPutObjectOnlyBody) {
             .setBucket(bucketName_)
             .setKey(key));
 
-    ASSERT_TRUE(presignResult.isSuccess());
-    std::string headUrl = presignResult.getResult().getUrl();
+    ASSERT_TRUE(presignResult.has_value());
+    std::string headUrl = presignResult.value().getUrl();
     EXPECT_NE(headUrl.find("x-oss-expires"), std::string::npos);
     EXPECT_NE(headUrl.find("x-oss-signature-version=OSS4-HMAC-SHA256"), std::string::npos);
-    EXPECT_EQ("HEAD", presignResult.getResult().getMethod());
+    EXPECT_EQ("HEAD", presignResult.value().getMethod());
 }
 
 // Test presign GET and PUT object with full properties
@@ -113,14 +113,14 @@ TEST_F(ObjectPresignTest, PresignGetAndPutObjectFullProps) {
 
     auto presignResult = client->presign(putRequest);
 
-    ASSERT_TRUE(presignResult.isSuccess());
-    std::string putUrl = presignResult.getResult().getUrl();
+    ASSERT_TRUE(presignResult.has_value());
+    std::string putUrl = presignResult.value().getUrl();
     EXPECT_NE(putUrl.find("x-oss-expires"), std::string::npos);
     EXPECT_NE(putUrl.find("x-oss-signature-version=OSS4-HMAC-SHA256"), std::string::npos);
-    EXPECT_EQ("PUT", presignResult.getResult().getMethod());
+    EXPECT_EQ("PUT", presignResult.value().getMethod());
 
     // Verify signed headers are present
-    const auto& signedHeaders = presignResult.getResult().getSignedHeaders();
+    const auto& signedHeaders = presignResult.value().getSignedHeaders();
     EXPECT_GE(signedHeaders.size(), 1);
 
     // Convert HeaderCollection to std::map<std::string, std::string>
@@ -136,10 +136,10 @@ TEST_F(ObjectPresignTest, PresignGetAndPutObjectFullProps) {
             .setBucket(bucketName_)
             .setKey(key));
 
-    ASSERT_TRUE(presignResult.isSuccess());
-    std::string getUrl = presignResult.getResult().getUrl();
+    ASSERT_TRUE(presignResult.has_value());
+    std::string getUrl = presignResult.value().getUrl();
     EXPECT_NE(getUrl.find("x-oss-expires"), std::string::npos);
-    EXPECT_EQ("GET", presignResult.getResult().getMethod());
+    EXPECT_EQ("GET", presignResult.value().getMethod());
 
     auto getResponse = httpClient.get(getUrl);
     EXPECT_EQ(200, getResponse.statusCode);
@@ -151,10 +151,10 @@ TEST_F(ObjectPresignTest, PresignGetAndPutObjectFullProps) {
             .setBucket(bucketName_)
             .setKey(key));
 
-    ASSERT_TRUE(presignResult.isSuccess());
-    std::string headUrl = presignResult.getResult().getUrl();
+    ASSERT_TRUE(presignResult.has_value());
+    std::string headUrl = presignResult.value().getUrl();
     EXPECT_NE(headUrl.find("x-oss-expires"), std::string::npos);
-    EXPECT_EQ("HEAD", presignResult.getResult().getMethod());
+    EXPECT_EQ("HEAD", presignResult.value().getMethod());
 }
 
 // Test presign UploadPart
@@ -168,8 +168,8 @@ TEST_F(ObjectPresignTest, PresignUploadPart) {
         models::InitiateMultipartUploadRequest()
             .setBucket(bucketName_)
             .setKey(key));
-    ASSERT_TRUE(initiateOutcome.isSuccess());
-    std::string uploadId = initiateOutcome.getResult().getUploadId();
+    ASSERT_TRUE(initiateOutcome.has_value());
+    std::string uploadId = initiateOutcome.value().getUploadId();
 
     // Upload part using presigned URL
     auto presignResult = client->presign(
@@ -179,12 +179,12 @@ TEST_F(ObjectPresignTest, PresignUploadPart) {
             .setUploadId(uploadId)
             .setPartNumber(1));
 
-    ASSERT_TRUE(presignResult.isSuccess());
-    std::string uploadUrl = presignResult.getResult().getUrl();
+    ASSERT_TRUE(presignResult.has_value());
+    std::string uploadUrl = presignResult.value().getUrl();
     EXPECT_NE(uploadUrl.find("uploadId="), std::string::npos);
     EXPECT_NE(uploadUrl.find("x-oss-expires"), std::string::npos);
     EXPECT_NE(uploadUrl.find("x-oss-signature-version=OSS4-HMAC-SHA256"), std::string::npos);
-    EXPECT_EQ("PUT", presignResult.getResult().getMethod());
+    EXPECT_EQ("PUT", presignResult.value().getMethod());
 
     test::HttpClient httpClient;
     auto uploadResponse = httpClient.put(uploadUrl, content);
@@ -197,14 +197,14 @@ TEST_F(ObjectPresignTest, PresignUploadPart) {
             .setKey(key)
             .setUploadId(uploadId)
             .setCompleteAll("yes"));
-    EXPECT_TRUE(completeOutcome.isSuccess());
+    EXPECT_TRUE(completeOutcome.has_value());
 
     auto getOutcome = client->getObject(models::GetObjectRequest()
             .setBucket(bucketName_)
             .setKey(key));
 
-    ASSERT_TRUE(getOutcome.isSuccess());
-    auto& result = getOutcome.getResult();
+    ASSERT_TRUE(getOutcome.has_value());
+    auto& result = getOutcome.value();
     EXPECT_EQ(content.size(), result.getContentLength());
     EXPECT_FALSE(result.getETag().empty());            
 }

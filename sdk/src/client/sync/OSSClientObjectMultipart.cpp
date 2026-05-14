@@ -21,7 +21,7 @@ InitiateMultipartUploadOutcome OSSClient::initiateMultipartUpload(const models::
     }
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toInitiateMultipartUpload(std::move(std::get<OperationOutput>(result)));
 }
@@ -35,7 +35,7 @@ UploadPartOutcome OSSClient::uploadPart(const models::UploadPartRequest& request
     auto input = transform::fromUploadPart(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toUploadPart(std::move(std::get<OperationOutput>(result)));
 }
@@ -49,7 +49,7 @@ CompleteMultipartUploadOutcome OSSClient::completeMultipartUpload(const models::
     auto input = transform::fromCompleteMultipartUpload(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toCompleteMultipartUpload(std::move(std::get<OperationOutput>(result)));
 }
@@ -65,7 +65,7 @@ UploadPartCopyOutcome OSSClient::uploadPartCopy(const models::UploadPartCopyRequ
     auto input = transform::fromUploadPartCopy(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toUploadPartCopy(std::move(std::get<OperationOutput>(result)));
 }
@@ -79,7 +79,7 @@ AbortMultipartUploadOutcome OSSClient::abortMultipartUpload(const models::AbortM
     auto input = transform::fromAbortMultipartUpload(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toAbortMultipartUpload(std::move(std::get<OperationOutput>(result)));
 }
@@ -91,7 +91,7 @@ ListMultipartUploadsOutcome OSSClient::listMultipartUploads(const models::ListMu
     auto input = transform::fromListMultipartUploads(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toListMultipartUploads(std::move(std::get<OperationOutput>(result)));
 }
@@ -104,7 +104,7 @@ ListPartsOutcome OSSClient::listParts(const models::ListPartsRequest& request, c
     auto input = transform::fromListParts(request);
     auto result = client_->Execute(input, options);
     if (std::holds_alternative<OperationError>(result)) {
-        return std::get<OperationError>(result);
+        return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toListParts(std::move(std::get<OperationOutput>(result)));
 }

@@ -28,7 +28,7 @@ class AsyncObjectMultipartTest : public ::testing::Test {
         auto client = ClientHelper::GetDefaultClient();
         bucketName_ = Config::GenBucketName();
         auto future = client->asyncCall(models::PutBucketRequest().setBucket(bucketName_));
-        EXPECT_TRUE(future.get().isSuccess());
+        EXPECT_TRUE(future.get().has_value());
     }
 
     static void TearDownTestCase() {
@@ -47,8 +47,8 @@ TEST_F(AsyncObjectMultipartTest, InitiateMultipartUpload_Normal) {
 
     auto future = client->asyncCall(models::InitiateMultipartUploadRequest().setBucket(bucketName_).setKey(key));
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_EQ(bucketName_, result.getBucket());
     EXPECT_EQ(key, result.getKey());
     EXPECT_FALSE(result.getUploadId().empty());
@@ -58,8 +58,8 @@ TEST_F(AsyncObjectMultipartTest, InitiateMultipartUpload_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     auto future = client->asyncCall(models::InitiateMultipartUploadRequest().setBucket(bucketName_).setKey("test-key"));
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("InvalidAccessKeyId", outcome.error().getCode());
 }
 
 TEST_F(AsyncObjectMultipartTest, MultipartUpload_Normal) {
@@ -70,27 +70,27 @@ TEST_F(AsyncObjectMultipartTest, MultipartUpload_Normal) {
 
     auto initFuture = client->asyncCall(models::InitiateMultipartUploadRequest().setBucket(bucketName_).setKey(key));
     auto initOutcome = initFuture.get();
-    EXPECT_TRUE(initOutcome.isSuccess());
-    std::string uploadId = initOutcome.getResult().getUploadId();
+    EXPECT_TRUE(initOutcome.has_value());
+    std::string uploadId = initOutcome.value().getUploadId();
 
     auto part1Future = client->asyncCall(models::UploadPartRequest()
             .setBucket(bucketName_).setKey(key).setUploadId(uploadId).setPartNumber(1)
             .setBody(RequestBody::FromString(content1)));
     auto part1Outcome = part1Future.get();
-    EXPECT_TRUE(part1Outcome.isSuccess());
-    std::string etag1 = part1Outcome.getResult().getETag();
+    EXPECT_TRUE(part1Outcome.has_value());
+    std::string etag1 = part1Outcome.value().getETag();
 
     auto part2Future = client->asyncCall(models::UploadPartRequest()
             .setBucket(bucketName_).setKey(key).setUploadId(uploadId).setPartNumber(2)
             .setBody(RequestBody::FromString(content2)));
     auto part2Outcome = part2Future.get();
-    EXPECT_TRUE(part2Outcome.isSuccess());
-    std::string etag2 = part2Outcome.getResult().getETag();
+    EXPECT_TRUE(part2Outcome.has_value());
+    std::string etag2 = part2Outcome.value().getETag();
 
     auto listPartsFuture = client->asyncCall(models::ListPartsRequest().setBucket(bucketName_).setKey(key).setUploadId(uploadId));
     auto listPartsOutcome = listPartsFuture.get();
-    EXPECT_TRUE(listPartsOutcome.isSuccess());
-    EXPECT_EQ(2, listPartsOutcome.getResult().getParts().size());
+    EXPECT_TRUE(listPartsOutcome.has_value());
+    EXPECT_EQ(2, listPartsOutcome.value().getParts().size());
 
     std::vector<models::Part> parts;
     models::Part part1;
@@ -108,10 +108,10 @@ TEST_F(AsyncObjectMultipartTest, MultipartUpload_Normal) {
     auto completeFuture = client->asyncCall(models::CompleteMultipartUploadRequest()
             .setBucket(bucketName_).setKey(key).setUploadId(uploadId).setCompleteMultipartUpload(completeReq));
     auto completeOutcome = completeFuture.get();
-    EXPECT_TRUE(completeOutcome.isSuccess());
-    EXPECT_EQ(bucketName_, completeOutcome.getResult().getBucket());
-    EXPECT_EQ(key, completeOutcome.getResult().getKey());
-    EXPECT_FALSE(completeOutcome.getResult().getETag().empty());
+    EXPECT_TRUE(completeOutcome.has_value());
+    EXPECT_EQ(bucketName_, completeOutcome.value().getBucket());
+    EXPECT_EQ(key, completeOutcome.value().getKey());
+    EXPECT_FALSE(completeOutcome.value().getETag().empty());
 }
 
 TEST_F(AsyncObjectMultipartTest, AbortMultipartUpload_Normal) {
@@ -120,40 +120,40 @@ TEST_F(AsyncObjectMultipartTest, AbortMultipartUpload_Normal) {
 
     auto initFuture = client->asyncCall(models::InitiateMultipartUploadRequest().setBucket(bucketName_).setKey(key));
     auto initOutcome = initFuture.get();
-    EXPECT_TRUE(initOutcome.isSuccess());
-    std::string uploadId = initOutcome.getResult().getUploadId();
+    EXPECT_TRUE(initOutcome.has_value());
+    std::string uploadId = initOutcome.value().getUploadId();
 
     auto future = client->asyncCall(models::AbortMultipartUploadRequest().setBucket(bucketName_).setKey(key).setUploadId(uploadId));
-    EXPECT_TRUE(future.get().isSuccess());
+    EXPECT_TRUE(future.get().has_value());
 }
 
 TEST_F(AsyncObjectMultipartTest, AbortMultipartUpload_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     auto future = client->asyncCall(models::AbortMultipartUploadRequest().setBucket(bucketName_).setKey("test-key").setUploadId("test-upload-id"));
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("InvalidAccessKeyId", outcome.error().getCode());
 }
 
 TEST_F(AsyncObjectMultipartTest, ListMultipartUploads_Normal) {
     auto client = ClientHelper::GetDefaultClient();
 
     auto initFuture = client->asyncCall(models::InitiateMultipartUploadRequest().setBucket(bucketName_).setKey("test-list-uploads"));
-    EXPECT_TRUE(initFuture.get().isSuccess());
+    EXPECT_TRUE(initFuture.get().has_value());
 
     auto future = client->asyncCall(models::ListMultipartUploadsRequest().setBucket(bucketName_));
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ(bucketName_, outcome.getResult().getBucket());
-    EXPECT_FALSE(outcome.getResult().getUploads().empty());
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(bucketName_, outcome.value().getBucket());
+    EXPECT_FALSE(outcome.value().getUploads().empty());
 }
 
 TEST_F(AsyncObjectMultipartTest, ListMultipartUploads_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     auto future = client->asyncCall(models::ListMultipartUploadsRequest().setBucket(bucketName_));
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("InvalidAccessKeyId", outcome.error().getCode());
 }
 
 TEST_F(AsyncObjectMultipartTest, UploadPartCopy_Normal) {
@@ -163,20 +163,20 @@ TEST_F(AsyncObjectMultipartTest, UploadPartCopy_Normal) {
 
     auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(sourceKey)
             .setBody(RequestBody::FromString("Content for part copy test.")));
-    EXPECT_TRUE(putFuture.get().isSuccess());
+    EXPECT_TRUE(putFuture.get().has_value());
 
     auto initFuture = client->asyncCall(models::InitiateMultipartUploadRequest().setBucket(bucketName_).setKey(destKey));
     auto initOutcome = initFuture.get();
-    EXPECT_TRUE(initOutcome.isSuccess());
-    std::string uploadId = initOutcome.getResult().getUploadId();
+    EXPECT_TRUE(initOutcome.has_value());
+    std::string uploadId = initOutcome.value().getUploadId();
 
     auto future = client->asyncCall(models::UploadPartCopyRequest()
             .setBucket(bucketName_).setKey(destKey)
             .setSourceBucket(bucketName_).setSourceKey(sourceKey)
             .setUploadId(uploadId).setPartNumber(1));
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_FALSE(outcome.getResult().getETag().empty());
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_FALSE(outcome.value().getETag().empty());
 }
 
 TEST_F(AsyncObjectMultipartTest, UploadPartCopy_Fail) {
@@ -186,8 +186,8 @@ TEST_F(AsyncObjectMultipartTest, UploadPartCopy_Fail) {
             .setSourceBucket(bucketName_).setSourceKey("src")
             .setUploadId("test-upload-id").setPartNumber(1));
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("InvalidAccessKeyId", outcome.error().getCode());
 }
 
 } // namespace async

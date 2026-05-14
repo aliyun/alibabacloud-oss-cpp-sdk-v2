@@ -101,8 +101,8 @@ TEST(OSSClientServiceTest, ListBuckets_FullXml) {
     request.setPrefix("bucket-");
     request.setPrefix("bucket");
     auto outcome = client.listBuckets(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -158,8 +158,8 @@ TEST(OSSClientServiceTest, ListBuckets_EmptyXml) {
     request.setPrefix("bucket-");
     request.setPrefix("bucket");
     auto outcome = client.listBuckets(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -196,8 +196,8 @@ TEST(OSSClientServiceTest, ListBuckets_ErrorXml) {
     request.setPrefix("bucket-");
     request.setPrefix("bucket");
     auto outcome = client.listBuckets(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ("XMLError:10", error.getCode());
     EXPECT_EQ("Error=XML_ERROR_PARSING_TEXT ErrorID=10 (0xa) Line number=1", error.getMessage());
@@ -236,8 +236,8 @@ TEST(OSSClientServiceTest, ListBuckets_ErrorResponse) {
     request.setPrefix("bucket-");
     request.setMarker("bucket");
     auto outcome = client.listBuckets(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(403, error.getStatusCode());
     EXPECT_EQ("ListBuckets", error.getOpName());

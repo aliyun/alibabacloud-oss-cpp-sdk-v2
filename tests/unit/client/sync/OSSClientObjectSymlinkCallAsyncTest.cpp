@@ -29,8 +29,8 @@ TEST(OSSClientObjectSymlinkCallAsyncTest, PutSymlink_Future_Success) {
 
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ("id-sym-1", outcome.getResult().getRequestId());
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ("id-sym-1", outcome.value().getRequestId());
 }
 
 TEST(OSSClientObjectSymlinkCallAsyncTest, GetSymlink_Callback_Success) {
@@ -61,8 +61,8 @@ TEST(OSSClientObjectSymlinkCallAsyncTest, GetSymlink_Callback_Success) {
         });
 
     auto outcome = future.get();
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ("target-key", outcome.getResult().getSymlinkTarget());
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ("target-key", outcome.value().getSymlinkTarget());
 }
 
 TEST(OSSClientObjectSymlinkCallAsyncTest, PutSymlink_Future_NoExecutor) {
@@ -79,8 +79,8 @@ TEST(OSSClientObjectSymlinkCallAsyncTest, PutSymlink_Future_NoExecutor) {
 
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("NoExecutor", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("NoExecutor", outcome.error().getCode());
 }
 
 } // namespace alibabacloud::oss2

@@ -14,7 +14,7 @@ class AsyncObjectTaggingTest : public ::testing::Test {
         auto client = ClientHelper::GetDefaultClient();
         bucketName_ = Config::GenBucketName();
         auto future = client->asyncCall(models::PutBucketRequest().setBucket(bucketName_));
-        EXPECT_TRUE(future.get().isSuccess());
+        EXPECT_TRUE(future.get().has_value());
     }
 
     static void TearDownTestCase() {
@@ -32,7 +32,7 @@ TEST_F(AsyncObjectTaggingTest, ObjectTagging_Normal) {
     std::string key = "test-tagging-object";
 
     auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::FromString("tagging content")));
-    EXPECT_TRUE(putFuture.get().isSuccess());
+    EXPECT_TRUE(putFuture.get().has_value());
 
     std::vector<models::Tag> tags;
     models::Tag tag1;
@@ -50,12 +50,12 @@ TEST_F(AsyncObjectTaggingTest, ObjectTagging_Normal) {
     tagging.setTagSet(tagSet);
 
     auto putTagFuture = client->asyncCall(models::PutObjectTaggingRequest().setBucket(bucketName_).setKey(key).setTagging(tagging));
-    EXPECT_TRUE(putTagFuture.get().isSuccess());
+    EXPECT_TRUE(putTagFuture.get().has_value());
 
     auto getTagFuture = client->asyncCall(models::GetObjectTaggingRequest().setBucket(bucketName_).setKey(key));
     auto getOutcome = getTagFuture.get();
-    EXPECT_TRUE(getOutcome.isSuccess());
-    auto& result = getOutcome.getResult();
+    EXPECT_TRUE(getOutcome.has_value());
+    auto& result = getOutcome.value();
     EXPECT_TRUE(result.hasTagging());
     auto& resultTagging = result.getTagging();
     EXPECT_TRUE(resultTagging.tagSet.has_value());
@@ -64,14 +64,14 @@ TEST_F(AsyncObjectTaggingTest, ObjectTagging_Normal) {
     EXPECT_EQ("test", resultTagging.tagSet.value().tags.at(0).value);
 
     auto delTagFuture = client->asyncCall(models::DeleteObjectTaggingRequest().setBucket(bucketName_).setKey(key));
-    EXPECT_TRUE(delTagFuture.get().isSuccess());
+    EXPECT_TRUE(delTagFuture.get().has_value());
 
     Config::WaitForCacheExpire(2);
     auto getTag2Future = client->asyncCall(models::GetObjectTaggingRequest().setBucket(bucketName_).setKey(key));
     auto getOutcome2 = getTag2Future.get();
-    EXPECT_TRUE(getOutcome2.isSuccess());
-    if (getOutcome2.getResult().hasTagging() && getOutcome2.getResult().getTagging().tagSet.has_value()) {
-        EXPECT_EQ(0, getOutcome2.getResult().getTagging().tagSet.value().tags.size());
+    EXPECT_TRUE(getOutcome2.has_value());
+    if (getOutcome2.value().hasTagging() && getOutcome2.value().getTagging().tagSet.has_value()) {
+        EXPECT_EQ(0, getOutcome2.value().getTagging().tagSet.value().tags.size());
     }
 }
 
@@ -80,24 +80,24 @@ TEST_F(AsyncObjectTaggingTest, PutObjectTagging_Fail) {
     models::Tagging tagging;
     auto future = client->asyncCall(models::PutObjectTaggingRequest().setBucket(bucketName_).setKey("test-key").setTagging(tagging));
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("InvalidAccessKeyId", outcome.error().getCode());
 }
 
 TEST_F(AsyncObjectTaggingTest, GetObjectTagging_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     auto future = client->asyncCall(models::GetObjectTaggingRequest().setBucket(bucketName_).setKey("test-key"));
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("InvalidAccessKeyId", outcome.error().getCode());
 }
 
 TEST_F(AsyncObjectTaggingTest, DeleteObjectTagging_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     auto future = client->asyncCall(models::DeleteObjectTaggingRequest().setBucket(bucketName_).setKey("test-key"));
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("InvalidAccessKeyId", outcome.error().getCode());
 }
 
 } // namespace async

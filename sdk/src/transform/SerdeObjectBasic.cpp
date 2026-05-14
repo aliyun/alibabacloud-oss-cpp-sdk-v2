@@ -203,7 +203,7 @@ Outcome<models::CopyObjectResult, OperationError> toCopyObject(OperationOutput&&
                                                 {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
-            return opErr;
+            return makeUnexpected(std::move(opErr));
         }
     }
     return models::CopyObjectResult(output.statusCode, std::move(output.headers));
@@ -426,7 +426,7 @@ Outcome<models::DeleteMultipleObjectsResult, OperationError> toDeleteMultipleObj
                                                 {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
-            return opErr;
+            return makeUnexpected(std::move(opErr));
         }
     }
     return models::DeleteMultipleObjectsResult(output.statusCode, std::move(output.headers));

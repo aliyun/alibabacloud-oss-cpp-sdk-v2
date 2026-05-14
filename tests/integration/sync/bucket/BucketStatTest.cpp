@@ -18,7 +18,7 @@ class BucketStatTest : public ::testing::Test {
         auto client = ClientHelper::GetDefaultClient();
         bucketName_ = Config::GenBucketName();
         auto outcome = client->putBucket(models::PutBucketRequest().setBucket(bucketName_));
-        EXPECT_TRUE(outcome.isSuccess());
+        EXPECT_TRUE(outcome.has_value());
     }
 
     static void TearDownTestCase() {
@@ -38,8 +38,8 @@ std::string BucketStatTest::bucketName_ = "";
 TEST_F(BucketStatTest, GetBucketStat_Normal) {
     auto client = ClientHelper::GetDefaultClient();
     auto outcome = client->getBucketStat(models::GetBucketStatRequest().setBucket(bucketName_));
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
     EXPECT_TRUE(result.hasBucketStat());
     auto& stat = result.getBucketStat();
     // New bucket should have 0 objects and 0 storage
@@ -50,8 +50,8 @@ TEST_F(BucketStatTest, GetBucketStat_Normal) {
 TEST_F(BucketStatTest, GetBucketStat_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     auto outcome = client->getBucketStat(models::GetBucketStatRequest().setBucket(bucketName_));
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
     EXPECT_EQ("GetBucketStat", error.getOpName());
     EXPECT_EQ("GET", error.getMethod());

@@ -76,8 +76,8 @@ TEST(OSSClientObjectAclTest, GetObjectAcl_FullXml) {
     request.setBucket("bucket");
     request.setKey("key");
     auto outcome = client.getObjectAcl(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -113,8 +113,8 @@ TEST(OSSClientObjectAclTest, GetObjectAcl_EmptyXml) {
     request.setBucket("bucket");
     request.setKey("key");
     auto outcome = client.getObjectAcl(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -145,8 +145,8 @@ TEST(OSSClientObjectAclTest, GetObjectAcl_ErrorXml) {
     request.setBucket("bucket");
     request.setKey("key");
     auto outcome = client.getObjectAcl(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ("XMLError:10", error.getCode());
     EXPECT_EQ("Error=XML_ERROR_PARSING_TEXT ErrorID=10 (0xa) Line number=1", error.getMessage());
@@ -185,8 +185,8 @@ TEST(OSSClientObjectAclTest, GetObjectAcl_ErrorResponse) {
     request.setKey("key");
     request.setVersionId("id");
     auto outcome = client.getObjectAcl(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(403, error.getStatusCode());
     EXPECT_EQ("GetObjectAcl", error.getOpName());
@@ -219,8 +219,8 @@ TEST(OSSClientObjectAclTest, GetObjectAcl_RequiredField) {
 
     auto request = models::GetObjectAclRequest();
     auto outcome = client.getObjectAcl(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -228,8 +228,8 @@ TEST(OSSClientObjectAclTest, GetObjectAcl_RequiredField) {
 
     request.setBucket("bucket");
     outcome = client.getObjectAcl(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -255,8 +255,8 @@ TEST(OSSClientObjectAclTest, PutObjectAcl_NullXml) {
     request.setKey("key");
     request.setObjectAcl("public");
     auto outcome = client.putObjectAcl(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -284,8 +284,8 @@ TEST(OSSClientObjectAclTest, PutObjectAcl_EmptyXml) {
     request.setKey("key");
     request.setObjectAcl("public");
     auto outcome = client.putObjectAcl(request);
-    EXPECT_TRUE(outcome.isSuccess());
-    auto& result = outcome.getResult();
+    EXPECT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
@@ -322,8 +322,8 @@ TEST(OSSClientObjectAclTest, PutObjectAcl_ErrorResponse) {
     request.setObjectAcl("public");
     request.setVersionId("id");
     auto outcome = client.putObjectAcl(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(403, error.getStatusCode());
     EXPECT_EQ("PutObjectAcl", error.getOpName());
@@ -357,8 +357,8 @@ TEST(OSSClientObjectAclTest, PutObjectAcl_RequiredField) {
 
     auto request = models::PutObjectAclRequest();
     auto outcome = client.putObjectAcl(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    auto& error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    auto& error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());
@@ -366,8 +366,8 @@ TEST(OSSClientObjectAclTest, PutObjectAcl_RequiredField) {
 
     request.setBucket("bucket");
     outcome = client.putObjectAcl(request);
-    EXPECT_FALSE(outcome.isSuccess());
-    error = outcome.getError();
+    EXPECT_FALSE(outcome.has_value());
+    error = outcome.error();
 
     EXPECT_EQ(0, error.getStatusCode());
     EXPECT_EQ("ArgumentRequired", error.getCode());

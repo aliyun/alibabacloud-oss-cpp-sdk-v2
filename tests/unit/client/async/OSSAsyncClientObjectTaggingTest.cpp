@@ -43,14 +43,14 @@ TEST(OSSAsyncClientObjectTaggingTest, PutObjectTaggingAsync_RequiredField) {
     auto request = models::PutObjectTaggingRequest();
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
 
     request.setBucket("test-bucket");
     auto future2 = client.asyncCall(request);
     auto outcome2 = future2.get();
-    EXPECT_FALSE(outcome2.isSuccess());
-    EXPECT_EQ("Missing field Key", outcome2.getError().getMessage());
+    EXPECT_FALSE(outcome2.has_value());
+    EXPECT_EQ("Missing field Key", outcome2.error().getMessage());
 }
 
 TEST(OSSAsyncClientObjectTaggingTest, GetObjectTaggingAsync_RequiredField) {
@@ -64,8 +64,8 @@ TEST(OSSAsyncClientObjectTaggingTest, GetObjectTaggingAsync_RequiredField) {
     auto request = models::GetObjectTaggingRequest();
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
 }
 
 TEST(OSSAsyncClientObjectTaggingTest, DeleteObjectTaggingAsync_RequiredField) {
@@ -79,8 +79,8 @@ TEST(OSSAsyncClientObjectTaggingTest, DeleteObjectTaggingAsync_RequiredField) {
     auto request = models::DeleteObjectTaggingRequest();
     auto future = client.asyncCall(request);
     auto outcome = future.get();
-    EXPECT_FALSE(outcome.isSuccess());
-    EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
 }
 
 TEST(OSSAsyncClientObjectTaggingTest, DeleteObjectTaggingAsync_Success) {
@@ -99,8 +99,8 @@ TEST(OSSAsyncClientObjectTaggingTest, DeleteObjectTaggingAsync_Success) {
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
-    EXPECT_TRUE(outcome.isSuccess());
-    EXPECT_EQ(204, outcome.getResult().getStatusCode());
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(204, outcome.value().getStatusCode());
 }
 
 } // namespace alibabacloud::oss2
