@@ -77,6 +77,7 @@ struct ConnectionOptions {
     unsigned int proxyPort{};
     std::string proxyUserName;
     std::string proxyPassword;
+    bool enabledRedirect{false};
     bool enableVerbose{false};
     std::function<void(void*, const RequestMessage*)> requestInterceptor;
 };

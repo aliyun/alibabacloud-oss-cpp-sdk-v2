@@ -19,6 +19,7 @@ struct AsyncTransferContext {
     std::unique_ptr<ResponseMessage> response;
 
     TransferIO io;
+    char errbuf[CURL_ERROR_SIZE]{};
 };
 
 CurlMultiTransport::CurlMultiTransport(const HttpTransportOptions& options)
@@ -153,6 +154,9 @@ void CurlMultiTransport::setupCurlHandle(AsyncTransferContext* ctx) {
 
     applyConnectionOptions(curl, connOpts_, ctx->io.request);
 
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, ctx->errbuf);
+    ctx->errbuf[0] = 0;
+
     curl_easy_setopt(curl, CURLOPT_PRIVATE, ctx);
 }
 
@@ -195,7 +199,7 @@ void CurlMultiTransport::processCompleted() {
             curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
         } else {
             std::stringstream ss;
-            ss << curl_easy_strerror(res);
+            ss << curl_easy_strerror(res) << "." << ctx->errbuf;
             if (res == CURLE_WRITE_ERROR) {
                 if (ctx->io.sink == nullptr) {
                     ss << ". Caused by sink is null.";

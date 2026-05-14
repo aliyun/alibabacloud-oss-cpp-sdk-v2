@@ -7,6 +7,7 @@
 
 namespace alibabacloud::oss2::transport::curl {
 
+// cppcheck-suppress constParameterPointer
 size_t sendBodyCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
     auto* io = static_cast<TransferIO*>(userdata);
     if (io == nullptr || io->request == nullptr) {
@@ -27,6 +28,7 @@ size_t sendBodyCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
     return got;
 }
 
+// cppcheck-suppress constParameterPointer
 size_t recvBodyCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
     auto* io = static_cast<TransferIO*>(userdata);
     const size_t wanted = size * nmemb;
@@ -60,6 +62,7 @@ size_t recvBodyCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
     return wanted;
 }
 
+// cppcheck-suppress constParameterPointer
 size_t recvHeadersCallback(char* buffer, size_t size, size_t nitems, void* userdata) {
     auto* io = static_cast<TransferIO*>(userdata);
     const size_t wanted = nitems * size;
@@ -192,6 +195,10 @@ void applyConnectionOptions(CURL* curl, const ConnectionOptions& opts,
         curl_easy_setopt(curl, CURLOPT_INTERFACE, opts.networkInterface.c_str());
     }
 
+    if (opts.enabledRedirect) {
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    }
+
     if (opts.enableVerbose) {
         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     }
@@ -204,6 +211,7 @@ void applyConnectionOptions(CURL* curl, const ConnectionOptions& opts,
 ConnectionOptions buildConnectionOptions(const HttpTransportOptions& options) {
     ConnectionOptions opts;
     opts.verifySSL = !options.insecureSkipVerify.value_or(false);
+    opts.enabledRedirect = options.enabledRedirect.value_or(false);
     if (options.proxyHost.has_value() && !options.proxyHost.value().empty()) {
         opts.proxyHost = options.proxyHost.value();
     }

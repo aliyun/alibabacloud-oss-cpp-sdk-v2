@@ -41,6 +41,7 @@ TEST(CurlHelperTest, BuildConnOpts_HttpTransportOptions_Defaults) {
     HttpTransportOptions opts;
     auto conn = buildConnectionOptions(opts);
     EXPECT_TRUE(conn.verifySSL);
+    EXPECT_FALSE(conn.enabledRedirect);
     EXPECT_TRUE(conn.proxyHost.empty());
     EXPECT_TRUE(conn.caPath.empty());
     EXPECT_TRUE(conn.caFile.empty());
@@ -48,6 +49,13 @@ TEST(CurlHelperTest, BuildConnOpts_HttpTransportOptions_Defaults) {
     EXPECT_EQ(conn.proxyPort, 0u);
     EXPECT_FALSE(conn.enableVerbose);
     EXPECT_FALSE(conn.requestInterceptor);
+}
+
+TEST(CurlHelperTest, BuildConnOpts_HttpTransportOptions_EnabledRedirect) {
+    HttpTransportOptions opts;
+    opts.enabledRedirect = true;
+    auto conn = buildConnectionOptions(opts);
+    EXPECT_TRUE(conn.enabledRedirect);
 }
 
 TEST(CurlHelperTest, BuildConnOpts_HttpTransportOptions_InsecureSkipVerify) {
