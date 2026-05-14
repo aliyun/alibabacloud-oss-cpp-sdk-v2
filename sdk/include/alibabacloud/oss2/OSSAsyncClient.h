@@ -469,290 +469,13 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
                         const ListPartsAsyncCallback& callback,
                         const OperationOptions* options = nullptr);
 
-    // Async Traits
     template<typename RequestT>
-    struct AsyncTraits;
-
-    // Service
-    template<>
-    struct AsyncTraits<models::ListBucketsRequest> {
-        using OutcomeType = ListBucketsOutcome;
-        using CallbackType = ListBucketsAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::listBucketsAsync;
-    };
-
-    // Region
-    template<>
-    struct AsyncTraits<models::DescribeRegionsRequest> {
-        using OutcomeType = DescribeRegionsOutcome;
-        using CallbackType = DescribeRegionsAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::describeRegionsAsync;
-    };
-
-    // Bucket Basic
-    template<>
-    struct AsyncTraits<models::GetBucketStatRequest> {
-        using OutcomeType = GetBucketStatOutcome;
-        using CallbackType = GetBucketStatAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::getBucketStatAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::PutBucketRequest> {
-        using OutcomeType = PutBucketOutcome;
-        using CallbackType = PutBucketAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::putBucketAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::DeleteBucketRequest> {
-        using OutcomeType = DeleteBucketOutcome;
-        using CallbackType = DeleteBucketAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::deleteBucketAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::ListObjectsRequest> {
-        using OutcomeType = ListObjectsOutcome;
-        using CallbackType = ListObjectsAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::listObjectsAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::ListObjectsV2Request> {
-        using OutcomeType = ListObjectsV2Outcome;
-        using CallbackType = ListObjectsV2AsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::listObjectsV2Async;
-    };
-
-    template<>
-    struct AsyncTraits<models::GetBucketInfoRequest> {
-        using OutcomeType = GetBucketInfoOutcome;
-        using CallbackType = GetBucketInfoAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::getBucketInfoAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::GetBucketLocationRequest> {
-        using OutcomeType = GetBucketLocationOutcome;
-        using CallbackType = GetBucketLocationAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::getBucketLocationAsync;
-    };
-
-    // Bucket Acl
-    template<>
-    struct AsyncTraits<models::PutBucketAclRequest> {
-        using OutcomeType = PutBucketAclOutcome;
-        using CallbackType = PutBucketAclAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::putBucketAclAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::GetBucketAclRequest> {
-        using OutcomeType = GetBucketAclOutcome;
-        using CallbackType = GetBucketAclAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::getBucketAclAsync;
-    };
-
-    // Bucket Referer
-    template<>
-    struct AsyncTraits<models::PutBucketRefererRequest> {
-        using OutcomeType = PutBucketRefererOutcome;
-        using CallbackType = PutBucketRefererAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::putBucketRefererAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::GetBucketRefererRequest> {
-        using OutcomeType = GetBucketRefererOutcome;
-        using CallbackType = GetBucketRefererAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::getBucketRefererAsync;
-    };
-
-    // Object Basic
-    template<>
-    struct AsyncTraits<models::PutObjectRequest> {
-        using OutcomeType = PutObjectOutcome;
-        using CallbackType = PutObjectAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::putObjectAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::CopyObjectRequest> {
-        using OutcomeType = CopyObjectOutcome;
-        using CallbackType = CopyObjectAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::copyObjectAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::GetObjectRequest> {
-        using OutcomeType = GetObjectOutcome;
-        using CallbackType = GetObjectAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::getObjectAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::AppendObjectRequest> {
-        using OutcomeType = AppendObjectOutcome;
-        using CallbackType = AppendObjectAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::appendObjectAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::SealAppendObjectRequest> {
-        using OutcomeType = SealAppendObjectOutcome;
-        using CallbackType = SealAppendObjectAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::sealAppendObjectAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::DeleteObjectRequest> {
-        using OutcomeType = DeleteObjectOutcome;
-        using CallbackType = DeleteObjectAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::deleteObjectAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::DeleteMultipleObjectsRequest> {
-        using OutcomeType = DeleteMultipleObjectsOutcome;
-        using CallbackType = DeleteMultipleObjectsAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::deleteMultipleObjectsAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::HeadObjectRequest> {
-        using OutcomeType = HeadObjectOutcome;
-        using CallbackType = HeadObjectAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::headObjectAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::GetObjectMetaRequest> {
-        using OutcomeType = GetObjectMetaOutcome;
-        using CallbackType = GetObjectMetaAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::getObjectMetaAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::RestoreObjectRequest> {
-        using OutcomeType = RestoreObjectOutcome;
-        using CallbackType = RestoreObjectAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::restoreObjectAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::CleanRestoredObjectRequest> {
-        using OutcomeType = CleanRestoredObjectOutcome;
-        using CallbackType = CleanRestoredObjectAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::cleanRestoredObjectAsync;
-    };
-
-    // Object Acl
-    template<>
-    struct AsyncTraits<models::PutObjectAclRequest> {
-        using OutcomeType = PutObjectAclOutcome;
-        using CallbackType = PutObjectAclAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::putObjectAclAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::GetObjectAclRequest> {
-        using OutcomeType = GetObjectAclOutcome;
-        using CallbackType = GetObjectAclAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::getObjectAclAsync;
-    };
-
-    // Object Symlink
-    template<>
-    struct AsyncTraits<models::PutSymlinkRequest> {
-        using OutcomeType = PutSymlinkOutcome;
-        using CallbackType = PutSymlinkAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::putSymlinkAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::GetSymlinkRequest> {
-        using OutcomeType = GetSymlinkOutcome;
-        using CallbackType = GetSymlinkAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::getSymlinkAsync;
-    };
-
-    // Object Tagging
-    template<>
-    struct AsyncTraits<models::PutObjectTaggingRequest> {
-        using OutcomeType = PutObjectTaggingOutcome;
-        using CallbackType = PutObjectTaggingAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::putObjectTaggingAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::GetObjectTaggingRequest> {
-        using OutcomeType = GetObjectTaggingOutcome;
-        using CallbackType = GetObjectTaggingAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::getObjectTaggingAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::DeleteObjectTaggingRequest> {
-        using OutcomeType = DeleteObjectTaggingOutcome;
-        using CallbackType = DeleteObjectTaggingAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::deleteObjectTaggingAsync;
-    };
-
-    // Object Multipart
-    template<>
-    struct AsyncTraits<models::InitiateMultipartUploadRequest> {
-        using OutcomeType = InitiateMultipartUploadOutcome;
-        using CallbackType = InitiateMultipartUploadAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::initiateMultipartUploadAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::UploadPartRequest> {
-        using OutcomeType = UploadPartOutcome;
-        using CallbackType = UploadPartAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::uploadPartAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::CompleteMultipartUploadRequest> {
-        using OutcomeType = CompleteMultipartUploadOutcome;
-        using CallbackType = CompleteMultipartUploadAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::completeMultipartUploadAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::UploadPartCopyRequest> {
-        using OutcomeType = UploadPartCopyOutcome;
-        using CallbackType = UploadPartCopyAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::uploadPartCopyAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::AbortMultipartUploadRequest> {
-        using OutcomeType = AbortMultipartUploadOutcome;
-        using CallbackType = AbortMultipartUploadAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::abortMultipartUploadAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::ListMultipartUploadsRequest> {
-        using OutcomeType = ListMultipartUploadsOutcome;
-        using CallbackType = ListMultipartUploadsAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::listMultipartUploadsAsync;
-    };
-
-    template<>
-    struct AsyncTraits<models::ListPartsRequest> {
-        using OutcomeType = ListPartsOutcome;
-        using CallbackType = ListPartsAsyncCallback;
-        static constexpr auto method = &OSSAsyncClient::listPartsAsync;
-    };
+    struct OperationTraits;
 
     /**
      * @brief Asynchronously invokes an operation and returns a std::future.
      *
-     * The outcome type is automatically deduced from the request type via AsyncTraits,
+     * The outcome type is automatically deduced from the request type via OperationTraits,
      * so no explicit template parameter or method pointer is needed.
      *
      * @code
@@ -770,9 +493,9 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @return std::future holding the operation outcome
      */
     template<typename RequestT>
-    std::future<typename AsyncTraits<RequestT>::OutcomeType>
+    std::future<typename OperationTraits<RequestT>::OutcomeType>
     asyncCall(const RequestT& request, const OperationOptions* options = nullptr) {
-        using Traits = AsyncTraits<RequestT>;
+        using Traits = OperationTraits<RequestT>;
         auto promise = std::make_shared<std::promise<typename Traits::OutcomeType>>();
         (this->*Traits::method)(request,
             typename Traits::CallbackType([promise](typename Traits::OutcomeType result) {
@@ -783,6 +506,284 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
 
   private:
     std::shared_ptr<internal::AsyncClientImpl> client_;
+};
+
+// OperationTraits specializations
+
+// Service
+template<>
+struct OSSAsyncClient::OperationTraits<models::ListBucketsRequest> {
+    using OutcomeType = ListBucketsOutcome;
+    using CallbackType = ListBucketsAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::listBucketsAsync;
+};
+
+// Region
+template<>
+struct OSSAsyncClient::OperationTraits<models::DescribeRegionsRequest> {
+    using OutcomeType = DescribeRegionsOutcome;
+    using CallbackType = DescribeRegionsAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::describeRegionsAsync;
+};
+
+// Bucket Basic
+template<>
+struct OSSAsyncClient::OperationTraits<models::GetBucketStatRequest> {
+    using OutcomeType = GetBucketStatOutcome;
+    using CallbackType = GetBucketStatAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::getBucketStatAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::PutBucketRequest> {
+    using OutcomeType = PutBucketOutcome;
+    using CallbackType = PutBucketAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::putBucketAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::DeleteBucketRequest> {
+    using OutcomeType = DeleteBucketOutcome;
+    using CallbackType = DeleteBucketAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::deleteBucketAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::ListObjectsRequest> {
+    using OutcomeType = ListObjectsOutcome;
+    using CallbackType = ListObjectsAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::listObjectsAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::ListObjectsV2Request> {
+    using OutcomeType = ListObjectsV2Outcome;
+    using CallbackType = ListObjectsV2AsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::listObjectsV2Async;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::GetBucketInfoRequest> {
+    using OutcomeType = GetBucketInfoOutcome;
+    using CallbackType = GetBucketInfoAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::getBucketInfoAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::GetBucketLocationRequest> {
+    using OutcomeType = GetBucketLocationOutcome;
+    using CallbackType = GetBucketLocationAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::getBucketLocationAsync;
+};
+
+// Bucket Acl
+template<>
+struct OSSAsyncClient::OperationTraits<models::PutBucketAclRequest> {
+    using OutcomeType = PutBucketAclOutcome;
+    using CallbackType = PutBucketAclAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::putBucketAclAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::GetBucketAclRequest> {
+    using OutcomeType = GetBucketAclOutcome;
+    using CallbackType = GetBucketAclAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::getBucketAclAsync;
+};
+
+// Bucket Referer
+template<>
+struct OSSAsyncClient::OperationTraits<models::PutBucketRefererRequest> {
+    using OutcomeType = PutBucketRefererOutcome;
+    using CallbackType = PutBucketRefererAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::putBucketRefererAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::GetBucketRefererRequest> {
+    using OutcomeType = GetBucketRefererOutcome;
+    using CallbackType = GetBucketRefererAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::getBucketRefererAsync;
+};
+
+// Object Basic
+template<>
+struct OSSAsyncClient::OperationTraits<models::PutObjectRequest> {
+    using OutcomeType = PutObjectOutcome;
+    using CallbackType = PutObjectAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::putObjectAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::CopyObjectRequest> {
+    using OutcomeType = CopyObjectOutcome;
+    using CallbackType = CopyObjectAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::copyObjectAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::GetObjectRequest> {
+    using OutcomeType = GetObjectOutcome;
+    using CallbackType = GetObjectAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::getObjectAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::AppendObjectRequest> {
+    using OutcomeType = AppendObjectOutcome;
+    using CallbackType = AppendObjectAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::appendObjectAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::SealAppendObjectRequest> {
+    using OutcomeType = SealAppendObjectOutcome;
+    using CallbackType = SealAppendObjectAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::sealAppendObjectAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::DeleteObjectRequest> {
+    using OutcomeType = DeleteObjectOutcome;
+    using CallbackType = DeleteObjectAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::deleteObjectAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::DeleteMultipleObjectsRequest> {
+    using OutcomeType = DeleteMultipleObjectsOutcome;
+    using CallbackType = DeleteMultipleObjectsAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::deleteMultipleObjectsAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::HeadObjectRequest> {
+    using OutcomeType = HeadObjectOutcome;
+    using CallbackType = HeadObjectAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::headObjectAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::GetObjectMetaRequest> {
+    using OutcomeType = GetObjectMetaOutcome;
+    using CallbackType = GetObjectMetaAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::getObjectMetaAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::RestoreObjectRequest> {
+    using OutcomeType = RestoreObjectOutcome;
+    using CallbackType = RestoreObjectAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::restoreObjectAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::CleanRestoredObjectRequest> {
+    using OutcomeType = CleanRestoredObjectOutcome;
+    using CallbackType = CleanRestoredObjectAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::cleanRestoredObjectAsync;
+};
+
+// Object Acl
+template<>
+struct OSSAsyncClient::OperationTraits<models::PutObjectAclRequest> {
+    using OutcomeType = PutObjectAclOutcome;
+    using CallbackType = PutObjectAclAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::putObjectAclAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::GetObjectAclRequest> {
+    using OutcomeType = GetObjectAclOutcome;
+    using CallbackType = GetObjectAclAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::getObjectAclAsync;
+};
+
+// Object Symlink
+template<>
+struct OSSAsyncClient::OperationTraits<models::PutSymlinkRequest> {
+    using OutcomeType = PutSymlinkOutcome;
+    using CallbackType = PutSymlinkAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::putSymlinkAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::GetSymlinkRequest> {
+    using OutcomeType = GetSymlinkOutcome;
+    using CallbackType = GetSymlinkAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::getSymlinkAsync;
+};
+
+// Object Tagging
+template<>
+struct OSSAsyncClient::OperationTraits<models::PutObjectTaggingRequest> {
+    using OutcomeType = PutObjectTaggingOutcome;
+    using CallbackType = PutObjectTaggingAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::putObjectTaggingAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::GetObjectTaggingRequest> {
+    using OutcomeType = GetObjectTaggingOutcome;
+    using CallbackType = GetObjectTaggingAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::getObjectTaggingAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::DeleteObjectTaggingRequest> {
+    using OutcomeType = DeleteObjectTaggingOutcome;
+    using CallbackType = DeleteObjectTaggingAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::deleteObjectTaggingAsync;
+};
+
+// Object Multipart
+template<>
+struct OSSAsyncClient::OperationTraits<models::InitiateMultipartUploadRequest> {
+    using OutcomeType = InitiateMultipartUploadOutcome;
+    using CallbackType = InitiateMultipartUploadAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::initiateMultipartUploadAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::UploadPartRequest> {
+    using OutcomeType = UploadPartOutcome;
+    using CallbackType = UploadPartAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::uploadPartAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::CompleteMultipartUploadRequest> {
+    using OutcomeType = CompleteMultipartUploadOutcome;
+    using CallbackType = CompleteMultipartUploadAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::completeMultipartUploadAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::UploadPartCopyRequest> {
+    using OutcomeType = UploadPartCopyOutcome;
+    using CallbackType = UploadPartCopyAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::uploadPartCopyAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::AbortMultipartUploadRequest> {
+    using OutcomeType = AbortMultipartUploadOutcome;
+    using CallbackType = AbortMultipartUploadAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::abortMultipartUploadAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::ListMultipartUploadsRequest> {
+    using OutcomeType = ListMultipartUploadsOutcome;
+    using CallbackType = ListMultipartUploadsAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::listMultipartUploadsAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::ListPartsRequest> {
+    using OutcomeType = ListPartsOutcome;
+    using CallbackType = ListPartsAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::listPartsAsync;
 };
 
 } // namespace oss2
