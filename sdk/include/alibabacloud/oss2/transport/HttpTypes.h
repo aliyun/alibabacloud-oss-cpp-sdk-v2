@@ -34,5 +34,7 @@ struct ALIBABACLOUD_OSS_API ResponseMessage {
 // using ResponseResult = std::expected<std::unique_ptr<ResponseMessage>, std::error_code>;
 using ResponseResult = std::variant<std::unique_ptr<ResponseMessage>, std::error_code>;
 
+using RequestCallback = std::function<void(ResponseResult, std::unique_ptr<RequestMessage>, RequestContext)>;
+
 } // namespace oss2
 } // namespace alibabacloud

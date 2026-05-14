@@ -474,13 +474,36 @@ class ALIBABACLOUD_OSS_API OSSClient final {
     PresignOutcome presign(const models::UploadPartRequest& request,
                            const models::PresignOptions* options = nullptr);
 
-    // Async
+    template<typename RequestT>
+    struct OperationTraits;
 
-    template<typename OutcomeT, typename RequestT>
-    std::future<OutcomeT> callAsync(
-        OutcomeT(OSSClient::*method)(const RequestT&, const OperationOptions*),
-        const RequestT& request,
-        const OperationOptions* options = nullptr) {
+    /**
+     * @brief Asynchronously invokes an operation on the executor and returns a std::future.
+     *
+     * The outcome type is automatically deduced from the request type via OperationTraits,
+     * so no explicit template parameter or method pointer is needed.
+     * Requires an Executor to be configured in ClientConfiguration; otherwise returns
+     * a future containing a NoExecutor error.
+     *
+     * @code
+     * auto future = client.asyncCall(
+     *     models::GetObjectRequest().setBucket("my-bucket").setKey("my-key"));
+     * auto outcome = future.get();
+     * if (outcome.isSuccess()) {
+     *     auto& result = outcome.getResult();
+     *     // use result ...
+     * }
+     * @endcode
+     *
+     * @param request The request parameter to send
+     * @param options Optional, operation options
+     * @return std::future holding the operation outcome
+     */
+    template<typename RequestT>
+    std::future<typename OperationTraits<std::decay_t<RequestT>>::OutcomeType>
+    asyncCall(RequestT&& request, const OperationOptions* options = nullptr) {
+        using Traits = OperationTraits<std::decay_t<RequestT>>;
+        using OutcomeT = typename Traits::OutcomeType;
         if (!executor_) {
             std::promise<OutcomeT> p;
             p.set_value(OutcomeT(OperationError(SdkErrorCode::ARGUMENT_INVALID,
@@ -489,29 +512,50 @@ class ALIBABACLOUD_OSS_API OSSClient final {
         }
         auto opts = options ? std::make_optional(*options) : std::nullopt;
         auto task = std::make_shared<std::packaged_task<OutcomeT()>>(
-            [this, method, request, opts = std::move(opts)]() {
-                return (this->*method)(request, opts ? &*opts : nullptr);
+            [this, request = std::forward<RequestT>(request), opts = std::move(opts)]() {
+                return (this->*Traits::method)(request, opts ? &*opts : nullptr);
             });
         executeTask([task]() { (*task)(); });
         return task->get_future();
     }
 
-    template<typename OutcomeT, typename RequestT, typename HandlerT>
-    void callAsync(
-        OutcomeT(OSSClient::*method)(const RequestT&, const OperationOptions*),
-        const RequestT& request,
-        HandlerT&& handler,
-        const OperationOptions* options = nullptr) {
+    /**
+     * @brief Asynchronously invokes an operation on the executor and delivers the result via callback.
+     *
+     * The outcome type is automatically deduced from the request type via OperationTraits.
+     * The handler signature is: void(const OSSClient*, const RequestT&, const OutcomeT&).
+     * Requires an Executor to be configured in ClientConfiguration; otherwise the handler
+     * is called immediately with a NoExecutor error.
+     *
+     * @code
+     * client.asyncCallback(
+     *     models::GetObjectRequest().setBucket("my-bucket").setKey("my-key"),
+     *     [](const OSSClient*, const models::GetObjectRequest&, const GetObjectOutcome& outcome) {
+     *         if (outcome.isSuccess()) {
+     *             // use outcome.getResult() ...
+     *         }
+     *     });
+     * @endcode
+     *
+     * @param request The request parameter to send
+     * @param handler The callback to receive the operation result
+     * @param options Optional, operation options
+     */
+    template<typename RequestT, typename HandlerT>
+    void asyncCallback(RequestT&& request, HandlerT&& handler,
+                       const OperationOptions* options = nullptr) {
+        using Traits = OperationTraits<std::decay_t<RequestT>>;
+        using OutcomeT = typename Traits::OutcomeType;
         if (!executor_) {
             handler(this, request, OutcomeT(OperationError(SdkErrorCode::ARGUMENT_INVALID,
                 {{"Code", "NoExecutor"}, {"Message", "No executor configured for async operations"}})));
             return;
         }
         auto opts = options ? std::make_optional(*options) : std::nullopt;
-        executeTask([this, method, req = request,
+        executeTask([this, req = std::forward<RequestT>(request),
                      h = std::forward<HandlerT>(handler),
                      opts = std::move(opts)]() {
-            h(this, req, (this->*method)(req, opts ? &*opts : nullptr));
+            h(this, req, (this->*Traits::method)(req, opts ? &*opts : nullptr));
         });
     }
 
@@ -519,6 +563,208 @@ class ALIBABACLOUD_OSS_API OSSClient final {
     void executeTask(std::function<void()> task);
     std::shared_ptr<internal::ClientImpl> client_;
     std::shared_ptr<Executor> executor_;
+};
+
+// OperationTraits specializations
+
+// Service
+template<> struct OSSClient::OperationTraits<models::ListBucketsRequest> {
+    using OutcomeType = ListBucketsOutcome;
+    static constexpr auto method = &OSSClient::listBuckets;
+};
+
+// Region
+template<> struct OSSClient::OperationTraits<models::DescribeRegionsRequest> {
+    using OutcomeType = DescribeRegionsOutcome;
+    static constexpr auto method = &OSSClient::describeRegions;
+};
+
+// Bucket Basic
+template<> struct OSSClient::OperationTraits<models::GetBucketStatRequest> {
+    using OutcomeType = GetBucketStatOutcome;
+    static constexpr auto method = &OSSClient::getBucketStat;
+};
+
+template<> struct OSSClient::OperationTraits<models::PutBucketRequest> {
+    using OutcomeType = PutBucketOutcome;
+    static constexpr auto method = &OSSClient::putBucket;
+};
+
+template<> struct OSSClient::OperationTraits<models::DeleteBucketRequest> {
+    using OutcomeType = DeleteBucketOutcome;
+    static constexpr auto method = &OSSClient::deleteBucket;
+};
+
+template<> struct OSSClient::OperationTraits<models::DeleteMultipleObjectsRequest> {
+    using OutcomeType = DeleteMultipleObjectsOutcome;
+    static constexpr auto method = &OSSClient::deleteMultipleObjects;
+};
+
+template<> struct OSSClient::OperationTraits<models::ListObjectsRequest> {
+    using OutcomeType = ListObjectsOutcome;
+    static constexpr auto method = &OSSClient::listObjects;
+};
+
+template<> struct OSSClient::OperationTraits<models::ListObjectsV2Request> {
+    using OutcomeType = ListObjectsV2Outcome;
+    static constexpr auto method = &OSSClient::listObjectsV2;
+};
+
+template<> struct OSSClient::OperationTraits<models::GetBucketInfoRequest> {
+    using OutcomeType = GetBucketInfoOutcome;
+    static constexpr auto method = &OSSClient::getBucketInfo;
+};
+
+template<> struct OSSClient::OperationTraits<models::GetBucketLocationRequest> {
+    using OutcomeType = GetBucketLocationOutcome;
+    static constexpr auto method = &OSSClient::getBucketLocation;
+};
+
+// Bucket Acl
+template<> struct OSSClient::OperationTraits<models::PutBucketAclRequest> {
+    using OutcomeType = PutBucketAclOutcome;
+    static constexpr auto method = &OSSClient::putBucketAcl;
+};
+
+template<> struct OSSClient::OperationTraits<models::GetBucketAclRequest> {
+    using OutcomeType = GetBucketAclOutcome;
+    static constexpr auto method = &OSSClient::getBucketAcl;
+};
+
+// Bucket Referer
+template<> struct OSSClient::OperationTraits<models::PutBucketRefererRequest> {
+    using OutcomeType = PutBucketRefererOutcome;
+    static constexpr auto method = &OSSClient::putBucketReferer;
+};
+
+template<> struct OSSClient::OperationTraits<models::GetBucketRefererRequest> {
+    using OutcomeType = GetBucketRefererOutcome;
+    static constexpr auto method = &OSSClient::getBucketReferer;
+};
+
+// Object Basic
+template<> struct OSSClient::OperationTraits<models::PutObjectRequest> {
+    using OutcomeType = PutObjectOutcome;
+    static constexpr auto method = &OSSClient::putObject;
+};
+
+template<> struct OSSClient::OperationTraits<models::CopyObjectRequest> {
+    using OutcomeType = CopyObjectOutcome;
+    static constexpr auto method = &OSSClient::copyObject;
+};
+
+template<> struct OSSClient::OperationTraits<models::GetObjectRequest> {
+    using OutcomeType = GetObjectOutcome;
+    static constexpr auto method = &OSSClient::getObject;
+};
+
+template<> struct OSSClient::OperationTraits<models::AppendObjectRequest> {
+    using OutcomeType = AppendObjectOutcome;
+    static constexpr auto method = &OSSClient::appendObject;
+};
+
+template<> struct OSSClient::OperationTraits<models::SealAppendObjectRequest> {
+    using OutcomeType = SealAppendObjectOutcome;
+    static constexpr auto method = &OSSClient::sealAppendObject;
+};
+
+template<> struct OSSClient::OperationTraits<models::DeleteObjectRequest> {
+    using OutcomeType = DeleteObjectOutcome;
+    static constexpr auto method = &OSSClient::deleteObject;
+};
+
+template<> struct OSSClient::OperationTraits<models::HeadObjectRequest> {
+    using OutcomeType = HeadObjectOutcome;
+    static constexpr auto method = &OSSClient::headObject;
+};
+
+template<> struct OSSClient::OperationTraits<models::GetObjectMetaRequest> {
+    using OutcomeType = GetObjectMetaOutcome;
+    static constexpr auto method = &OSSClient::getObjectMeta;
+};
+
+template<> struct OSSClient::OperationTraits<models::RestoreObjectRequest> {
+    using OutcomeType = RestoreObjectOutcome;
+    static constexpr auto method = &OSSClient::restoreObject;
+};
+
+template<> struct OSSClient::OperationTraits<models::CleanRestoredObjectRequest> {
+    using OutcomeType = CleanRestoredObjectOutcome;
+    static constexpr auto method = &OSSClient::cleanRestoredObject;
+};
+
+// Object Acl
+template<> struct OSSClient::OperationTraits<models::PutObjectAclRequest> {
+    using OutcomeType = PutObjectAclOutcome;
+    static constexpr auto method = &OSSClient::putObjectAcl;
+};
+
+template<> struct OSSClient::OperationTraits<models::GetObjectAclRequest> {
+    using OutcomeType = GetObjectAclOutcome;
+    static constexpr auto method = &OSSClient::getObjectAcl;
+};
+
+// Object Symlink
+template<> struct OSSClient::OperationTraits<models::PutSymlinkRequest> {
+    using OutcomeType = PutSymlinkOutcome;
+    static constexpr auto method = &OSSClient::putSymlink;
+};
+
+template<> struct OSSClient::OperationTraits<models::GetSymlinkRequest> {
+    using OutcomeType = GetSymlinkOutcome;
+    static constexpr auto method = &OSSClient::getSymlink;
+};
+
+// Object Tagging
+template<> struct OSSClient::OperationTraits<models::PutObjectTaggingRequest> {
+    using OutcomeType = PutObjectTaggingOutcome;
+    static constexpr auto method = &OSSClient::putObjectTagging;
+};
+
+template<> struct OSSClient::OperationTraits<models::GetObjectTaggingRequest> {
+    using OutcomeType = GetObjectTaggingOutcome;
+    static constexpr auto method = &OSSClient::getObjectTagging;
+};
+
+template<> struct OSSClient::OperationTraits<models::DeleteObjectTaggingRequest> {
+    using OutcomeType = DeleteObjectTaggingOutcome;
+    static constexpr auto method = &OSSClient::deleteObjectTagging;
+};
+
+// Object Multipart
+template<> struct OSSClient::OperationTraits<models::InitiateMultipartUploadRequest> {
+    using OutcomeType = InitiateMultipartUploadOutcome;
+    static constexpr auto method = &OSSClient::initiateMultipartUpload;
+};
+
+template<> struct OSSClient::OperationTraits<models::UploadPartRequest> {
+    using OutcomeType = UploadPartOutcome;
+    static constexpr auto method = &OSSClient::uploadPart;
+};
+
+template<> struct OSSClient::OperationTraits<models::CompleteMultipartUploadRequest> {
+    using OutcomeType = CompleteMultipartUploadOutcome;
+    static constexpr auto method = &OSSClient::completeMultipartUpload;
+};
+
+template<> struct OSSClient::OperationTraits<models::UploadPartCopyRequest> {
+    using OutcomeType = UploadPartCopyOutcome;
+    static constexpr auto method = &OSSClient::uploadPartCopy;
+};
+
+template<> struct OSSClient::OperationTraits<models::AbortMultipartUploadRequest> {
+    using OutcomeType = AbortMultipartUploadOutcome;
+    static constexpr auto method = &OSSClient::abortMultipartUpload;
+};
+
+template<> struct OSSClient::OperationTraits<models::ListMultipartUploadsRequest> {
+    using OutcomeType = ListMultipartUploadsOutcome;
+    static constexpr auto method = &OSSClient::listMultipartUploads;
+};
+
+template<> struct OSSClient::OperationTraits<models::ListPartsRequest> {
+    using OutcomeType = ListPartsOutcome;
+    static constexpr auto method = &OSSClient::listParts;
 };
 
 } // namespace oss2

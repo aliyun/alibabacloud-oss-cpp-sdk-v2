@@ -5,7 +5,7 @@
 #include "alibabacloud/oss2/utils/Cancellation.h"
 #include "alibabacloud/oss2/utils/Outcome.h"
 
-
+#include <functional>
 #include <optional>
 #include <string>
 
@@ -244,6 +244,8 @@ class ALIBABACLOUD_OSS_API OperationError {
  * @endcode
  */
 using OperationResult = std::variant<OperationOutput, OperationError>;
+
+using OperationCallback = std::function<void(OperationResult)>;
 
 /**
  * @brief Convenience factories for constructing request body ByteContent.

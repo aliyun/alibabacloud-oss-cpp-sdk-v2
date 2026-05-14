@@ -15,6 +15,7 @@ class Signer;
 class CredentialsProvider;
 class Retryer;
 class HttpTransport;
+class AsyncHttpTransport;
 
 /**
  * @brief Resolved, immutable options used internally by ClientImpl.
@@ -57,17 +58,21 @@ struct ALIBABACLOUD_OSS_API ClientOptions {
     /// Resolved from ClientConfiguration::httpTransport or defaults to CurlHttpClient.
     std::shared_ptr<HttpTransport> httpTransport;
 
+    /// The async HTTP client used by OSSAsyncClient.
+    /// Resolved from ClientConfiguration::asyncHttpTransport or defaults to CurlMultiTransport.
+    std::shared_ptr<AsyncHttpTransport> asyncHttpTransport;
+
     /// The addressing style for bucket endpoints.
     /// Resolved from the usePathStyle / useCName configuration flags.
     /// - VirtualHosted: @c https://bucket.oss-cn-hangzhou.aliyuncs.com/key (default)
     /// - Path:          @c https://oss-cn-hangzhou.aliyuncs.com/bucket/key
     /// - CName:         uses the custom domain as-is
-    AddressStyleType addressStyle;
+    AddressStyleType addressStyle{};
 
     /// Bitmask of enabled SDK features.
     /// @see FeatureFlagsType for individual flag definitions (e.g., CorrectClockSkew,
     ///      AutoDetectMimeType, EnableCRC64CheckUpload).
-    int featureFlags;
+    int featureFlags{};
 
     /// Additional signable headers to include in the request signature.
     std::vector<std::string> additionalHeaders;

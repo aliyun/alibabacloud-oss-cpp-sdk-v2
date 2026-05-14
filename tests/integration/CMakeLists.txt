@@ -5,20 +5,20 @@ project(cpp-sdk-itegtest VERSION ${version})
 file(GLOB test_gtest_src "${TEST_ROOT}/external/googletest/src/gtest-all.cc")
 
 file(GLOB test_src "*.cpp")
-file(GLOB test_bucket_src "bucket/*.cpp")
-file(GLOB test_object_src "object/*.cpp")
-
+file(GLOB_RECURSE test_sync_src "sync/*.cpp")
+file(GLOB_RECURSE test_async_src "async/*.cpp")
 
 add_executable(${PROJECT_NAME}
 	${test_gtest_src}
 	${test_src}
-	${test_bucket_src}
-	${test_object_src}
+	${test_sync_src}
+	${test_async_src}
 )
 
 target_include_directories(${PROJECT_NAME}
 	PRIVATE ${CMAKE_SOURCE_DIR}/sdk/include
 	PRIVATE ${CMAKE_SOURCE_DIR}/sdk/
+	PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
 	PRIVATE ${TEST_ROOT}/external/googletest/include
     PRIVATE ${TEST_ROOT}/external/googletest/)
 
