@@ -112,34 +112,35 @@ void AsyncClientImpl::onOperationFinished(const std::shared_ptr<AsyncExecuteStat
     }
 
     scheduler_->schedule(std::chrono::milliseconds(0), [state]() {
-        OperationResult result;
-
-        if (state->context.errorContext.error) {
-            auto err = OperationError{state->opName, std::move(state->request->method),
-                                      std::move(state->request->uri),
-                                      state->context.errorContext.error,
-                                      std::move(state->context.errorContext.errorFields)};
+        auto buildResult = [&]() -> OperationResult {
+            if (state->context.errorContext.error) {
+                auto err = OperationError{state->opName, std::move(state->request->method),
+                                          std::move(state->request->uri),
+                                          state->context.errorContext.error,
+                                          std::move(state->context.errorContext.errorFields)};
+                if (std::holds_alternative<std::unique_ptr<ResponseMessage>>(state->result)) {
+                    auto& response = std::get<std::unique_ptr<ResponseMessage>>(state->result);
+                    if (response != nullptr) {
+                        err.setResponseResult(static_cast<int>(response->statusCode),
+                                              std::move(response->headers),
+                                              std::move(state->context.errorContext.snapshot));
+                    }
+                }
+                return std::move(err);
+            }
             if (std::holds_alternative<std::unique_ptr<ResponseMessage>>(state->result)) {
                 auto& response = std::get<std::unique_ptr<ResponseMessage>>(state->result);
                 if (response != nullptr) {
-                    err.setResponseResult(static_cast<int>(response->statusCode),
-                                          std::move(response->headers),
-                                          std::move(state->context.errorContext.snapshot));
+                    return OperationOutput{
+                            static_cast<int>(response->statusCode),
+                            std::move(response->headers),
+                            std::move(response->body),
+                    };
                 }
             }
-            result = std::move(err);
-        } else if (std::holds_alternative<std::unique_ptr<ResponseMessage>>(state->result)) {
-            auto& response = std::get<std::unique_ptr<ResponseMessage>>(state->result);
-            if (response != nullptr) {
-                result = OperationOutput{
-                        static_cast<int>(response->statusCode),
-                        std::move(response->headers),
-                        std::move(response->body),
-                };
-            }
-        }
-
-        state->callback(std::move(result));
+            return OperationOutput{};
+        };
+        state->callback(buildResult());
     });
 }
 

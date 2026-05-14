@@ -1,10 +1,8 @@
 #include "CurlMultiTransport.h"
-#include "CurlHelper.h"
 #include "src/utils/LogUtils.h"
 
 #include <curl/curlver.h>
 
-#include <charconv>
 #include <sstream>
 
 namespace alibabacloud::oss2::transport::curl {
@@ -12,7 +10,6 @@ namespace alibabacloud::oss2::transport::curl {
 static const char* TAG = "CurlMultiTransport";
 
 struct AsyncTransferContext {
-    CURL* curl{};
     curl_slist* headers{};
 
     std::unique_ptr<RequestMessage> request;
@@ -21,121 +18,30 @@ struct AsyncTransferContext {
 
     std::unique_ptr<ResponseMessage> response;
 
-    std::unique_ptr<ByteSource> source{};
-
-    std::ostream* sink{};
-    std::shared_ptr<std::ostream> userSink{};
-    std::shared_ptr<std::stringstream> defaultSink{};
-    bool recvFirstData{};
-    int64_t recvDataLength{};
+    TransferIO io;
 };
 
-static size_t sendBody(char* ptr, size_t size, size_t nmemb, void* userdata) {
-    auto* ctx = static_cast<AsyncTransferContext*>(userdata);
-    if (ctx == nullptr || ctx->request == nullptr) {
-        return 0;
-    }
-
-    size_t wanted = size * nmemb;
-    size_t got = 0;
-    if (ctx->source != nullptr) {
-        got = ctx->source->readToCount(reinterpret_cast<uint8_t*>(ptr), wanted);
-        if (got < wanted) {
-            auto st = ctx->source->state();
-            if (st != 0 && (st & std::ios::eofbit) == 0) {
-                return CURL_READFUNC_ABORT;
-            }
-        }
-    }
-    return got;
-}
-
-static size_t recvBody(char* ptr, size_t size, size_t nmemb, void* userdata) {
-    auto* ctx = static_cast<AsyncTransferContext*>(userdata);
-    const size_t wanted = size * nmemb;
-
-    if (ctx == nullptr || ctx->response == nullptr) {
-        return 0;
-    }
-
-    if (ctx->recvFirstData) {
-        long response_code = 0;
-        curl_easy_getinfo(ctx->curl, CURLINFO_RESPONSE_CODE, &response_code);
-        if (response_code / 100 != 2 || response_code == 203 || !ctx->context.ostreamFactory) {
-            ctx->defaultSink = std::make_shared<std::stringstream>();
-            ctx->sink = ctx->defaultSink.get();
-        } else {
-            ctx->userSink = ctx->context.ostreamFactory.value()(ctx->recvDataLength);
-            ctx->sink = ctx->userSink.get();
-        }
-        ctx->recvFirstData = false;
-    }
-
-    if (ctx->sink == nullptr || ctx->sink->fail()) {
-        return 0;
-    }
-
-    ctx->sink->write(ptr, static_cast<std::streamsize>(wanted));
-    if (ctx->sink->bad()) {
-        return 0;
-    }
-    return wanted;
-}
-
-static size_t recvHeaders(char* buffer, size_t size, size_t nitems, void* userdata) {
-    auto* ctx = static_cast<AsyncTransferContext*>(userdata);
-    const size_t wanted = nitems * size;
-
-    std::string line(buffer, wanted);
-    auto pos = line.find(':');
-    if (pos != line.npos) {
-        size_t valueStart = pos + 1;
-        while (valueStart < line.size() && (line[valueStart] == ' ' || line[valueStart] == '\t')) {
-            ++valueStart;
-        }
-        size_t valueEnd = line.size();
-        while (valueEnd > valueStart && (line[valueEnd - 1] == '\r' || line[valueEnd - 1] == '\n')) {
-            --valueEnd;
-        }
-        auto name = line.substr(0, pos);
-        auto value = line.substr(valueStart, valueEnd - valueStart);
-        ctx->response->headers.emplace(std::move(name), std::move(value));
-    }
-
-    if (wanted == 2 && (buffer[0] == 0x0D) && (buffer[1] == 0x0A)) {
-        if (ctx->response->headers.find("Content-Length") != ctx->response->headers.end()) {
-#if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 55, 0)
-            curl_off_t dval;
-            curl_easy_getinfo(ctx->curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &dval);
-            ctx->recvDataLength = (int64_t) dval;
-#else
-            double dval;
-            curl_easy_getinfo(ctx->curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &dval);
-            ctx->recvDataLength = (int64_t) dval;
-#endif
-        }
-    }
-    return wanted;
-}
-
-static bool ignoreHeader(const std::string& header, const std::string& expect) {
-    return (expect.length() == header.length()) &&
-           std::equal(header.begin(), header.end(), expect.begin(),
-                      [](char a, char b) { return ::tolower(a) == ::tolower(b); });
-}
-
-CurlMultiTransport::CurlMultiTransport(const struct HttpTransportOptions& options)
+CurlMultiTransport::CurlMultiTransport(const HttpTransportOptions& options)
         : curlContainer_(std::make_unique<CurlContainer>(
-                  16,
-                  options.readWriteTimeout.value_or(10000),
-                  options.connectTimeout.value_or(5000))) {
-    (void)CurlHelper::instance();
+                  kDefaultAsyncPoolSize,
+                  options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs),
+                  options.connectTimeout.value_or(kDefaultConnectTimeoutMs))),
+          connOpts_(buildConnectionOptions(options)) {
+    (void)CurlGlobalInitializer::instance();
 
-    verifySSL_ = !options.insecureSkipVerify.value_or(false);
-
-    if (options.proxyHost.has_value() && !options.proxyHost.value().empty()) {
-        proxyHost_ = options.proxyHost.value();
+    multiHandle_ = curl_multi_init();
+    if (multiHandle_ != nullptr) {
+        ioThread_ = std::thread([this]() { ioLoop(); });
     }
+}
+
+CurlMultiTransport::CurlMultiTransport(const CurlTransportOptions& options)
+        : curlContainer_(std::make_unique<CurlContainer>(
+                  options.poolSize.value_or(kDefaultAsyncPoolSize),
+                  options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs),
+                  options.connectTimeout.value_or(kDefaultConnectTimeoutMs))),
+          connOpts_(buildConnectionOptions(options)) {
+    (void)CurlGlobalInitializer::instance();
 
     multiHandle_ = curl_multi_init();
     if (multiHandle_ != nullptr) {
@@ -195,17 +101,20 @@ void CurlMultiTransport::sendAsync(std::unique_ptr<RequestMessage> request,
     }
 
     auto ctx = std::make_unique<AsyncTransferContext>();
-    ctx->curl = curl;
     ctx->request = std::move(request);
     ctx->context = std::move(context);
     ctx->callback = std::move(callback);
     ctx->response = std::make_unique<ResponseMessage>();
 
+    ctx->io.curl = curl;
+    ctx->io.request = ctx->request.get();
+    ctx->io.response = ctx->response.get();
+    ctx->io.ostreamFactory = &ctx->context.ostreamFactory;
     if (ctx->request->body != nullptr) {
-        ctx->source = ctx->request->body->spanSource();
+        ctx->io.source = ctx->request->body->spanSource();
     }
-    ctx->recvFirstData = true;
-    ctx->recvDataLength = -1;
+    ctx->io.recvFirstData = true;
+    ctx->io.recvDataLength = -1;
 
     {
         std::lock_guard<std::mutex> lock(pendingMutex_);
@@ -224,85 +133,25 @@ void CurlMultiTransport::cleanupTransferContext(AsyncTransferContext* ctx) {
 }
 
 void CurlMultiTransport::setupCurlHandle(AsyncTransferContext* ctx) {
-    CURL* curl = ctx->curl;
+    CURL* curl = ctx->io.curl;
 
-    curl_slist* list = nullptr;
-    for (const auto& [k, v] : ctx->request->headers) {
-        if (v.empty()) continue;
-        if (ignoreHeader(k, "Content-Length")) continue;
-        std::string str = k;
-        str.append(": ").append(v);
-        list = curl_slist_append(list, str.c_str());
-    }
-    list = curl_slist_append(list, "Expect:");
+    int64_t contentLength = -1;
+    curl_slist* list = buildHeaderList(ctx->request->headers, ctx->request->body, contentLength);
     ctx->headers = list;
-
-    int64_t contentlength = -1;
-    if (ctx->request->headers.find("Content-Length") != ctx->request->headers.end()) {
-        auto& str = ctx->request->headers.at("Content-Length");
-        long long result = 0;
-        auto [ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), result);
-        if (ec == std::errc()) {
-            contentlength = result;
-        }
-    }
-    if (contentlength < 0 && ctx->request->body != nullptr && ctx->request->body->length().has_value()) {
-        contentlength = static_cast<int64_t>(ctx->request->body->length().value());
-    }
-    if (contentlength >= 0) {
-        std::string str = "Content-Length: ";
-        str.append(std::to_string(contentlength));
-        list = curl_slist_append(list, str.c_str());
-    }
 
     curl_easy_setopt(curl, CURLOPT_URL, ctx->request->uri.c_str());
 
-    if ("HEAD" == ctx->request->method) {
-        curl_easy_setopt(curl, CURLOPT_NOBODY, 1);
-    } else if ("PUT" == ctx->request->method) {
-        curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
-        if (ctx->request->body == nullptr) {
-            curl_off_t len = 0;
-            curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, len);
-        } else if (contentlength >= 0) {
-            curl_off_t len = static_cast<curl_off_t>(contentlength);
-            curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, len);
-        }
-    } else if ("POST" == ctx->request->method) {
-        curl_easy_setopt(curl, CURLOPT_POST, 1L);
-        if (ctx->request->body == nullptr) {
-            curl_off_t len = 0;
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE_LARGE, len);
-        } else if (contentlength >= 0) {
-            curl_off_t len = static_cast<curl_off_t>(contentlength);
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE_LARGE, len);
-        }
-    } else if ("DELETE" == ctx->request->method) {
-        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
-    }
+    applyHttpMethod(curl, ctx->request->method, ctx->request->body, contentLength);
 
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
-    curl_easy_setopt(curl, CURLOPT_HEADERDATA, ctx);
-    curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, recvHeaders);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, ctx);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, recvBody);
-    curl_easy_setopt(curl, CURLOPT_READDATA, ctx);
-    curl_easy_setopt(curl, CURLOPT_READFUNCTION, sendBody);
+    curl_easy_setopt(curl, CURLOPT_HEADERDATA, &ctx->io);
+    curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, recvHeadersCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &ctx->io);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, recvBodyCallback);
+    curl_easy_setopt(curl, CURLOPT_READDATA, &ctx->io);
+    curl_easy_setopt(curl, CURLOPT_READFUNCTION, sendBodyCallback);
 
-    if (verifySSL_) {
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
-    } else {
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-    }
-
-    if (!proxyHost_.empty()) {
-        curl_easy_setopt(curl, CURLOPT_PROXY, proxyHost_.c_str());
-        curl_easy_setopt(curl, CURLOPT_PROXYPORT, (long) proxyPort_);
-        curl_easy_setopt(curl, CURLOPT_PROXYUSERNAME, proxyUserName_.c_str());
-        curl_easy_setopt(curl, CURLOPT_PROXYPASSWORD, proxyPassword_.c_str());
-    }
+    applyConnectionOptions(curl, connOpts_, ctx->io.request);
 
     curl_easy_setopt(curl, CURLOPT_PRIVATE, ctx);
 }
@@ -317,7 +166,7 @@ void CurlMultiTransport::drainPending() {
     for (auto& ctx : batch) {
         auto* raw = ctx.get();
         setupCurlHandle(raw);
-        curl_multi_add_handle(multiHandle_, raw->curl);
+        curl_multi_add_handle(multiHandle_, raw->io.curl);
         inflightHandles_.insert(raw);
         ctx.release();
     }
@@ -348,11 +197,11 @@ void CurlMultiTransport::processCompleted() {
             std::stringstream ss;
             ss << curl_easy_strerror(res);
             if (res == CURLE_WRITE_ERROR) {
-                if (ctx->sink == nullptr) {
+                if (ctx->io.sink == nullptr) {
                     ss << ". Caused by sink is null.";
-                } else if (ctx->sink->bad()) {
+                } else if (ctx->io.sink->bad()) {
                     ss << ". Caused by sink is in bad state.";
-                } else if (ctx->sink->fail()) {
+                } else if (ctx->io.sink->fail()) {
                     ss << ". Caused by sink is in fail state.";
                 }
             }
@@ -361,13 +210,13 @@ void CurlMultiTransport::processCompleted() {
         }
 
         ctx->response->statusCode = response_code;
-        ctx->response->body = ctx->defaultSink;
+        ctx->response->body = ctx->io.defaultSink;
 
         OSS_LOG(LogLevel::LogDebug, TAG, "completed async request, CURLcode:%d, ResponseCode:%d",
                 res, response_code);
 
         curl_slist_free_all(ctx->headers);
-        ctx->curl = nullptr;
+        ctx->io.curl = nullptr;
         ctx->headers = nullptr;
         curlContainer_->Release(curl, (res != CURLE_OK));
 
@@ -377,26 +226,24 @@ void CurlMultiTransport::processCompleted() {
 }
 
 void CurlMultiTransport::cleanupInflight() {
-    // Cancel all pending (not yet submitted) requests
     std::vector<std::unique_ptr<AsyncTransferContext>> pending;
     {
         std::lock_guard<std::mutex> lock(pendingMutex_);
         pending.swap(pendingRequests_);
     }
     for (auto& ctx : pending) {
-        curlContainer_->Release(ctx->curl, false);
-        ctx->curl = nullptr;
+        curlContainer_->Release(ctx->io.curl, false);
+        ctx->io.curl = nullptr;
         ctx->callback(std::make_error_code(std::errc::operation_canceled),
                       std::move(ctx->request), std::move(ctx->context));
     }
 
-    // Cancel all in-flight requests
     for (auto* raw : inflightHandles_) {
         std::unique_ptr<AsyncTransferContext> ctx(raw);
-        curl_multi_remove_handle(multiHandle_, ctx->curl);
+        curl_multi_remove_handle(multiHandle_, ctx->io.curl);
         curl_slist_free_all(ctx->headers);
-        CURL* curl = ctx->curl;
-        ctx->curl = nullptr;
+        CURL* curl = ctx->io.curl;
+        ctx->io.curl = nullptr;
         ctx->headers = nullptr;
         curlContainer_->Release(curl, false);
         ctx->callback(std::make_error_code(std::errc::operation_canceled),
@@ -428,12 +275,10 @@ void CurlMultiTransport::ioLoop() {
 #endif
     }
 
-    // Final drain of completed requests
     int still_running = 0;
     curl_multi_perform(multiHandle_, &still_running);
     processCompleted();
 
-    // Cancel any remaining in-flight and pending requests
     cleanupInflight();
 
     OSS_LOG(LogLevel::LogInfo, TAG, "IO loop stopped");

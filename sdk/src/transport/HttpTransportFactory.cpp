@@ -1,17 +1,20 @@
 #include "HttpTransportFactory.h"
-#include "curl/CurlHttpClient.h"
-#include "curl/CurlMultiTransport.h"
+#include "alibabacloud/oss2/transport/curl/CurlTransportFactory.h"
 
 namespace alibabacloud {
 namespace oss2 {
 namespace transport {
 
 std::shared_ptr<HttpTransport> HttpTransportFactory::create(const HttpTransportOptions& options) {
-    return std::make_shared<curl::CurlHttpClient>(options);
+    CurlTransportOptions curlOpts;
+    static_cast<HttpTransportOptions&>(curlOpts) = options;
+    return CurlTransportFactory::createHttpTransport(curlOpts);
 }
 
 std::shared_ptr<AsyncHttpTransport> AsyncHttpTransportFactory::create(const HttpTransportOptions& options) {
-    return std::make_shared<curl::CurlMultiTransport>(options);
+    CurlTransportOptions curlOpts;
+    static_cast<HttpTransportOptions&>(curlOpts) = options;
+    return CurlTransportFactory::createAsyncHttpTransport(curlOpts);
 }
 
 } // namespace transport

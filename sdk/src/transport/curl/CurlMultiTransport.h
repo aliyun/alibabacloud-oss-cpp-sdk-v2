@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CurlContainer.h"
-#include "alibabacloud/oss2/transport/HttpTransport.h"
+#include "CurlHelper.h"
 
 #include <curl/curl.h>
 
@@ -19,7 +19,8 @@ struct AsyncTransferContext;
 
 class CurlMultiTransport : public AsyncHttpTransport {
   public:
-    explicit CurlMultiTransport(const struct HttpTransportOptions& options);
+    explicit CurlMultiTransport(const HttpTransportOptions& options);
+    explicit CurlMultiTransport(const CurlTransportOptions& options);
     ~CurlMultiTransport() override;
 
     void sendAsync(std::unique_ptr<RequestMessage> request,
@@ -48,12 +49,7 @@ class CurlMultiTransport : public AsyncHttpTransport {
 
     std::unordered_set<AsyncTransferContext*> inflightHandles_;
 
-    bool verifySSL_{true};
-    std::string proxyHost_;
-    unsigned int proxyPort_{};
-    std::string proxyUserName_;
-    std::string proxyPassword_;
-
+    ConnectionOptions connOpts_;
 };
 
 } // namespace alibabacloud::oss2::transport::curl

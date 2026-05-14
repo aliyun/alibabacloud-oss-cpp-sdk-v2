@@ -67,12 +67,12 @@ struct ALIBABACLOUD_OSS_API ClientOptions {
     /// - VirtualHosted: @c https://bucket.oss-cn-hangzhou.aliyuncs.com/key (default)
     /// - Path:          @c https://oss-cn-hangzhou.aliyuncs.com/bucket/key
     /// - CName:         uses the custom domain as-is
-    AddressStyleType addressStyle;
+    AddressStyleType addressStyle{};
 
     /// Bitmask of enabled SDK features.
     /// @see FeatureFlagsType for individual flag definitions (e.g., CorrectClockSkew,
     ///      AutoDetectMimeType, EnableCRC64CheckUpload).
-    int featureFlags;
+    int featureFlags{};
 
     /// Additional signable headers to include in the request signature.
     std::vector<std::string> additionalHeaders;

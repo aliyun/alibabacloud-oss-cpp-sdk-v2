@@ -36,10 +36,15 @@ class NopHttpTransport : public HttpTransport {
 };
 
 struct ALIBABACLOUD_OSS_API HttpTransportOptions {
+    // Connection timeout in milliseconds, default 5s (kDefaultConnectTimeoutMs)
     std::optional<long> connectTimeout;
+    // Read/write timeout in milliseconds, default 10s (kDefaultReadWriteTimeoutMs)
     std::optional<long> readWriteTimeout;
+    // Skip SSL certificate verification
     std::optional<bool> insecureSkipVerify;
+    // Enable HTTP redirect following
     std::optional<bool> enabledRedirect;
+    // Proxy host URL, e.g. "http://proxy.example.com"
     std::optional<std::string> proxyHost;
 };
 
