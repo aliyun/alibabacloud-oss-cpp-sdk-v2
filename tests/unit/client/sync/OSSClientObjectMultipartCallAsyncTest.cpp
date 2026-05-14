@@ -32,7 +32,7 @@ TEST(OSSClientObjectMultipartCallAsyncTest, InitiateMultipartUpload_Future_Succe
     request.setBucket("test-bucket");
     request.setKey("test-key");
 
-    auto future = client.callAsync<InitiateMultipartUploadOutcome>(&OSSClient::initiateMultipartUpload, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
     EXPECT_EQ("upload-id-123", outcome.getResult().getUploadId());
@@ -60,7 +60,7 @@ TEST(OSSClientObjectMultipartCallAsyncTest, AbortMultipartUpload_Callback_Succes
     std::promise<AbortMultipartUploadOutcome> promise;
     auto future = promise.get_future();
 
-    client.callAsync<AbortMultipartUploadOutcome>(&OSSClient::abortMultipartUpload, request,
+    client.asyncCallback(request,
         [&promise](const OSSClient*, const models::AbortMultipartUploadRequest&, const AbortMultipartUploadOutcome& outcome) {
             promise.set_value(outcome);
         });
@@ -90,7 +90,7 @@ TEST(OSSClientObjectMultipartCallAsyncTest, ListMultipartUploads_Future_Success)
     auto request = models::ListMultipartUploadsRequest();
     request.setBucket("test-bucket");
 
-    auto future = client.callAsync<ListMultipartUploadsOutcome>(&OSSClient::listMultipartUploads, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
 }
@@ -106,7 +106,7 @@ TEST(OSSClientObjectMultipartCallAsyncTest, InitiateMultipartUpload_Future_NoExe
     request.setBucket("test-bucket");
     request.setKey("test-key");
 
-    auto future = client.callAsync<InitiateMultipartUploadOutcome>(&OSSClient::initiateMultipartUpload, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("NoExecutor", outcome.getError().getCode());

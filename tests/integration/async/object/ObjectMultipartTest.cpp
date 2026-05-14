@@ -27,8 +27,7 @@ class AsyncObjectMultipartTest : public ::testing::Test {
     static void SetUpTestCase() {
         auto client = ClientHelper::GetDefaultClient();
         bucketName_ = Config::GenBucketName();
-        auto future = client->callAsync<PutBucketOutcome>(&OSSAsyncClient::putBucketAsync,
-                                                          models::PutBucketRequest().setBucket(bucketName_));
+        auto future = client->asyncCall(models::PutBucketRequest().setBucket(bucketName_));
         EXPECT_TRUE(future.get().isSuccess());
     }
 
@@ -46,9 +45,7 @@ TEST_F(AsyncObjectMultipartTest, InitiateMultipartUpload_Normal) {
     auto client = ClientHelper::GetDefaultClient();
     std::string key = "test-multipart-object";
 
-    auto future = client->callAsync<InitiateMultipartUploadOutcome>(
-        &OSSAsyncClient::initiateMultipartUploadAsync,
-        models::InitiateMultipartUploadRequest().setBucket(bucketName_).setKey(key));
+    auto future = client->asyncCall(models::InitiateMultipartUploadRequest().setBucket(bucketName_).setKey(key));
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
     auto& result = outcome.getResult();
@@ -59,9 +56,7 @@ TEST_F(AsyncObjectMultipartTest, InitiateMultipartUpload_Normal) {
 
 TEST_F(AsyncObjectMultipartTest, InitiateMultipartUpload_Fail) {
     auto client = ClientHelper::GetInvalidClient();
-    auto future = client->callAsync<InitiateMultipartUploadOutcome>(
-        &OSSAsyncClient::initiateMultipartUploadAsync,
-        models::InitiateMultipartUploadRequest().setBucket(bucketName_).setKey("test-key"));
+    auto future = client->asyncCall(models::InitiateMultipartUploadRequest().setBucket(bucketName_).setKey("test-key"));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
@@ -73,34 +68,26 @@ TEST_F(AsyncObjectMultipartTest, MultipartUpload_Normal) {
     std::string content1 = genRandomString(100 * 1024);
     std::string content2 = "Part 2 content.";
 
-    auto initFuture = client->callAsync<InitiateMultipartUploadOutcome>(
-        &OSSAsyncClient::initiateMultipartUploadAsync,
-        models::InitiateMultipartUploadRequest().setBucket(bucketName_).setKey(key));
+    auto initFuture = client->asyncCall(models::InitiateMultipartUploadRequest().setBucket(bucketName_).setKey(key));
     auto initOutcome = initFuture.get();
     EXPECT_TRUE(initOutcome.isSuccess());
     std::string uploadId = initOutcome.getResult().getUploadId();
 
-    auto part1Future = client->callAsync<UploadPartOutcome>(
-        &OSSAsyncClient::uploadPartAsync,
-        models::UploadPartRequest()
+    auto part1Future = client->asyncCall(models::UploadPartRequest()
             .setBucket(bucketName_).setKey(key).setUploadId(uploadId).setPartNumber(1)
             .setBody(RequestBody::FromString(content1)));
     auto part1Outcome = part1Future.get();
     EXPECT_TRUE(part1Outcome.isSuccess());
     std::string etag1 = part1Outcome.getResult().getETag();
 
-    auto part2Future = client->callAsync<UploadPartOutcome>(
-        &OSSAsyncClient::uploadPartAsync,
-        models::UploadPartRequest()
+    auto part2Future = client->asyncCall(models::UploadPartRequest()
             .setBucket(bucketName_).setKey(key).setUploadId(uploadId).setPartNumber(2)
             .setBody(RequestBody::FromString(content2)));
     auto part2Outcome = part2Future.get();
     EXPECT_TRUE(part2Outcome.isSuccess());
     std::string etag2 = part2Outcome.getResult().getETag();
 
-    auto listPartsFuture = client->callAsync<ListPartsOutcome>(
-        &OSSAsyncClient::listPartsAsync,
-        models::ListPartsRequest().setBucket(bucketName_).setKey(key).setUploadId(uploadId));
+    auto listPartsFuture = client->asyncCall(models::ListPartsRequest().setBucket(bucketName_).setKey(key).setUploadId(uploadId));
     auto listPartsOutcome = listPartsFuture.get();
     EXPECT_TRUE(listPartsOutcome.isSuccess());
     EXPECT_EQ(2, listPartsOutcome.getResult().getParts().size());
@@ -118,9 +105,7 @@ TEST_F(AsyncObjectMultipartTest, MultipartUpload_Normal) {
     models::CompleteMultipartUpload completeReq;
     completeReq.setParts(parts);
 
-    auto completeFuture = client->callAsync<CompleteMultipartUploadOutcome>(
-        &OSSAsyncClient::completeMultipartUploadAsync,
-        models::CompleteMultipartUploadRequest()
+    auto completeFuture = client->asyncCall(models::CompleteMultipartUploadRequest()
             .setBucket(bucketName_).setKey(key).setUploadId(uploadId).setCompleteMultipartUpload(completeReq));
     auto completeOutcome = completeFuture.get();
     EXPECT_TRUE(completeOutcome.isSuccess());
@@ -133,24 +118,18 @@ TEST_F(AsyncObjectMultipartTest, AbortMultipartUpload_Normal) {
     auto client = ClientHelper::GetDefaultClient();
     std::string key = "test-abort-multipart";
 
-    auto initFuture = client->callAsync<InitiateMultipartUploadOutcome>(
-        &OSSAsyncClient::initiateMultipartUploadAsync,
-        models::InitiateMultipartUploadRequest().setBucket(bucketName_).setKey(key));
+    auto initFuture = client->asyncCall(models::InitiateMultipartUploadRequest().setBucket(bucketName_).setKey(key));
     auto initOutcome = initFuture.get();
     EXPECT_TRUE(initOutcome.isSuccess());
     std::string uploadId = initOutcome.getResult().getUploadId();
 
-    auto future = client->callAsync<AbortMultipartUploadOutcome>(
-        &OSSAsyncClient::abortMultipartUploadAsync,
-        models::AbortMultipartUploadRequest().setBucket(bucketName_).setKey(key).setUploadId(uploadId));
+    auto future = client->asyncCall(models::AbortMultipartUploadRequest().setBucket(bucketName_).setKey(key).setUploadId(uploadId));
     EXPECT_TRUE(future.get().isSuccess());
 }
 
 TEST_F(AsyncObjectMultipartTest, AbortMultipartUpload_Fail) {
     auto client = ClientHelper::GetInvalidClient();
-    auto future = client->callAsync<AbortMultipartUploadOutcome>(
-        &OSSAsyncClient::abortMultipartUploadAsync,
-        models::AbortMultipartUploadRequest().setBucket(bucketName_).setKey("test-key").setUploadId("test-upload-id"));
+    auto future = client->asyncCall(models::AbortMultipartUploadRequest().setBucket(bucketName_).setKey("test-key").setUploadId("test-upload-id"));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
@@ -159,14 +138,10 @@ TEST_F(AsyncObjectMultipartTest, AbortMultipartUpload_Fail) {
 TEST_F(AsyncObjectMultipartTest, ListMultipartUploads_Normal) {
     auto client = ClientHelper::GetDefaultClient();
 
-    auto initFuture = client->callAsync<InitiateMultipartUploadOutcome>(
-        &OSSAsyncClient::initiateMultipartUploadAsync,
-        models::InitiateMultipartUploadRequest().setBucket(bucketName_).setKey("test-list-uploads"));
+    auto initFuture = client->asyncCall(models::InitiateMultipartUploadRequest().setBucket(bucketName_).setKey("test-list-uploads"));
     EXPECT_TRUE(initFuture.get().isSuccess());
 
-    auto future = client->callAsync<ListMultipartUploadsOutcome>(
-        &OSSAsyncClient::listMultipartUploadsAsync,
-        models::ListMultipartUploadsRequest().setBucket(bucketName_));
+    auto future = client->asyncCall(models::ListMultipartUploadsRequest().setBucket(bucketName_));
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
     EXPECT_EQ(bucketName_, outcome.getResult().getBucket());
@@ -175,9 +150,7 @@ TEST_F(AsyncObjectMultipartTest, ListMultipartUploads_Normal) {
 
 TEST_F(AsyncObjectMultipartTest, ListMultipartUploads_Fail) {
     auto client = ClientHelper::GetInvalidClient();
-    auto future = client->callAsync<ListMultipartUploadsOutcome>(
-        &OSSAsyncClient::listMultipartUploadsAsync,
-        models::ListMultipartUploadsRequest().setBucket(bucketName_));
+    auto future = client->asyncCall(models::ListMultipartUploadsRequest().setBucket(bucketName_));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
@@ -188,22 +161,16 @@ TEST_F(AsyncObjectMultipartTest, UploadPartCopy_Normal) {
     std::string sourceKey = "test-part-copy-source";
     std::string destKey = "test-part-copy-dest";
 
-    auto putFuture = client->callAsync<PutObjectOutcome>(
-        &OSSAsyncClient::putObjectAsync,
-        models::PutObjectRequest().setBucket(bucketName_).setKey(sourceKey)
+    auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(sourceKey)
             .setBody(RequestBody::FromString("Content for part copy test.")));
     EXPECT_TRUE(putFuture.get().isSuccess());
 
-    auto initFuture = client->callAsync<InitiateMultipartUploadOutcome>(
-        &OSSAsyncClient::initiateMultipartUploadAsync,
-        models::InitiateMultipartUploadRequest().setBucket(bucketName_).setKey(destKey));
+    auto initFuture = client->asyncCall(models::InitiateMultipartUploadRequest().setBucket(bucketName_).setKey(destKey));
     auto initOutcome = initFuture.get();
     EXPECT_TRUE(initOutcome.isSuccess());
     std::string uploadId = initOutcome.getResult().getUploadId();
 
-    auto future = client->callAsync<UploadPartCopyOutcome>(
-        &OSSAsyncClient::uploadPartCopyAsync,
-        models::UploadPartCopyRequest()
+    auto future = client->asyncCall(models::UploadPartCopyRequest()
             .setBucket(bucketName_).setKey(destKey)
             .setSourceBucket(bucketName_).setSourceKey(sourceKey)
             .setUploadId(uploadId).setPartNumber(1));
@@ -214,9 +181,7 @@ TEST_F(AsyncObjectMultipartTest, UploadPartCopy_Normal) {
 
 TEST_F(AsyncObjectMultipartTest, UploadPartCopy_Fail) {
     auto client = ClientHelper::GetInvalidClient();
-    auto future = client->callAsync<UploadPartCopyOutcome>(
-        &OSSAsyncClient::uploadPartCopyAsync,
-        models::UploadPartCopyRequest()
+    auto future = client->asyncCall(models::UploadPartCopyRequest()
             .setBucket(bucketName_).setKey("dest")
             .setSourceBucket(bucketName_).setSourceKey("src")
             .setUploadId("test-upload-id").setPartNumber(1));

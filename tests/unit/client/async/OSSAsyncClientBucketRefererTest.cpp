@@ -41,7 +41,7 @@ TEST(OSSAsyncClientBucketRefererTest, PutBucketRefererAsync_RequiredField) {
     auto client = OSSAsyncClient(config);
 
     auto request = models::PutBucketRefererRequest();
-    auto future = client.callAsync<PutBucketRefererOutcome>(&OSSAsyncClient::putBucketRefererAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_FALSE(outcome.isSuccess());
@@ -61,7 +61,7 @@ TEST(OSSAsyncClientBucketRefererTest, PutBucketRefererAsync_Success) {
 
     auto request = models::PutBucketRefererRequest();
     request.setBucket("test-bucket");
-    auto future = client.callAsync<PutBucketRefererOutcome>(&OSSAsyncClient::putBucketRefererAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_TRUE(outcome.isSuccess());
@@ -77,7 +77,7 @@ TEST(OSSAsyncClientBucketRefererTest, GetBucketRefererAsync_RequiredField) {
     auto client = OSSAsyncClient(config);
 
     auto request = models::GetBucketRefererRequest();
-    auto future = client.callAsync<GetBucketRefererOutcome>(&OSSAsyncClient::getBucketRefererAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_FALSE(outcome.isSuccess());

@@ -13,8 +13,7 @@ class AsyncBucketAclTest : public ::testing::Test {
     static void SetUpTestCase() {
         auto client = ClientHelper::GetDefaultClient();
         bucketName_ = Config::GenBucketName();
-        auto future = client->callAsync<PutBucketOutcome>(&OSSAsyncClient::putBucketAsync,
-                                                          models::PutBucketRequest().setBucket(bucketName_));
+        auto future = client->asyncCall(models::PutBucketRequest().setBucket(bucketName_));
         EXPECT_TRUE(future.get().isSuccess());
     }
 
@@ -30,15 +29,12 @@ std::string AsyncBucketAclTest::bucketName_ = "";
 
 TEST_F(AsyncBucketAclTest, BucketAcl_Normal) {
     auto client = ClientHelper::GetDefaultClient();
-    auto future = client->callAsync<PutBucketAclOutcome>(
-        &OSSAsyncClient::putBucketAclAsync,
-        models::PutBucketAclRequest().setBucket(bucketName_).setAcl("private"));
+    auto future = client->asyncCall(models::PutBucketAclRequest().setBucket(bucketName_).setAcl("private"));
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
 
     Config::WaitForCacheExpire(2);
-    auto future2 = client->callAsync<GetBucketAclOutcome>(
-        &OSSAsyncClient::getBucketAclAsync, models::GetBucketAclRequest().setBucket(bucketName_));
+    auto future2 = client->asyncCall(models::GetBucketAclRequest().setBucket(bucketName_));
     auto outcome2 = future2.get();
     EXPECT_TRUE(outcome2.isSuccess());
     auto& result = outcome2.getResult();
@@ -47,9 +43,7 @@ TEST_F(AsyncBucketAclTest, BucketAcl_Normal) {
 
 TEST_F(AsyncBucketAclTest, PutBucketAcl_Fail) {
     auto client = ClientHelper::GetInvalidClient();
-    auto future = client->callAsync<PutBucketAclOutcome>(
-        &OSSAsyncClient::putBucketAclAsync,
-        models::PutBucketAclRequest().setBucket(bucketName_).setAcl("private"));
+    auto future = client->asyncCall(models::PutBucketAclRequest().setBucket(bucketName_).setAcl("private"));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     auto& error = outcome.getError();
@@ -60,8 +54,7 @@ TEST_F(AsyncBucketAclTest, PutBucketAcl_Fail) {
 
 TEST_F(AsyncBucketAclTest, GetBucketAcl_Fail) {
     auto client = ClientHelper::GetInvalidClient();
-    auto future = client->callAsync<GetBucketAclOutcome>(
-        &OSSAsyncClient::getBucketAclAsync, models::GetBucketAclRequest().setBucket(bucketName_));
+    auto future = client->asyncCall(models::GetBucketAclRequest().setBucket(bucketName_));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     auto& error = outcome.getError();

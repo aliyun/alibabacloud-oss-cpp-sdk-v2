@@ -41,13 +41,13 @@ TEST(OSSAsyncClientObjectMultipartTest, InitiateMultipartUploadAsync_RequiredFie
     auto client = OSSAsyncClient(config);
 
     auto request = models::InitiateMultipartUploadRequest();
-    auto future = client.callAsync<InitiateMultipartUploadOutcome>(&OSSAsyncClient::initiateMultipartUploadAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
 
     request.setBucket("test-bucket");
-    auto future2 = client.callAsync<InitiateMultipartUploadOutcome>(&OSSAsyncClient::initiateMultipartUploadAsync, request);
+    auto future2 = client.asyncCall(request);
     auto outcome2 = future2.get();
     EXPECT_FALSE(outcome2.isSuccess());
     EXPECT_EQ("Missing field Key", outcome2.getError().getMessage());
@@ -72,7 +72,7 @@ TEST(OSSAsyncClientObjectMultipartTest, InitiateMultipartUploadAsync_Success) {
 
     auto request = models::InitiateMultipartUploadRequest();
     request.setBucket("test-bucket").setKey("test-key");
-    auto future = client.callAsync<InitiateMultipartUploadOutcome>(&OSSAsyncClient::initiateMultipartUploadAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_TRUE(outcome.isSuccess());
@@ -89,13 +89,13 @@ TEST(OSSAsyncClientObjectMultipartTest, UploadPartAsync_RequiredField) {
     auto client = OSSAsyncClient(config);
 
     auto request = models::UploadPartRequest();
-    auto future = client.callAsync<UploadPartOutcome>(&OSSAsyncClient::uploadPartAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
 
     request.setBucket("test-bucket").setKey("test-key").setUploadId("uid");
-    auto future2 = client.callAsync<UploadPartOutcome>(&OSSAsyncClient::uploadPartAsync, request);
+    auto future2 = client.asyncCall(request);
     auto outcome2 = future2.get();
     EXPECT_FALSE(outcome2.isSuccess());
     EXPECT_EQ("Missing field PartNumber", outcome2.getError().getMessage());
@@ -110,13 +110,13 @@ TEST(OSSAsyncClientObjectMultipartTest, CompleteMultipartUploadAsync_RequiredFie
     auto client = OSSAsyncClient(config);
 
     auto request = models::CompleteMultipartUploadRequest();
-    auto future = client.callAsync<CompleteMultipartUploadOutcome>(&OSSAsyncClient::completeMultipartUploadAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
 
     request.setBucket("test-bucket").setKey("test-key");
-    auto future2 = client.callAsync<CompleteMultipartUploadOutcome>(&OSSAsyncClient::completeMultipartUploadAsync, request);
+    auto future2 = client.asyncCall(request);
     auto outcome2 = future2.get();
     EXPECT_FALSE(outcome2.isSuccess());
     EXPECT_EQ("Missing field UploadId", outcome2.getError().getMessage());
@@ -131,7 +131,7 @@ TEST(OSSAsyncClientObjectMultipartTest, UploadPartCopyAsync_RequiredField) {
     auto client = OSSAsyncClient(config);
 
     auto request = models::UploadPartCopyRequest();
-    auto future = client.callAsync<UploadPartCopyOutcome>(&OSSAsyncClient::uploadPartCopyAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
@@ -146,7 +146,7 @@ TEST(OSSAsyncClientObjectMultipartTest, AbortMultipartUploadAsync_RequiredField)
     auto client = OSSAsyncClient(config);
 
     auto request = models::AbortMultipartUploadRequest();
-    auto future = client.callAsync<AbortMultipartUploadOutcome>(&OSSAsyncClient::abortMultipartUploadAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
@@ -161,7 +161,7 @@ TEST(OSSAsyncClientObjectMultipartTest, ListMultipartUploadsAsync_RequiredField)
     auto client = OSSAsyncClient(config);
 
     auto request = models::ListMultipartUploadsRequest();
-    auto future = client.callAsync<ListMultipartUploadsOutcome>(&OSSAsyncClient::listMultipartUploadsAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
@@ -176,13 +176,13 @@ TEST(OSSAsyncClientObjectMultipartTest, ListPartsAsync_RequiredField) {
     auto client = OSSAsyncClient(config);
 
     auto request = models::ListPartsRequest();
-    auto future = client.callAsync<ListPartsOutcome>(&OSSAsyncClient::listPartsAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
 
     request.setBucket("test-bucket").setKey("test-key");
-    auto future2 = client.callAsync<ListPartsOutcome>(&OSSAsyncClient::listPartsAsync, request);
+    auto future2 = client.asyncCall(request);
     auto outcome2 = future2.get();
     EXPECT_FALSE(outcome2.isSuccess());
     EXPECT_EQ("Missing field UploadId", outcome2.getError().getMessage());

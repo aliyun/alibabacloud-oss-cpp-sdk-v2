@@ -49,6 +49,15 @@ class MockAsyncTransport : public AsyncHttpTransport {
     }
 };
 
+std::future<OperationResult> invokeAsync(OSSAsyncClient& client, const OperationInput& input,
+                                         const OperationOptions* options = nullptr) {
+    auto promise = std::make_shared<std::promise<OperationResult>>();
+    client.invokeOperationAsync(input, [promise](OperationResult result) {
+        promise->set_value(std::move(result));
+    }, options);
+    return promise->get_future();
+}
+
 } // namespace
 
 TEST(OSSAsyncClientTest, DefaultCtor) {
@@ -126,7 +135,7 @@ TEST(OSSAsyncClientTest, InvokeOperation_Future_Success) {
     input.key = "test-key";
     input.body = RequestBody::FromString("hello world");
 
-    auto future = client.callAsync<OperationResult>(&OSSAsyncClient::invokeOperationAsync, input);
+    auto future = invokeAsync(client, input);
     auto result = future.get();
 
     ASSERT_TRUE(std::holds_alternative<OperationOutput>(result));
@@ -148,7 +157,7 @@ TEST(OSSAsyncClientTest, InvokeOperation_TransportError) {
     input.bucket = "test-bucket";
     input.key = "test-key";
 
-    auto future = client.callAsync<OperationResult>(&OSSAsyncClient::invokeOperationAsync, input);
+    auto future = invokeAsync(client, input);
     auto result = future.get();
 
     ASSERT_TRUE(std::holds_alternative<OperationError>(result));
@@ -164,7 +173,7 @@ TEST(OSSAsyncClientTest, InvokeOperation_InvalidInput) {
 
     OperationInput input;
 
-    auto future = client.callAsync<OperationResult>(&OSSAsyncClient::invokeOperationAsync, input);
+    auto future = invokeAsync(client, input);
     auto result = future.get();
 
     ASSERT_TRUE(std::holds_alternative<OperationError>(result));
@@ -192,7 +201,7 @@ TEST(OSSAsyncClientTest, InvokeOperation_MultipleAsync) {
         input.method = "GET";
         input.bucket = "test-bucket";
         input.key = "key-" + std::to_string(i);
-        futures.push_back(client.callAsync<OperationResult>(&OSSAsyncClient::invokeOperationAsync, input));
+        futures.push_back(invokeAsync(client, input));
     }
 
     for (auto& f : futures) {
@@ -220,7 +229,7 @@ TEST(OSSAsyncClientTest, InvokeOperation_WithCredentials) {
     input.bucket = "test-bucket";
     input.key = "test-key";
 
-    auto future = client.callAsync<OperationResult>(&OSSAsyncClient::invokeOperationAsync, input);
+    auto future = invokeAsync(client, input);
     auto result = future.get();
 
     ASSERT_TRUE(std::holds_alternative<OperationOutput>(result));

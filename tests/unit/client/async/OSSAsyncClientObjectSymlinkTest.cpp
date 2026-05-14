@@ -41,13 +41,13 @@ TEST(OSSAsyncClientObjectSymlinkTest, PutSymlinkAsync_RequiredField) {
     auto client = OSSAsyncClient(config);
 
     auto request = models::PutSymlinkRequest();
-    auto future = client.callAsync<PutSymlinkOutcome>(&OSSAsyncClient::putSymlinkAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
 
     request.setBucket("test-bucket");
-    auto future2 = client.callAsync<PutSymlinkOutcome>(&OSSAsyncClient::putSymlinkAsync, request);
+    auto future2 = client.asyncCall(request);
     auto outcome2 = future2.get();
     EXPECT_FALSE(outcome2.isSuccess());
     EXPECT_EQ("Missing field Key", outcome2.getError().getMessage());
@@ -66,7 +66,7 @@ TEST(OSSAsyncClientObjectSymlinkTest, PutSymlinkAsync_Success) {
 
     auto request = models::PutSymlinkRequest();
     request.setBucket("test-bucket").setKey("test-link").setSymlinkTarget("test-target");
-    auto future = client.callAsync<PutSymlinkOutcome>(&OSSAsyncClient::putSymlinkAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_TRUE(outcome.isSuccess());
@@ -82,7 +82,7 @@ TEST(OSSAsyncClientObjectSymlinkTest, GetSymlinkAsync_RequiredField) {
     auto client = OSSAsyncClient(config);
 
     auto request = models::GetSymlinkRequest();
-    auto future = client.callAsync<GetSymlinkOutcome>(&OSSAsyncClient::getSymlinkAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());

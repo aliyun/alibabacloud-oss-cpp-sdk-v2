@@ -134,8 +134,8 @@ struct ALIBABACLOUD_OSS_API ClientConfiguration {
 
     // ---- Async ----
 
-    /// Custom executor for async operations, only used by OSSClient::callAsync.
-    /// Must be explicitly set; if unset, OSSClient::callAsync returns a NoExecutor error.
+    /// Custom executor for async operations, used by OSSClient::asyncCall / asyncCallback.
+    /// Must be explicitly set; if unset, OSSClient::asyncCall returns a NoExecutor error.
     std::shared_ptr<Executor> executor;
 
     /// The async HTTP transport for OSSAsyncClient.

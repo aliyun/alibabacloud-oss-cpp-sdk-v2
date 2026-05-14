@@ -27,7 +27,7 @@ TEST(OSSClientObjectAclCallAsyncTest, PutObjectAcl_Future_Success) {
     request.setKey("test-key");
     request.setObjectAcl("private");
 
-    auto future = client.callAsync<PutObjectAclOutcome>(&OSSClient::putObjectAcl, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
     EXPECT_EQ("id-acl-1", outcome.getResult().getRequestId());
@@ -60,7 +60,7 @@ TEST(OSSClientObjectAclCallAsyncTest, GetObjectAcl_Future_Success) {
     request.setBucket("test-bucket");
     request.setKey("test-key");
 
-    auto future = client.callAsync<GetObjectAclOutcome>(&OSSClient::getObjectAcl, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
     EXPECT_EQ("private", outcome.getResult().getAccessControlPolicy().accessControlList.value().grant);
@@ -92,7 +92,7 @@ TEST(OSSClientObjectAclCallAsyncTest, GetObjectAcl_Callback_Success) {
     std::promise<GetObjectAclOutcome> promise;
     auto future = promise.get_future();
 
-    client.callAsync<GetObjectAclOutcome>(&OSSClient::getObjectAcl, request,
+    client.asyncCallback(request,
         [&promise](const OSSClient*, const models::GetObjectAclRequest&, const GetObjectAclOutcome& outcome) {
             promise.set_value(outcome);
         });
@@ -114,7 +114,7 @@ TEST(OSSClientObjectAclCallAsyncTest, PutObjectAcl_Future_NoExecutor) {
     request.setKey("test-key");
     request.setObjectAcl("private");
 
-    auto future = client.callAsync<PutObjectAclOutcome>(&OSSClient::putObjectAcl, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("NoExecutor", outcome.getError().getCode());

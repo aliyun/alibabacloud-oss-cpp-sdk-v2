@@ -12,7 +12,7 @@ TEST(AsyncRegionTest, DescribeRegions_normal) {
     auto client = ClientHelper::GetDefaultClient();
 
     auto request = models::DescribeRegionsRequest();
-    auto future = client->callAsync<DescribeRegionsOutcome>(&OSSAsyncClient::describeRegionsAsync, request);
+    auto future = client->asyncCall(request);
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
     auto& result = outcome.getResult();
@@ -23,7 +23,7 @@ TEST(AsyncRegionTest, DescribeRegions_normal) {
     EXPECT_EQ("oss-ap-northeast-1", result.getRegionInfoList().regionInfos.at(0).region);
 
     request.setRegions("oss-cn-hangzhou");
-    auto future2 = client->callAsync<DescribeRegionsOutcome>(&OSSAsyncClient::describeRegionsAsync, request);
+    auto future2 = client->asyncCall(request);
     auto outcome2 = future2.get();
     auto& result2 = outcome2.getResult();
     EXPECT_EQ(1, result2.getRegionInfoList().regionInfos.size());
@@ -34,7 +34,7 @@ TEST(AsyncRegionTest, DescribeRegions_fail) {
     auto client = ClientHelper::GetInvalidClient();
 
     auto request = models::DescribeRegionsRequest();
-    auto future = client->callAsync<DescribeRegionsOutcome>(&OSSAsyncClient::describeRegionsAsync, request);
+    auto future = client->asyncCall(request);
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
 

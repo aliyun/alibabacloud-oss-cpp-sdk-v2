@@ -12,7 +12,7 @@ TEST(AsyncServiceTest, ListBuckets_normal) {
     auto client = ClientHelper::GetDefaultClient();
 
     auto request = models::ListBucketsRequest();
-    auto future = client->callAsync<ListBucketsOutcome>(&OSSAsyncClient::listBucketsAsync, request);
+    auto future = client->asyncCall(request);
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
     auto& result = outcome.getResult();
@@ -21,7 +21,7 @@ TEST(AsyncServiceTest, ListBuckets_normal) {
     EXPECT_EQ(false, result.getBuckets().empty());
 
     request.setMaxKeys(1);
-    auto future2 = client->callAsync<ListBucketsOutcome>(&OSSAsyncClient::listBucketsAsync, request);
+    auto future2 = client->asyncCall(request);
     auto outcome2 = future2.get();
     auto& result2 = outcome2.getResult();
     EXPECT_EQ(1, result2.getBuckets().size());
@@ -31,7 +31,7 @@ TEST(AsyncServiceTest, ListBuckets_fail) {
     auto client = ClientHelper::GetInvalidClient();
 
     auto request = models::ListBucketsRequest();
-    auto future = client->callAsync<ListBucketsOutcome>(&OSSAsyncClient::listBucketsAsync, request);
+    auto future = client->asyncCall(request);
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
 

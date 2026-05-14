@@ -13,8 +13,7 @@ class AsyncObjectRestoreTest : public ::testing::Test {
     static void SetUpTestCase() {
         auto client = ClientHelper::GetDefaultClient();
         bucketName_ = Config::GenBucketName();
-        auto future = client->callAsync<PutBucketOutcome>(&OSSAsyncClient::putBucketAsync,
-                                                          models::PutBucketRequest().setBucket(bucketName_));
+        auto future = client->asyncCall(models::PutBucketRequest().setBucket(bucketName_));
         EXPECT_TRUE(future.get().isSuccess());
     }
 
@@ -32,9 +31,7 @@ TEST_F(AsyncObjectRestoreTest, RestoreObject_Normal) {
     auto client = ClientHelper::GetDefaultClient();
     std::string key = "test-restore-object";
 
-    auto putFuture = client->callAsync<PutObjectOutcome>(
-        &OSSAsyncClient::putObjectAsync,
-        models::PutObjectRequest().setBucket(bucketName_).setKey(key)
+    auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key)
             .setBody(RequestBody::FromString("Archive content")).setStorageClass("Archive"));
     EXPECT_TRUE(putFuture.get().isSuccess());
 
@@ -44,18 +41,14 @@ TEST_F(AsyncObjectRestoreTest, RestoreObject_Normal) {
     jobParams.setTier("Standard");
     restoreReq.setJobParameters(jobParams);
 
-    auto future = client->callAsync<RestoreObjectOutcome>(
-        &OSSAsyncClient::restoreObjectAsync,
-        models::RestoreObjectRequest().setBucket(bucketName_).setKey(key).setRestoreRequest(restoreReq));
+    auto future = client->asyncCall(models::RestoreObjectRequest().setBucket(bucketName_).setKey(key).setRestoreRequest(restoreReq));
     future.get();
 }
 
 TEST_F(AsyncObjectRestoreTest, RestoreObject_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     models::RestoreRequest restoreReq;
-    auto future = client->callAsync<RestoreObjectOutcome>(
-        &OSSAsyncClient::restoreObjectAsync,
-        models::RestoreObjectRequest().setBucket(bucketName_).setKey("test-key").setRestoreRequest(restoreReq));
+    auto future = client->asyncCall(models::RestoreObjectRequest().setBucket(bucketName_).setKey("test-key").setRestoreRequest(restoreReq));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
@@ -65,23 +58,17 @@ TEST_F(AsyncObjectRestoreTest, CleanRestoredObject_Normal) {
     auto client = ClientHelper::GetDefaultClient();
     std::string key = "test-clean-restored-object";
 
-    auto putFuture = client->callAsync<PutObjectOutcome>(
-        &OSSAsyncClient::putObjectAsync,
-        models::PutObjectRequest().setBucket(bucketName_).setKey(key)
+    auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key)
             .setBody(RequestBody::FromString("Content to clean")).setStorageClass("Archive"));
     EXPECT_TRUE(putFuture.get().isSuccess());
 
-    auto future = client->callAsync<CleanRestoredObjectOutcome>(
-        &OSSAsyncClient::cleanRestoredObjectAsync,
-        models::CleanRestoredObjectRequest().setBucket(bucketName_).setKey(key));
+    auto future = client->asyncCall(models::CleanRestoredObjectRequest().setBucket(bucketName_).setKey(key));
     future.get();
 }
 
 TEST_F(AsyncObjectRestoreTest, CleanRestoredObject_Fail) {
     auto client = ClientHelper::GetInvalidClient();
-    auto future = client->callAsync<CleanRestoredObjectOutcome>(
-        &OSSAsyncClient::cleanRestoredObjectAsync,
-        models::CleanRestoredObjectRequest().setBucket(bucketName_).setKey("test-key"));
+    auto future = client->asyncCall(models::CleanRestoredObjectRequest().setBucket(bucketName_).setKey("test-key"));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());

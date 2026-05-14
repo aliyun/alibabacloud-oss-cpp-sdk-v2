@@ -13,8 +13,7 @@ class AsyncObjectBasicTest : public ::testing::Test {
     static void SetUpTestCase() {
         auto client = ClientHelper::GetDefaultClient();
         bucketName_ = Config::GenBucketName();
-        auto future = client->callAsync<PutBucketOutcome>(&OSSAsyncClient::putBucketAsync,
-                                                          models::PutBucketRequest().setBucket(bucketName_));
+        auto future = client->asyncCall(models::PutBucketRequest().setBucket(bucketName_));
         EXPECT_TRUE(future.get().isSuccess());
     }
 
@@ -33,18 +32,14 @@ TEST_F(AsyncObjectBasicTest, PutObject_Normal) {
     std::string key = "test-put-object";
     std::string content = "Hello, OSS!";
 
-    auto future = client->callAsync<PutObjectOutcome>(
-        &OSSAsyncClient::putObjectAsync,
-        models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::FromString(content)));
+    auto future = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::FromString(content)));
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
 }
 
 TEST_F(AsyncObjectBasicTest, PutObject_Fail) {
     auto client = ClientHelper::GetInvalidClient();
-    auto future = client->callAsync<PutObjectOutcome>(
-        &OSSAsyncClient::putObjectAsync,
-        models::PutObjectRequest().setBucket(bucketName_).setKey("test-key").setBody(RequestBody::FromString("hi")));
+    auto future = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey("test-key").setBody(RequestBody::FromString("hi")));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
@@ -55,13 +50,10 @@ TEST_F(AsyncObjectBasicTest, GetObject_Normal) {
     std::string key = "test-get-object";
     std::string content = "Hello, GetObject!";
 
-    auto putFuture = client->callAsync<PutObjectOutcome>(
-        &OSSAsyncClient::putObjectAsync,
-        models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::FromString(content)));
+    auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::FromString(content)));
     EXPECT_TRUE(putFuture.get().isSuccess());
 
-    auto future = client->callAsync<GetObjectOutcome>(
-        &OSSAsyncClient::getObjectAsync, models::GetObjectRequest().setBucket(bucketName_).setKey(key));
+    auto future = client->asyncCall(models::GetObjectRequest().setBucket(bucketName_).setKey(key));
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
     auto& result = outcome.getResult();
@@ -71,8 +63,7 @@ TEST_F(AsyncObjectBasicTest, GetObject_Normal) {
 
 TEST_F(AsyncObjectBasicTest, GetObject_Fail) {
     auto client = ClientHelper::GetInvalidClient();
-    auto future = client->callAsync<GetObjectOutcome>(
-        &OSSAsyncClient::getObjectAsync, models::GetObjectRequest().setBucket(bucketName_).setKey("test-key"));
+    auto future = client->asyncCall(models::GetObjectRequest().setBucket(bucketName_).setKey("test-key"));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
@@ -83,14 +74,10 @@ TEST_F(AsyncObjectBasicTest, CopyObject_Normal) {
     std::string sourceKey = "test-copy-source";
     std::string destKey = "test-copy-dest";
 
-    auto putFuture = client->callAsync<PutObjectOutcome>(
-        &OSSAsyncClient::putObjectAsync,
-        models::PutObjectRequest().setBucket(bucketName_).setKey(sourceKey).setBody(RequestBody::FromString("Copy me!")));
+    auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(sourceKey).setBody(RequestBody::FromString("Copy me!")));
     EXPECT_TRUE(putFuture.get().isSuccess());
 
-    auto future = client->callAsync<CopyObjectOutcome>(
-        &OSSAsyncClient::copyObjectAsync,
-        models::CopyObjectRequest().setBucket(bucketName_).setKey(destKey).setSourceBucket(bucketName_).setSourceKey(sourceKey));
+    auto future = client->asyncCall(models::CopyObjectRequest().setBucket(bucketName_).setKey(destKey).setSourceBucket(bucketName_).setSourceKey(sourceKey));
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
     EXPECT_FALSE(outcome.getResult().getETag().empty());
@@ -98,9 +85,7 @@ TEST_F(AsyncObjectBasicTest, CopyObject_Normal) {
 
 TEST_F(AsyncObjectBasicTest, CopyObject_Fail) {
     auto client = ClientHelper::GetInvalidClient();
-    auto future = client->callAsync<CopyObjectOutcome>(
-        &OSSAsyncClient::copyObjectAsync,
-        models::CopyObjectRequest().setBucket(bucketName_).setKey("dest").setSourceBucket(bucketName_).setSourceKey("src"));
+    auto future = client->asyncCall(models::CopyObjectRequest().setBucket(bucketName_).setKey("dest").setSourceBucket(bucketName_).setSourceKey("src"));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
@@ -110,21 +95,17 @@ TEST_F(AsyncObjectBasicTest, DeleteObject_Normal) {
     auto client = ClientHelper::GetDefaultClient();
     std::string key = "test-delete-object";
 
-    auto putFuture = client->callAsync<PutObjectOutcome>(
-        &OSSAsyncClient::putObjectAsync,
-        models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::FromString("Delete me!")));
+    auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::FromString("Delete me!")));
     EXPECT_TRUE(putFuture.get().isSuccess());
 
-    auto future = client->callAsync<DeleteObjectOutcome>(
-        &OSSAsyncClient::deleteObjectAsync, models::DeleteObjectRequest().setBucket(bucketName_).setKey(key));
+    auto future = client->asyncCall(models::DeleteObjectRequest().setBucket(bucketName_).setKey(key));
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
 }
 
 TEST_F(AsyncObjectBasicTest, DeleteObject_Fail) {
     auto client = ClientHelper::GetInvalidClient();
-    auto future = client->callAsync<DeleteObjectOutcome>(
-        &OSSAsyncClient::deleteObjectAsync, models::DeleteObjectRequest().setBucket(bucketName_).setKey("test-key"));
+    auto future = client->asyncCall(models::DeleteObjectRequest().setBucket(bucketName_).setKey("test-key"));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
@@ -135,13 +116,10 @@ TEST_F(AsyncObjectBasicTest, HeadObject_Normal) {
     std::string key = "test-head-object";
     std::string content = "Head me!";
 
-    auto putFuture = client->callAsync<PutObjectOutcome>(
-        &OSSAsyncClient::putObjectAsync,
-        models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::FromString(content)));
+    auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::FromString(content)));
     EXPECT_TRUE(putFuture.get().isSuccess());
 
-    auto future = client->callAsync<HeadObjectOutcome>(
-        &OSSAsyncClient::headObjectAsync, models::HeadObjectRequest().setBucket(bucketName_).setKey(key));
+    auto future = client->asyncCall(models::HeadObjectRequest().setBucket(bucketName_).setKey(key));
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
     EXPECT_EQ(content.size(), outcome.getResult().getContentLength());
@@ -150,8 +128,7 @@ TEST_F(AsyncObjectBasicTest, HeadObject_Normal) {
 
 TEST_F(AsyncObjectBasicTest, HeadObject_Fail) {
     auto client = ClientHelper::GetInvalidClient();
-    auto future = client->callAsync<HeadObjectOutcome>(
-        &OSSAsyncClient::headObjectAsync, models::HeadObjectRequest().setBucket(bucketName_).setKey("test-key"));
+    auto future = client->asyncCall(models::HeadObjectRequest().setBucket(bucketName_).setKey("test-key"));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
@@ -162,13 +139,10 @@ TEST_F(AsyncObjectBasicTest, GetObjectMeta_Normal) {
     std::string key = "test-meta-object";
     std::string content = "Meta me!";
 
-    auto putFuture = client->callAsync<PutObjectOutcome>(
-        &OSSAsyncClient::putObjectAsync,
-        models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::FromString(content)));
+    auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::FromString(content)));
     EXPECT_TRUE(putFuture.get().isSuccess());
 
-    auto future = client->callAsync<GetObjectMetaOutcome>(
-        &OSSAsyncClient::getObjectMetaAsync, models::GetObjectMetaRequest().setBucket(bucketName_).setKey(key));
+    auto future = client->asyncCall(models::GetObjectMetaRequest().setBucket(bucketName_).setKey(key));
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
     EXPECT_EQ(content.size(), outcome.getResult().getContentLength());
@@ -177,8 +151,7 @@ TEST_F(AsyncObjectBasicTest, GetObjectMeta_Normal) {
 
 TEST_F(AsyncObjectBasicTest, GetObjectMeta_Fail) {
     auto client = ClientHelper::GetInvalidClient();
-    auto future = client->callAsync<GetObjectMetaOutcome>(
-        &OSSAsyncClient::getObjectMetaAsync, models::GetObjectMetaRequest().setBucket(bucketName_).setKey("test-key"));
+    auto future = client->asyncCall(models::GetObjectMetaRequest().setBucket(bucketName_).setKey("test-key"));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());

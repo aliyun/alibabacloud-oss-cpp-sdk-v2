@@ -9,7 +9,7 @@ namespace alibabacloud {
 namespace oss2 {
 
 /// Abstract base class for async task executors.
-/// Subclass this to provide custom threading strategies for OSSClient::callAsync.
+/// Subclass this to provide custom threading strategies for OSSClient::asyncCall / asyncCallback.
 class ALIBABACLOUD_OSS_API Executor {
   public:
     virtual ~Executor() = default;

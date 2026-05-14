@@ -26,7 +26,7 @@ TEST(OSSClientObjectTaggingCallAsyncTest, PutObjectTagging_Future_Success) {
     request.setBucket("test-bucket");
     request.setKey("test-key");
 
-    auto future = client.callAsync<PutObjectTaggingOutcome>(&OSSClient::putObjectTagging, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
     EXPECT_EQ("id-tag-1", outcome.getResult().getRequestId());
@@ -58,7 +58,7 @@ TEST(OSSClientObjectTaggingCallAsyncTest, GetObjectTagging_Future_Success) {
     request.setBucket("test-bucket");
     request.setKey("test-key");
 
-    auto future = client.callAsync<GetObjectTaggingOutcome>(&OSSClient::getObjectTagging, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
     EXPECT_EQ("id-tag-2", outcome.getResult().getRequestId());
@@ -85,7 +85,7 @@ TEST(OSSClientObjectTaggingCallAsyncTest, DeleteObjectTagging_Callback_Success) 
     std::promise<DeleteObjectTaggingOutcome> promise;
     auto future = promise.get_future();
 
-    client.callAsync<DeleteObjectTaggingOutcome>(&OSSClient::deleteObjectTagging, request,
+    client.asyncCallback(request,
         [&promise](const OSSClient*, const models::DeleteObjectTaggingRequest&, const DeleteObjectTaggingOutcome& outcome) {
             promise.set_value(outcome);
         });
@@ -105,7 +105,7 @@ TEST(OSSClientObjectTaggingCallAsyncTest, GetObjectTagging_Future_NoExecutor) {
     request.setBucket("test-bucket");
     request.setKey("test-key");
 
-    auto future = client.callAsync<GetObjectTaggingOutcome>(&OSSClient::getObjectTagging, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("NoExecutor", outcome.getError().getCode());

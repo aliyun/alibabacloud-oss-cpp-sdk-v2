@@ -11,8 +11,7 @@ namespace async {
 TEST(AsyncBucketRefererTest, PutBucketReferer_normal) {
     auto client = ClientHelper::GetDefaultClient();
     auto bucket = Config::GenBucketName();
-    auto future = client->callAsync<PutBucketOutcome>(
-        &OSSAsyncClient::putBucketAsync, models::PutBucketRequest().setBucket(bucket));
+    auto future = client->asyncCall(models::PutBucketRequest().setBucket(bucket));
     EXPECT_TRUE(future.get().isSuccess());
 
     auto rrequest = models::PutBucketRefererRequest();
@@ -21,12 +20,12 @@ TEST(AsyncBucketRefererTest, PutBucketReferer_normal) {
     refererConfiguration.setAllowEmptyReferer(true);
     refererConfiguration.setRefererList({{"http://www.aliyun.com", "https://www.aliyun.com"}});
     rrequest.setRefererConfiguration(std::move(refererConfiguration));
-    auto rfuture = client->callAsync<PutBucketRefererOutcome>(&OSSAsyncClient::putBucketRefererAsync, rrequest);
+    auto rfuture = client->asyncCall(rrequest);
     EXPECT_TRUE(rfuture.get().isSuccess());
 
     auto grequest = models::GetBucketRefererRequest();
     grequest.setBucket(bucket);
-    auto gfuture = client->callAsync<GetBucketRefererOutcome>(&OSSAsyncClient::getBucketRefererAsync, grequest);
+    auto gfuture = client->asyncCall(grequest);
     auto goutcome = gfuture.get();
     EXPECT_TRUE(goutcome.isSuccess());
     EXPECT_TRUE(goutcome.getResult().hasRefererConfiguration());

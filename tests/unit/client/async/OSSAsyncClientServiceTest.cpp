@@ -54,7 +54,7 @@ TEST(OSSAsyncClientServiceTest, ListBucketsAsync_Success) {
             ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1234"}}, std::make_shared<std::stringstream>(body)}));
 
     auto request = models::ListBucketsRequest();
-    auto future = client.callAsync<ListBucketsOutcome>(&OSSAsyncClient::listBucketsAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_TRUE(outcome.isSuccess());
@@ -81,7 +81,7 @@ TEST(OSSAsyncClientServiceTest, ListBucketsAsync_ErrorResponse) {
             403, "Forbidden", {{"x-oss-request-id", "id-12345"}}, std::make_shared<std::stringstream>(body)}));
 
     auto request = models::ListBucketsRequest();
-    auto future = client.callAsync<ListBucketsOutcome>(&OSSAsyncClient::listBucketsAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_FALSE(outcome.isSuccess());
@@ -98,7 +98,7 @@ TEST(OSSAsyncClientServiceTest, ListBucketsAsync_TransportError) {
     auto client = OSSAsyncClient(config);
 
     auto request = models::ListBucketsRequest();
-    auto future = client.callAsync<ListBucketsOutcome>(&OSSAsyncClient::listBucketsAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_FALSE(outcome.isSuccess());

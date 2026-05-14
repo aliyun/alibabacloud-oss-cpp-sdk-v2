@@ -41,13 +41,13 @@ TEST(OSSAsyncClientObjectAclTest, PutObjectAclAsync_RequiredField) {
     auto client = OSSAsyncClient(config);
 
     auto request = models::PutObjectAclRequest();
-    auto future = client.callAsync<PutObjectAclOutcome>(&OSSAsyncClient::putObjectAclAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
 
     request.setBucket("test-bucket");
-    auto future2 = client.callAsync<PutObjectAclOutcome>(&OSSAsyncClient::putObjectAclAsync, request);
+    auto future2 = client.asyncCall(request);
     auto outcome2 = future2.get();
     EXPECT_FALSE(outcome2.isSuccess());
     EXPECT_EQ("Missing field Key", outcome2.getError().getMessage());
@@ -66,7 +66,7 @@ TEST(OSSAsyncClientObjectAclTest, PutObjectAclAsync_Success) {
 
     auto request = models::PutObjectAclRequest();
     request.setBucket("test-bucket").setKey("test-key").setObjectAcl("private");
-    auto future = client.callAsync<PutObjectAclOutcome>(&OSSAsyncClient::putObjectAclAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_TRUE(outcome.isSuccess());
@@ -82,7 +82,7 @@ TEST(OSSAsyncClientObjectAclTest, GetObjectAclAsync_RequiredField) {
     auto client = OSSAsyncClient(config);
 
     auto request = models::GetObjectAclRequest();
-    auto future = client.callAsync<GetObjectAclOutcome>(&OSSAsyncClient::getObjectAclAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());

@@ -13,8 +13,7 @@ class AsyncObjectSymlinkTest : public ::testing::Test {
     static void SetUpTestCase() {
         auto client = ClientHelper::GetDefaultClient();
         bucketName_ = Config::GenBucketName();
-        auto future = client->callAsync<PutBucketOutcome>(&OSSAsyncClient::putBucketAsync,
-                                                          models::PutBucketRequest().setBucket(bucketName_));
+        auto future = client->asyncCall(models::PutBucketRequest().setBucket(bucketName_));
         EXPECT_TRUE(future.get().isSuccess());
     }
 
@@ -33,18 +32,13 @@ TEST_F(AsyncObjectSymlinkTest, Symlink_Normal) {
     std::string targetKey = "test-target-object";
     std::string symlinkKey = "test-symlink";
 
-    auto putFuture = client->callAsync<PutObjectOutcome>(
-        &OSSAsyncClient::putObjectAsync,
-        models::PutObjectRequest().setBucket(bucketName_).setKey(targetKey).setBody(RequestBody::FromString("target content")));
+    auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(targetKey).setBody(RequestBody::FromString("target content")));
     EXPECT_TRUE(putFuture.get().isSuccess());
 
-    auto putSymFuture = client->callAsync<PutSymlinkOutcome>(
-        &OSSAsyncClient::putSymlinkAsync,
-        models::PutSymlinkRequest().setBucket(bucketName_).setKey(symlinkKey).setSymlinkTarget(targetKey));
+    auto putSymFuture = client->asyncCall(models::PutSymlinkRequest().setBucket(bucketName_).setKey(symlinkKey).setSymlinkTarget(targetKey));
     EXPECT_TRUE(putSymFuture.get().isSuccess());
 
-    auto getSymFuture = client->callAsync<GetSymlinkOutcome>(
-        &OSSAsyncClient::getSymlinkAsync, models::GetSymlinkRequest().setBucket(bucketName_).setKey(symlinkKey));
+    auto getSymFuture = client->asyncCall(models::GetSymlinkRequest().setBucket(bucketName_).setKey(symlinkKey));
     auto outcome = getSymFuture.get();
     EXPECT_TRUE(outcome.isSuccess());
     EXPECT_EQ(targetKey, outcome.getResult().getSymlinkTarget());
@@ -52,9 +46,7 @@ TEST_F(AsyncObjectSymlinkTest, Symlink_Normal) {
 
 TEST_F(AsyncObjectSymlinkTest, PutSymlink_Fail) {
     auto client = ClientHelper::GetInvalidClient();
-    auto future = client->callAsync<PutSymlinkOutcome>(
-        &OSSAsyncClient::putSymlinkAsync,
-        models::PutSymlinkRequest().setBucket(bucketName_).setKey("symlink-key").setSymlinkTarget("target-key"));
+    auto future = client->asyncCall(models::PutSymlinkRequest().setBucket(bucketName_).setKey("symlink-key").setSymlinkTarget("target-key"));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
@@ -62,8 +54,7 @@ TEST_F(AsyncObjectSymlinkTest, PutSymlink_Fail) {
 
 TEST_F(AsyncObjectSymlinkTest, GetSymlink_Fail) {
     auto client = ClientHelper::GetInvalidClient();
-    auto future = client->callAsync<GetSymlinkOutcome>(
-        &OSSAsyncClient::getSymlinkAsync, models::GetSymlinkRequest().setBucket(bucketName_).setKey("symlink-key"));
+    auto future = client->asyncCall(models::GetSymlinkRequest().setBucket(bucketName_).setKey("symlink-key"));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());

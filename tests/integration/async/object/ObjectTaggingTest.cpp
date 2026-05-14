@@ -13,8 +13,7 @@ class AsyncObjectTaggingTest : public ::testing::Test {
     static void SetUpTestCase() {
         auto client = ClientHelper::GetDefaultClient();
         bucketName_ = Config::GenBucketName();
-        auto future = client->callAsync<PutBucketOutcome>(&OSSAsyncClient::putBucketAsync,
-                                                          models::PutBucketRequest().setBucket(bucketName_));
+        auto future = client->asyncCall(models::PutBucketRequest().setBucket(bucketName_));
         EXPECT_TRUE(future.get().isSuccess());
     }
 
@@ -32,9 +31,7 @@ TEST_F(AsyncObjectTaggingTest, ObjectTagging_Normal) {
     auto client = ClientHelper::GetDefaultClient();
     std::string key = "test-tagging-object";
 
-    auto putFuture = client->callAsync<PutObjectOutcome>(
-        &OSSAsyncClient::putObjectAsync,
-        models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::FromString("tagging content")));
+    auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::FromString("tagging content")));
     EXPECT_TRUE(putFuture.get().isSuccess());
 
     std::vector<models::Tag> tags;
@@ -52,14 +49,10 @@ TEST_F(AsyncObjectTaggingTest, ObjectTagging_Normal) {
     models::Tagging tagging;
     tagging.setTagSet(tagSet);
 
-    auto putTagFuture = client->callAsync<PutObjectTaggingOutcome>(
-        &OSSAsyncClient::putObjectTaggingAsync,
-        models::PutObjectTaggingRequest().setBucket(bucketName_).setKey(key).setTagging(tagging));
+    auto putTagFuture = client->asyncCall(models::PutObjectTaggingRequest().setBucket(bucketName_).setKey(key).setTagging(tagging));
     EXPECT_TRUE(putTagFuture.get().isSuccess());
 
-    auto getTagFuture = client->callAsync<GetObjectTaggingOutcome>(
-        &OSSAsyncClient::getObjectTaggingAsync,
-        models::GetObjectTaggingRequest().setBucket(bucketName_).setKey(key));
+    auto getTagFuture = client->asyncCall(models::GetObjectTaggingRequest().setBucket(bucketName_).setKey(key));
     auto getOutcome = getTagFuture.get();
     EXPECT_TRUE(getOutcome.isSuccess());
     auto& result = getOutcome.getResult();
@@ -70,15 +63,11 @@ TEST_F(AsyncObjectTaggingTest, ObjectTagging_Normal) {
     EXPECT_EQ("env", resultTagging.tagSet.value().tags.at(0).key);
     EXPECT_EQ("test", resultTagging.tagSet.value().tags.at(0).value);
 
-    auto delTagFuture = client->callAsync<DeleteObjectTaggingOutcome>(
-        &OSSAsyncClient::deleteObjectTaggingAsync,
-        models::DeleteObjectTaggingRequest().setBucket(bucketName_).setKey(key));
+    auto delTagFuture = client->asyncCall(models::DeleteObjectTaggingRequest().setBucket(bucketName_).setKey(key));
     EXPECT_TRUE(delTagFuture.get().isSuccess());
 
     Config::WaitForCacheExpire(2);
-    auto getTag2Future = client->callAsync<GetObjectTaggingOutcome>(
-        &OSSAsyncClient::getObjectTaggingAsync,
-        models::GetObjectTaggingRequest().setBucket(bucketName_).setKey(key));
+    auto getTag2Future = client->asyncCall(models::GetObjectTaggingRequest().setBucket(bucketName_).setKey(key));
     auto getOutcome2 = getTag2Future.get();
     EXPECT_TRUE(getOutcome2.isSuccess());
     if (getOutcome2.getResult().hasTagging() && getOutcome2.getResult().getTagging().tagSet.has_value()) {
@@ -89,9 +78,7 @@ TEST_F(AsyncObjectTaggingTest, ObjectTagging_Normal) {
 TEST_F(AsyncObjectTaggingTest, PutObjectTagging_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     models::Tagging tagging;
-    auto future = client->callAsync<PutObjectTaggingOutcome>(
-        &OSSAsyncClient::putObjectTaggingAsync,
-        models::PutObjectTaggingRequest().setBucket(bucketName_).setKey("test-key").setTagging(tagging));
+    auto future = client->asyncCall(models::PutObjectTaggingRequest().setBucket(bucketName_).setKey("test-key").setTagging(tagging));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
@@ -99,9 +86,7 @@ TEST_F(AsyncObjectTaggingTest, PutObjectTagging_Fail) {
 
 TEST_F(AsyncObjectTaggingTest, GetObjectTagging_Fail) {
     auto client = ClientHelper::GetInvalidClient();
-    auto future = client->callAsync<GetObjectTaggingOutcome>(
-        &OSSAsyncClient::getObjectTaggingAsync,
-        models::GetObjectTaggingRequest().setBucket(bucketName_).setKey("test-key"));
+    auto future = client->asyncCall(models::GetObjectTaggingRequest().setBucket(bucketName_).setKey("test-key"));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
@@ -109,9 +94,7 @@ TEST_F(AsyncObjectTaggingTest, GetObjectTagging_Fail) {
 
 TEST_F(AsyncObjectTaggingTest, DeleteObjectTagging_Fail) {
     auto client = ClientHelper::GetInvalidClient();
-    auto future = client->callAsync<DeleteObjectTaggingOutcome>(
-        &OSSAsyncClient::deleteObjectTaggingAsync,
-        models::DeleteObjectTaggingRequest().setBucket(bucketName_).setKey("test-key"));
+    auto future = client->asyncCall(models::DeleteObjectTaggingRequest().setBucket(bucketName_).setKey("test-key"));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());

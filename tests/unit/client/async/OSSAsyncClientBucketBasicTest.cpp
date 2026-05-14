@@ -41,7 +41,7 @@ TEST(OSSAsyncClientBucketBasicTest, GetBucketStatAsync_RequiredField) {
     auto client = OSSAsyncClient(config);
 
     auto request = models::GetBucketStatRequest();
-    auto future = client.callAsync<GetBucketStatOutcome>(&OSSAsyncClient::getBucketStatAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_FALSE(outcome.isSuccess());
@@ -64,7 +64,7 @@ TEST(OSSAsyncClientBucketBasicTest, GetBucketStatAsync_Success) {
 
     auto request = models::GetBucketStatRequest();
     request.setBucket("test-bucket");
-    auto future = client.callAsync<GetBucketStatOutcome>(&OSSAsyncClient::getBucketStatAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_TRUE(outcome.isSuccess());
@@ -82,7 +82,7 @@ TEST(OSSAsyncClientBucketBasicTest, PutBucketAsync_RequiredField) {
     auto client = OSSAsyncClient(config);
 
     auto request = models::PutBucketRequest();
-    auto future = client.callAsync<PutBucketOutcome>(&OSSAsyncClient::putBucketAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_FALSE(outcome.isSuccess());
@@ -103,7 +103,7 @@ TEST(OSSAsyncClientBucketBasicTest, PutBucketAsync_Success) {
 
     auto request = models::PutBucketRequest();
     request.setBucket("test-bucket");
-    auto future = client.callAsync<PutBucketOutcome>(&OSSAsyncClient::putBucketAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_TRUE(outcome.isSuccess());
@@ -119,7 +119,7 @@ TEST(OSSAsyncClientBucketBasicTest, DeleteBucketAsync_RequiredField) {
     auto client = OSSAsyncClient(config);
 
     auto request = models::DeleteBucketRequest();
-    auto future = client.callAsync<DeleteBucketOutcome>(&OSSAsyncClient::deleteBucketAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_FALSE(outcome.isSuccess());
@@ -139,7 +139,7 @@ TEST(OSSAsyncClientBucketBasicTest, DeleteBucketAsync_Success) {
 
     auto request = models::DeleteBucketRequest();
     request.setBucket("test-bucket");
-    auto future = client.callAsync<DeleteBucketOutcome>(&OSSAsyncClient::deleteBucketAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_TRUE(outcome.isSuccess());
@@ -155,7 +155,7 @@ TEST(OSSAsyncClientBucketBasicTest, ListObjectsAsync_RequiredField) {
     auto client = OSSAsyncClient(config);
 
     auto request = models::ListObjectsRequest();
-    auto future = client.callAsync<ListObjectsOutcome>(&OSSAsyncClient::listObjectsAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_FALSE(outcome.isSuccess());
@@ -171,7 +171,7 @@ TEST(OSSAsyncClientBucketBasicTest, ListObjectsV2Async_RequiredField) {
     auto client = OSSAsyncClient(config);
 
     auto request = models::ListObjectsV2Request();
-    auto future = client.callAsync<ListObjectsV2Outcome>(&OSSAsyncClient::listObjectsV2Async, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_FALSE(outcome.isSuccess());
@@ -187,7 +187,7 @@ TEST(OSSAsyncClientBucketBasicTest, GetBucketInfoAsync_RequiredField) {
     auto client = OSSAsyncClient(config);
 
     auto request = models::GetBucketInfoRequest();
-    auto future = client.callAsync<GetBucketInfoOutcome>(&OSSAsyncClient::getBucketInfoAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_FALSE(outcome.isSuccess());
@@ -203,7 +203,7 @@ TEST(OSSAsyncClientBucketBasicTest, GetBucketLocationAsync_RequiredField) {
     auto client = OSSAsyncClient(config);
 
     auto request = models::GetBucketLocationRequest();
-    auto future = client.callAsync<GetBucketLocationOutcome>(&OSSAsyncClient::getBucketLocationAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_FALSE(outcome.isSuccess());

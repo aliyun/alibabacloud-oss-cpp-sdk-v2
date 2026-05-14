@@ -45,15 +45,11 @@ TEST_F(ObjectCallAsyncTest, PutGetObject_Future) {
     std::string content = "Hello Async Future!";
     auto body = RequestBody::FromString(content);
 
-    auto putFuture = client_->callAsync<PutObjectOutcome>(
-        &OSSClient::putObject,
-        models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body));
+    auto putFuture = client_->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body));
     auto putOutcome = putFuture.get();
     EXPECT_TRUE(putOutcome.isSuccess());
 
-    auto getFuture = client_->callAsync<GetObjectOutcome>(
-        &OSSClient::getObject,
-        models::GetObjectRequest().setBucket(bucketName_).setKey(key));
+    auto getFuture = client_->asyncCall(models::GetObjectRequest().setBucket(bucketName_).setKey(key));
     auto getOutcome = getFuture.get();
     EXPECT_TRUE(getOutcome.isSuccess());
     EXPECT_EQ(content.size(), getOutcome.getResult().getContentLength());
@@ -68,9 +64,7 @@ TEST_F(ObjectCallAsyncTest, PutObject_Callback) {
     std::promise<PutObjectOutcome> promise;
     auto future = promise.get_future();
 
-    client_->callAsync<PutObjectOutcome>(
-        &OSSClient::putObject,
-        models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body),
+    client_->asyncCallback(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body),
         [&promise](const OSSClient*, const models::PutObjectRequest&, const PutObjectOutcome& outcome) {
             promise.set_value(outcome);
         });
@@ -85,14 +79,10 @@ TEST_F(ObjectCallAsyncTest, HeadObject_Future) {
     std::string content = "Head me async!";
     auto body = RequestBody::FromString(content);
 
-    auto putFuture = client_->callAsync<PutObjectOutcome>(
-        &OSSClient::putObject,
-        models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body));
+    auto putFuture = client_->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body));
     EXPECT_TRUE(putFuture.get().isSuccess());
 
-    auto headFuture = client_->callAsync<HeadObjectOutcome>(
-        &OSSClient::headObject,
-        models::HeadObjectRequest().setBucket(bucketName_).setKey(key));
+    auto headFuture = client_->asyncCall(models::HeadObjectRequest().setBucket(bucketName_).setKey(key));
     auto outcome = headFuture.get();
     EXPECT_TRUE(outcome.isSuccess());
     EXPECT_EQ(content.size(), outcome.getResult().getContentLength());
@@ -104,14 +94,10 @@ TEST_F(ObjectCallAsyncTest, CopyObject_Future) {
     std::string dstKey = "async-copy-dst";
     auto body = RequestBody::FromString("Copy me async!");
 
-    auto putFuture = client_->callAsync<PutObjectOutcome>(
-        &OSSClient::putObject,
-        models::PutObjectRequest().setBucket(bucketName_).setKey(srcKey).setBody(body));
+    auto putFuture = client_->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(srcKey).setBody(body));
     EXPECT_TRUE(putFuture.get().isSuccess());
 
-    auto copyFuture = client_->callAsync<CopyObjectOutcome>(
-        &OSSClient::copyObject,
-        models::CopyObjectRequest()
+    auto copyFuture = client_->asyncCall(models::CopyObjectRequest()
             .setBucket(bucketName_)
             .setKey(dstKey)
             .setSourceBucket(bucketName_)
@@ -126,14 +112,10 @@ TEST_F(ObjectCallAsyncTest, DeleteObject_Future) {
     std::string key = "async-delete-future";
     auto body = RequestBody::FromString("Delete me async!");
 
-    auto putFuture = client_->callAsync<PutObjectOutcome>(
-        &OSSClient::putObject,
-        models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body));
+    auto putFuture = client_->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body));
     EXPECT_TRUE(putFuture.get().isSuccess());
 
-    auto delFuture = client_->callAsync<DeleteObjectOutcome>(
-        &OSSClient::deleteObject,
-        models::DeleteObjectRequest().setBucket(bucketName_).setKey(key));
+    auto delFuture = client_->asyncCall(models::DeleteObjectRequest().setBucket(bucketName_).setKey(key));
     auto outcome = delFuture.get();
     EXPECT_TRUE(outcome.isSuccess());
 }
@@ -144,9 +126,7 @@ TEST_F(ObjectCallAsyncTest, AppendObject_Future) {
     std::string content = "Append me async!";
     auto body = RequestBody::FromString(content);
 
-    auto future = client_->callAsync<AppendObjectOutcome>(
-        &OSSClient::appendObject,
-        models::AppendObjectRequest()
+    auto future = client_->asyncCall(models::AppendObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
             .setPosition(0)
@@ -160,22 +140,16 @@ TEST_F(ObjectCallAsyncTest, ObjectAcl_Future) {
     std::string key = "async-acl-future";
     auto body = RequestBody::FromString("Acl test async!");
 
-    auto putFuture = client_->callAsync<PutObjectOutcome>(
-        &OSSClient::putObject,
-        models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body));
+    auto putFuture = client_->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body));
     EXPECT_TRUE(putFuture.get().isSuccess());
 
-    auto putAclFuture = client_->callAsync<PutObjectAclOutcome>(
-        &OSSClient::putObjectAcl,
-        models::PutObjectAclRequest()
+    auto putAclFuture = client_->asyncCall(models::PutObjectAclRequest()
             .setBucket(bucketName_)
             .setKey(key)
             .setObjectAcl("private"));
     EXPECT_TRUE(putAclFuture.get().isSuccess());
 
-    auto getAclFuture = client_->callAsync<GetObjectAclOutcome>(
-        &OSSClient::getObjectAcl,
-        models::GetObjectAclRequest().setBucket(bucketName_).setKey(key));
+    auto getAclFuture = client_->asyncCall(models::GetObjectAclRequest().setBucket(bucketName_).setKey(key));
     auto outcome = getAclFuture.get();
     EXPECT_TRUE(outcome.isSuccess());
     EXPECT_EQ("private", outcome.getResult().getAccessControlPolicy().accessControlList.value().grant);
@@ -187,22 +161,16 @@ TEST_F(ObjectCallAsyncTest, Symlink_Future) {
     std::string symlinkKey = "async-symlink-link";
     auto body = RequestBody::FromString("Symlink target!");
 
-    auto putFuture = client_->callAsync<PutObjectOutcome>(
-        &OSSClient::putObject,
-        models::PutObjectRequest().setBucket(bucketName_).setKey(targetKey).setBody(body));
+    auto putFuture = client_->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(targetKey).setBody(body));
     EXPECT_TRUE(putFuture.get().isSuccess());
 
-    auto putSymFuture = client_->callAsync<PutSymlinkOutcome>(
-        &OSSClient::putSymlink,
-        models::PutSymlinkRequest()
+    auto putSymFuture = client_->asyncCall(models::PutSymlinkRequest()
             .setBucket(bucketName_)
             .setKey(symlinkKey)
             .setSymlinkTarget(targetKey));
     EXPECT_TRUE(putSymFuture.get().isSuccess());
 
-    auto getSymFuture = client_->callAsync<GetSymlinkOutcome>(
-        &OSSClient::getSymlink,
-        models::GetSymlinkRequest().setBucket(bucketName_).setKey(symlinkKey));
+    auto getSymFuture = client_->asyncCall(models::GetSymlinkRequest().setBucket(bucketName_).setKey(symlinkKey));
     auto outcome = getSymFuture.get();
     EXPECT_TRUE(outcome.isSuccess());
     EXPECT_EQ(targetKey, outcome.getResult().getSymlinkTarget());
@@ -213,9 +181,7 @@ TEST_F(ObjectCallAsyncTest, Tagging_Future) {
     std::string key = "async-tagging-future";
     auto body = RequestBody::FromString("Tagging test!");
 
-    auto putFuture = client_->callAsync<PutObjectOutcome>(
-        &OSSClient::putObject,
-        models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body));
+    auto putFuture = client_->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body));
     EXPECT_TRUE(putFuture.get().isSuccess());
 
     models::Tag tag;
@@ -226,23 +192,17 @@ TEST_F(ObjectCallAsyncTest, Tagging_Future) {
     models::Tagging tagging;
     tagging.tagSet = tagSet;
 
-    auto putTagFuture = client_->callAsync<PutObjectTaggingOutcome>(
-        &OSSClient::putObjectTagging,
-        models::PutObjectTaggingRequest()
+    auto putTagFuture = client_->asyncCall(models::PutObjectTaggingRequest()
             .setBucket(bucketName_)
             .setKey(key)
             .setTagging(tagging));
     EXPECT_TRUE(putTagFuture.get().isSuccess());
 
-    auto getTagFuture = client_->callAsync<GetObjectTaggingOutcome>(
-        &OSSClient::getObjectTagging,
-        models::GetObjectTaggingRequest().setBucket(bucketName_).setKey(key));
+    auto getTagFuture = client_->asyncCall(models::GetObjectTaggingRequest().setBucket(bucketName_).setKey(key));
     auto getOutcome = getTagFuture.get();
     EXPECT_TRUE(getOutcome.isSuccess());
 
-    auto delTagFuture = client_->callAsync<DeleteObjectTaggingOutcome>(
-        &OSSClient::deleteObjectTagging,
-        models::DeleteObjectTaggingRequest().setBucket(bucketName_).setKey(key));
+    auto delTagFuture = client_->asyncCall(models::DeleteObjectTaggingRequest().setBucket(bucketName_).setKey(key));
     EXPECT_TRUE(delTagFuture.get().isSuccess());
 }
 
@@ -250,26 +210,20 @@ TEST_F(ObjectCallAsyncTest, Tagging_Future) {
 TEST_F(ObjectCallAsyncTest, MultipartUpload_Future) {
     std::string key = "async-multipart-future";
 
-    auto initFuture = client_->callAsync<InitiateMultipartUploadOutcome>(
-        &OSSClient::initiateMultipartUpload,
-        models::InitiateMultipartUploadRequest().setBucket(bucketName_).setKey(key));
+    auto initFuture = client_->asyncCall(models::InitiateMultipartUploadRequest().setBucket(bucketName_).setKey(key));
     auto initOutcome = initFuture.get();
     EXPECT_TRUE(initOutcome.isSuccess());
     auto uploadId = initOutcome.getResult().getUploadId();
     EXPECT_FALSE(uploadId.empty());
 
-    auto listPartsFuture = client_->callAsync<ListPartsOutcome>(
-        &OSSClient::listParts,
-        models::ListPartsRequest()
+    auto listPartsFuture = client_->asyncCall(models::ListPartsRequest()
             .setBucket(bucketName_)
             .setKey(key)
             .setUploadId(uploadId));
     auto listPartsOutcome = listPartsFuture.get();
     EXPECT_TRUE(listPartsOutcome.isSuccess());
 
-    auto abortFuture = client_->callAsync<AbortMultipartUploadOutcome>(
-        &OSSClient::abortMultipartUpload,
-        models::AbortMultipartUploadRequest()
+    auto abortFuture = client_->asyncCall(models::AbortMultipartUploadRequest()
             .setBucket(bucketName_)
             .setKey(key)
             .setUploadId(uploadId));
@@ -278,9 +232,7 @@ TEST_F(ObjectCallAsyncTest, MultipartUpload_Future) {
 
 // ListMultipartUploads Future
 TEST_F(ObjectCallAsyncTest, ListMultipartUploads_Future) {
-    auto future = client_->callAsync<ListMultipartUploadsOutcome>(
-        &OSSClient::listMultipartUploads,
-        models::ListMultipartUploadsRequest().setBucket(bucketName_));
+    auto future = client_->asyncCall(models::ListMultipartUploadsRequest().setBucket(bucketName_));
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
 }
@@ -294,9 +246,7 @@ TEST_F(ObjectCallAsyncTest, NoExecutor_Error) {
     config.credentialsProvider = provider;
     auto clientNoExec = OSSClient(config);
 
-    auto future = clientNoExec.callAsync<PutObjectOutcome>(
-        &OSSClient::putObject,
-        models::PutObjectRequest().setBucket(bucketName_).setKey("no-exec-key"));
+    auto future = clientNoExec.asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey("no-exec-key"));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("NoExecutor", outcome.getError().getCode());

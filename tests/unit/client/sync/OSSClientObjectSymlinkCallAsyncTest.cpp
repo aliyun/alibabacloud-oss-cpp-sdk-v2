@@ -27,7 +27,7 @@ TEST(OSSClientObjectSymlinkCallAsyncTest, PutSymlink_Future_Success) {
     request.setKey("symlink-key");
     request.setSymlinkTarget("target-key");
 
-    auto future = client.callAsync<PutSymlinkOutcome>(&OSSClient::putSymlink, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
     EXPECT_EQ("id-sym-1", outcome.getResult().getRequestId());
@@ -55,7 +55,7 @@ TEST(OSSClientObjectSymlinkCallAsyncTest, GetSymlink_Callback_Success) {
     std::promise<GetSymlinkOutcome> promise;
     auto future = promise.get_future();
 
-    client.callAsync<GetSymlinkOutcome>(&OSSClient::getSymlink, request,
+    client.asyncCallback(request,
         [&promise](const OSSClient*, const models::GetSymlinkRequest&, const GetSymlinkOutcome& outcome) {
             promise.set_value(outcome);
         });
@@ -77,7 +77,7 @@ TEST(OSSClientObjectSymlinkCallAsyncTest, PutSymlink_Future_NoExecutor) {
     request.setKey("symlink-key");
     request.setSymlinkTarget("target-key");
 
-    auto future = client.callAsync<PutSymlinkOutcome>(&OSSClient::putSymlink, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("NoExecutor", outcome.getError().getCode());

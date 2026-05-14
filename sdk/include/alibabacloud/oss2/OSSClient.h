@@ -474,13 +474,236 @@ class ALIBABACLOUD_OSS_API OSSClient final {
     PresignOutcome presign(const models::UploadPartRequest& request,
                            const models::PresignOptions* options = nullptr);
 
-    // Async
+    // Async Traits
+    template<typename RequestT>
+    struct AsyncTraits;
 
-    template<typename OutcomeT, typename RequestT>
-    std::future<OutcomeT> callAsync(
-        OutcomeT(OSSClient::*method)(const RequestT&, const OperationOptions*),
-        const RequestT& request,
-        const OperationOptions* options = nullptr) {
+    // Service
+    template<> struct AsyncTraits<models::ListBucketsRequest> {
+        using OutcomeType = ListBucketsOutcome;
+        static constexpr auto method = &OSSClient::listBuckets;
+    };
+
+    // Region
+    template<> struct AsyncTraits<models::DescribeRegionsRequest> {
+        using OutcomeType = DescribeRegionsOutcome;
+        static constexpr auto method = &OSSClient::describeRegions;
+    };
+
+    // Bucket Basic
+    template<> struct AsyncTraits<models::GetBucketStatRequest> {
+        using OutcomeType = GetBucketStatOutcome;
+        static constexpr auto method = &OSSClient::getBucketStat;
+    };
+
+    template<> struct AsyncTraits<models::PutBucketRequest> {
+        using OutcomeType = PutBucketOutcome;
+        static constexpr auto method = &OSSClient::putBucket;
+    };
+
+    template<> struct AsyncTraits<models::DeleteBucketRequest> {
+        using OutcomeType = DeleteBucketOutcome;
+        static constexpr auto method = &OSSClient::deleteBucket;
+    };
+
+    template<> struct AsyncTraits<models::DeleteMultipleObjectsRequest> {
+        using OutcomeType = DeleteMultipleObjectsOutcome;
+        static constexpr auto method = &OSSClient::deleteMultipleObjects;
+    };
+
+    template<> struct AsyncTraits<models::ListObjectsRequest> {
+        using OutcomeType = ListObjectsOutcome;
+        static constexpr auto method = &OSSClient::listObjects;
+    };
+
+    template<> struct AsyncTraits<models::ListObjectsV2Request> {
+        using OutcomeType = ListObjectsV2Outcome;
+        static constexpr auto method = &OSSClient::listObjectsV2;
+    };
+
+    template<> struct AsyncTraits<models::GetBucketInfoRequest> {
+        using OutcomeType = GetBucketInfoOutcome;
+        static constexpr auto method = &OSSClient::getBucketInfo;
+    };
+
+    template<> struct AsyncTraits<models::GetBucketLocationRequest> {
+        using OutcomeType = GetBucketLocationOutcome;
+        static constexpr auto method = &OSSClient::getBucketLocation;
+    };
+
+    // Bucket Acl
+    template<> struct AsyncTraits<models::PutBucketAclRequest> {
+        using OutcomeType = PutBucketAclOutcome;
+        static constexpr auto method = &OSSClient::putBucketAcl;
+    };
+
+    template<> struct AsyncTraits<models::GetBucketAclRequest> {
+        using OutcomeType = GetBucketAclOutcome;
+        static constexpr auto method = &OSSClient::getBucketAcl;
+    };
+
+    // Bucket Referer
+    template<> struct AsyncTraits<models::PutBucketRefererRequest> {
+        using OutcomeType = PutBucketRefererOutcome;
+        static constexpr auto method = &OSSClient::putBucketReferer;
+    };
+
+    template<> struct AsyncTraits<models::GetBucketRefererRequest> {
+        using OutcomeType = GetBucketRefererOutcome;
+        static constexpr auto method = &OSSClient::getBucketReferer;
+    };
+
+    // Object Basic
+    template<> struct AsyncTraits<models::PutObjectRequest> {
+        using OutcomeType = PutObjectOutcome;
+        static constexpr auto method = &OSSClient::putObject;
+    };
+
+    template<> struct AsyncTraits<models::CopyObjectRequest> {
+        using OutcomeType = CopyObjectOutcome;
+        static constexpr auto method = &OSSClient::copyObject;
+    };
+
+    template<> struct AsyncTraits<models::GetObjectRequest> {
+        using OutcomeType = GetObjectOutcome;
+        static constexpr auto method = &OSSClient::getObject;
+    };
+
+    template<> struct AsyncTraits<models::AppendObjectRequest> {
+        using OutcomeType = AppendObjectOutcome;
+        static constexpr auto method = &OSSClient::appendObject;
+    };
+
+    template<> struct AsyncTraits<models::SealAppendObjectRequest> {
+        using OutcomeType = SealAppendObjectOutcome;
+        static constexpr auto method = &OSSClient::sealAppendObject;
+    };
+
+    template<> struct AsyncTraits<models::DeleteObjectRequest> {
+        using OutcomeType = DeleteObjectOutcome;
+        static constexpr auto method = &OSSClient::deleteObject;
+    };
+
+    template<> struct AsyncTraits<models::HeadObjectRequest> {
+        using OutcomeType = HeadObjectOutcome;
+        static constexpr auto method = &OSSClient::headObject;
+    };
+
+    template<> struct AsyncTraits<models::GetObjectMetaRequest> {
+        using OutcomeType = GetObjectMetaOutcome;
+        static constexpr auto method = &OSSClient::getObjectMeta;
+    };
+
+    template<> struct AsyncTraits<models::RestoreObjectRequest> {
+        using OutcomeType = RestoreObjectOutcome;
+        static constexpr auto method = &OSSClient::restoreObject;
+    };
+
+    template<> struct AsyncTraits<models::CleanRestoredObjectRequest> {
+        using OutcomeType = CleanRestoredObjectOutcome;
+        static constexpr auto method = &OSSClient::cleanRestoredObject;
+    };
+
+    // Object Acl
+    template<> struct AsyncTraits<models::PutObjectAclRequest> {
+        using OutcomeType = PutObjectAclOutcome;
+        static constexpr auto method = &OSSClient::putObjectAcl;
+    };
+
+    template<> struct AsyncTraits<models::GetObjectAclRequest> {
+        using OutcomeType = GetObjectAclOutcome;
+        static constexpr auto method = &OSSClient::getObjectAcl;
+    };
+
+    // Object Symlink
+    template<> struct AsyncTraits<models::PutSymlinkRequest> {
+        using OutcomeType = PutSymlinkOutcome;
+        static constexpr auto method = &OSSClient::putSymlink;
+    };
+
+    template<> struct AsyncTraits<models::GetSymlinkRequest> {
+        using OutcomeType = GetSymlinkOutcome;
+        static constexpr auto method = &OSSClient::getSymlink;
+    };
+
+    // Object Tagging
+    template<> struct AsyncTraits<models::PutObjectTaggingRequest> {
+        using OutcomeType = PutObjectTaggingOutcome;
+        static constexpr auto method = &OSSClient::putObjectTagging;
+    };
+
+    template<> struct AsyncTraits<models::GetObjectTaggingRequest> {
+        using OutcomeType = GetObjectTaggingOutcome;
+        static constexpr auto method = &OSSClient::getObjectTagging;
+    };
+
+    template<> struct AsyncTraits<models::DeleteObjectTaggingRequest> {
+        using OutcomeType = DeleteObjectTaggingOutcome;
+        static constexpr auto method = &OSSClient::deleteObjectTagging;
+    };
+
+    // Object Multipart
+    template<> struct AsyncTraits<models::InitiateMultipartUploadRequest> {
+        using OutcomeType = InitiateMultipartUploadOutcome;
+        static constexpr auto method = &OSSClient::initiateMultipartUpload;
+    };
+
+    template<> struct AsyncTraits<models::UploadPartRequest> {
+        using OutcomeType = UploadPartOutcome;
+        static constexpr auto method = &OSSClient::uploadPart;
+    };
+
+    template<> struct AsyncTraits<models::CompleteMultipartUploadRequest> {
+        using OutcomeType = CompleteMultipartUploadOutcome;
+        static constexpr auto method = &OSSClient::completeMultipartUpload;
+    };
+
+    template<> struct AsyncTraits<models::UploadPartCopyRequest> {
+        using OutcomeType = UploadPartCopyOutcome;
+        static constexpr auto method = &OSSClient::uploadPartCopy;
+    };
+
+    template<> struct AsyncTraits<models::AbortMultipartUploadRequest> {
+        using OutcomeType = AbortMultipartUploadOutcome;
+        static constexpr auto method = &OSSClient::abortMultipartUpload;
+    };
+
+    template<> struct AsyncTraits<models::ListMultipartUploadsRequest> {
+        using OutcomeType = ListMultipartUploadsOutcome;
+        static constexpr auto method = &OSSClient::listMultipartUploads;
+    };
+
+    template<> struct AsyncTraits<models::ListPartsRequest> {
+        using OutcomeType = ListPartsOutcome;
+        static constexpr auto method = &OSSClient::listParts;
+    };
+
+    /**
+     * @brief Asynchronously invokes an operation on the executor and returns a std::future.
+     *
+     * The outcome type is automatically deduced from the request type via AsyncTraits,
+     * so no explicit template parameter or method pointer is needed.
+     * Requires an Executor to be configured in ClientConfiguration; otherwise returns
+     * a future containing a NoExecutor error.
+     *
+     * @code
+     * auto future = client.asyncCall(
+     *     models::GetObjectRequest().setBucket("my-bucket").setKey("my-key"));
+     * auto outcome = future.get();
+     * if (outcome.isSuccess()) {
+     *     auto& result = outcome.getResult();
+     *     // use result ...
+     * }
+     * @endcode
+     *
+     * @param request The request parameter to send
+     * @param options Optional, operation options
+     * @return std::future holding the operation outcome
+     */
+    template<typename RequestT>
+    std::future<typename AsyncTraits<RequestT>::OutcomeType>
+    asyncCall(const RequestT& request, const OperationOptions* options = nullptr) {
+        using OutcomeT = typename AsyncTraits<RequestT>::OutcomeType;
         if (!executor_) {
             std::promise<OutcomeT> p;
             p.set_value(OutcomeT(OperationError(SdkErrorCode::ARGUMENT_INVALID,
@@ -489,29 +712,49 @@ class ALIBABACLOUD_OSS_API OSSClient final {
         }
         auto opts = options ? std::make_optional(*options) : std::nullopt;
         auto task = std::make_shared<std::packaged_task<OutcomeT()>>(
-            [this, method, request, opts = std::move(opts)]() {
-                return (this->*method)(request, opts ? &*opts : nullptr);
+            [this, request, opts = std::move(opts)]() {
+                return (this->*AsyncTraits<RequestT>::method)(request, opts ? &*opts : nullptr);
             });
         executeTask([task]() { (*task)(); });
         return task->get_future();
     }
 
-    template<typename OutcomeT, typename RequestT, typename HandlerT>
-    void callAsync(
-        OutcomeT(OSSClient::*method)(const RequestT&, const OperationOptions*),
-        const RequestT& request,
-        HandlerT&& handler,
-        const OperationOptions* options = nullptr) {
+    /**
+     * @brief Asynchronously invokes an operation on the executor and delivers the result via callback.
+     *
+     * The outcome type is automatically deduced from the request type via AsyncTraits.
+     * The handler signature is: void(const OSSClient*, const RequestT&, const OutcomeT&).
+     * Requires an Executor to be configured in ClientConfiguration; otherwise the handler
+     * is called immediately with a NoExecutor error.
+     *
+     * @code
+     * client.asyncCallback(
+     *     models::GetObjectRequest().setBucket("my-bucket").setKey("my-key"),
+     *     [](const OSSClient*, const models::GetObjectRequest&, const GetObjectOutcome& outcome) {
+     *         if (outcome.isSuccess()) {
+     *             // use outcome.getResult() ...
+     *         }
+     *     });
+     * @endcode
+     *
+     * @param request The request parameter to send
+     * @param handler The callback to receive the operation result
+     * @param options Optional, operation options
+     */
+    template<typename RequestT, typename HandlerT>
+    void asyncCallback(const RequestT& request, HandlerT&& handler,
+                       const OperationOptions* options = nullptr) {
+        using OutcomeT = typename AsyncTraits<RequestT>::OutcomeType;
         if (!executor_) {
             handler(this, request, OutcomeT(OperationError(SdkErrorCode::ARGUMENT_INVALID,
                 {{"Code", "NoExecutor"}, {"Message", "No executor configured for async operations"}})));
             return;
         }
         auto opts = options ? std::make_optional(*options) : std::nullopt;
-        executeTask([this, method, req = request,
+        executeTask([this, req = request,
                      h = std::forward<HandlerT>(handler),
                      opts = std::move(opts)]() {
-            h(this, req, (this->*method)(req, opts ? &*opts : nullptr));
+            h(this, req, (this->*AsyncTraits<RequestT>::method)(req, opts ? &*opts : nullptr));
         });
     }
 

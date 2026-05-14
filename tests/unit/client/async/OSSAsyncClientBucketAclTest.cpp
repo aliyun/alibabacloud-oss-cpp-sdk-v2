@@ -41,7 +41,7 @@ TEST(OSSAsyncClientBucketAclTest, PutBucketAclAsync_RequiredField) {
     auto client = OSSAsyncClient(config);
 
     auto request = models::PutBucketAclRequest();
-    auto future = client.callAsync<PutBucketAclOutcome>(&OSSAsyncClient::putBucketAclAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_FALSE(outcome.isSuccess());
@@ -62,7 +62,7 @@ TEST(OSSAsyncClientBucketAclTest, PutBucketAclAsync_Success) {
 
     auto request = models::PutBucketAclRequest();
     request.setBucket("test-bucket").setAcl("private");
-    auto future = client.callAsync<PutBucketAclOutcome>(&OSSAsyncClient::putBucketAclAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_TRUE(outcome.isSuccess());
@@ -78,7 +78,7 @@ TEST(OSSAsyncClientBucketAclTest, GetBucketAclAsync_RequiredField) {
     auto client = OSSAsyncClient(config);
 
     auto request = models::GetBucketAclRequest();
-    auto future = client.callAsync<GetBucketAclOutcome>(&OSSAsyncClient::getBucketAclAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_FALSE(outcome.isSuccess());
@@ -100,7 +100,7 @@ TEST(OSSAsyncClientBucketAclTest, GetBucketAclAsync_Success) {
 
     auto request = models::GetBucketAclRequest();
     request.setBucket("test-bucket");
-    auto future = client.callAsync<GetBucketAclOutcome>(&OSSAsyncClient::getBucketAclAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_TRUE(outcome.isSuccess());

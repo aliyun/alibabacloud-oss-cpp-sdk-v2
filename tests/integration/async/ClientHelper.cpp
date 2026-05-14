@@ -34,14 +34,10 @@ std::shared_ptr<OSSAsyncClient> ClientHelper::GetInvalidClient() {
 }
 
 static void cleanBucket(OSSAsyncClient* client, const std::string& bucketName) {
-    auto listOutcome = client->callAsync<ListMultipartUploadsOutcome>(
-        &OSSAsyncClient::listMultipartUploadsAsync,
-        models::ListMultipartUploadsRequest().setBucket(bucketName)).get();
+    auto listOutcome = client->asyncCall(models::ListMultipartUploadsRequest().setBucket(bucketName)).get();
     if (listOutcome.isSuccess()) {
         for (auto const& upload : listOutcome.getResult().getUploads()) {
-            client->callAsync<AbortMultipartUploadOutcome>(
-                &OSSAsyncClient::abortMultipartUploadAsync,
-                models::AbortMultipartUploadRequest()
+            client->asyncCall(models::AbortMultipartUploadRequest()
                     .setBucket(bucketName)
                     .setKey(upload.key)
                     .setUploadId(upload.uploadId)).get();
@@ -53,13 +49,10 @@ static void cleanBucket(OSSAsyncClient* client, const std::string& bucketName) {
 
     bool IsTruncated = false;
     do {
-        auto outcome = client->callAsync<ListObjectsV2Outcome>(
-            &OSSAsyncClient::listObjectsV2Async, request).get();
+        auto outcome = client->asyncCall(request).get();
         if (outcome.isSuccess()) {
             for (auto const& obj : outcome.getResult().getContents()) {
-                client->callAsync<DeleteObjectOutcome>(
-                    &OSSAsyncClient::deleteObjectAsync,
-                    models::DeleteObjectRequest().setBucket(bucketName).setKey(obj.key)).get();
+                client->asyncCall(models::DeleteObjectRequest().setBucket(bucketName).setKey(obj.key)).get();
             }
             request.setContinuationToken(outcome.getResult().getNextContinuationToken());
             IsTruncated = outcome.getResult().getIsTruncated();
@@ -68,9 +61,7 @@ static void cleanBucket(OSSAsyncClient* client, const std::string& bucketName) {
         }
     } while (IsTruncated);
 
-    client->callAsync<DeleteBucketOutcome>(
-        &OSSAsyncClient::deleteBucketAsync,
-        models::DeleteBucketRequest().setBucket(bucketName)).get();
+    client->asyncCall(models::DeleteBucketRequest().setBucket(bucketName)).get();
 }
 
 void ClientHelper::CleanBucket(const std::string& bucketName) {
@@ -85,8 +76,7 @@ void ClientHelper::CleanBucketsByPrefix(const std::string& prefix) {
     request.setPrefix(prefix);
     bool IsTruncated = false;
     do {
-        auto outcome = client->callAsync<ListBucketsOutcome>(
-            &OSSAsyncClient::listBucketsAsync, request).get();
+        auto outcome = client->asyncCall(request).get();
         if (outcome.isSuccess()) {
             cleanBucket(client.get(), outcome.getResult().getBuckets()[0].name);
             request.setMarker(outcome.getResult().getNextMarker());

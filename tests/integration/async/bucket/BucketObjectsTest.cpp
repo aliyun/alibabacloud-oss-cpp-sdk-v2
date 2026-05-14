@@ -13,15 +13,12 @@ class AsyncBucketObjectsTest : public ::testing::Test {
     static void SetUpTestCase() {
         auto client = ClientHelper::GetDefaultClient();
         bucketName_ = Config::GenBucketName();
-        auto future = client->callAsync<PutBucketOutcome>(&OSSAsyncClient::putBucketAsync,
-                                                          models::PutBucketRequest().setBucket(bucketName_));
+        auto future = client->asyncCall(models::PutBucketRequest().setBucket(bucketName_));
         EXPECT_TRUE(future.get().isSuccess());
 
         for (int i = 0; i < 5; i++) {
             auto key = "test-object-" + std::to_string(i);
-            auto putFuture = client->callAsync<PutObjectOutcome>(
-                &OSSAsyncClient::putObjectAsync,
-                models::PutObjectRequest()
+            auto putFuture = client->asyncCall(models::PutObjectRequest()
                     .setBucket(bucketName_)
                     .setKey(key)
                     .setBody(RequestBody::FromString("content-" + std::to_string(i))));
@@ -41,8 +38,7 @@ std::string AsyncBucketObjectsTest::bucketName_ = "";
 
 TEST_F(AsyncBucketObjectsTest, ListObjects_Normal) {
     auto client = ClientHelper::GetDefaultClient();
-    auto future = client->callAsync<ListObjectsOutcome>(
-        &OSSAsyncClient::listObjectsAsync, models::ListObjectsRequest().setBucket(bucketName_));
+    auto future = client->asyncCall(models::ListObjectsRequest().setBucket(bucketName_));
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
     auto& result = outcome.getResult();
@@ -52,8 +48,7 @@ TEST_F(AsyncBucketObjectsTest, ListObjects_Normal) {
 
 TEST_F(AsyncBucketObjectsTest, ListObjects_WithMaxKeys) {
     auto client = ClientHelper::GetDefaultClient();
-    auto future = client->callAsync<ListObjectsOutcome>(
-        &OSSAsyncClient::listObjectsAsync, models::ListObjectsRequest().setBucket(bucketName_).setMaxKeys(2));
+    auto future = client->asyncCall(models::ListObjectsRequest().setBucket(bucketName_).setMaxKeys(2));
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
     EXPECT_LE(outcome.getResult().getContents().size(), 2);
@@ -61,8 +56,7 @@ TEST_F(AsyncBucketObjectsTest, ListObjects_WithMaxKeys) {
 
 TEST_F(AsyncBucketObjectsTest, ListObjects_Fail) {
     auto client = ClientHelper::GetInvalidClient();
-    auto future = client->callAsync<ListObjectsOutcome>(
-        &OSSAsyncClient::listObjectsAsync, models::ListObjectsRequest().setBucket(bucketName_));
+    auto future = client->asyncCall(models::ListObjectsRequest().setBucket(bucketName_));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
@@ -70,8 +64,7 @@ TEST_F(AsyncBucketObjectsTest, ListObjects_Fail) {
 
 TEST_F(AsyncBucketObjectsTest, ListObjectsV2_Normal) {
     auto client = ClientHelper::GetDefaultClient();
-    auto future = client->callAsync<ListObjectsV2Outcome>(
-        &OSSAsyncClient::listObjectsV2Async, models::ListObjectsV2Request().setBucket(bucketName_));
+    auto future = client->asyncCall(models::ListObjectsV2Request().setBucket(bucketName_));
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
     auto& result = outcome.getResult();
@@ -81,8 +74,7 @@ TEST_F(AsyncBucketObjectsTest, ListObjectsV2_Normal) {
 
 TEST_F(AsyncBucketObjectsTest, ListObjectsV2_Fail) {
     auto client = ClientHelper::GetInvalidClient();
-    auto future = client->callAsync<ListObjectsV2Outcome>(
-        &OSSAsyncClient::listObjectsV2Async, models::ListObjectsV2Request().setBucket(bucketName_));
+    auto future = client->asyncCall(models::ListObjectsV2Request().setBucket(bucketName_));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
@@ -94,9 +86,7 @@ TEST_F(AsyncBucketObjectsTest, DeleteMultipleObjects_Normal) {
     std::vector<models::ObjectIdentifier> objects;
     for (int i = 10; i < 13; i++) {
         auto key = "delete-me-" + std::to_string(i);
-        auto putFuture = client->callAsync<PutObjectOutcome>(
-            &OSSAsyncClient::putObjectAsync,
-            models::PutObjectRequest()
+        auto putFuture = client->asyncCall(models::PutObjectRequest()
                 .setBucket(bucketName_)
                 .setKey(key)
                 .setBody(RequestBody::FromString("content-" + std::to_string(i))));
@@ -110,9 +100,7 @@ TEST_F(AsyncBucketObjectsTest, DeleteMultipleObjects_Normal) {
     models::Delete deleteReq;
     deleteReq.setObjects(objects);
 
-    auto future = client->callAsync<DeleteMultipleObjectsOutcome>(
-        &OSSAsyncClient::deleteMultipleObjectsAsync,
-        models::DeleteMultipleObjectsRequest().setBucket(bucketName_).setDelete(deleteReq));
+    auto future = client->asyncCall(models::DeleteMultipleObjectsRequest().setBucket(bucketName_).setDelete(deleteReq));
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
     EXPECT_EQ(3, outcome.getResult().getDeletedObjects().size());
@@ -128,9 +116,7 @@ TEST_F(AsyncBucketObjectsTest, DeleteMultipleObjects_Fail) {
     objects.push_back(obj);
     deleteReq.setObjects(objects);
 
-    auto future = client->callAsync<DeleteMultipleObjectsOutcome>(
-        &OSSAsyncClient::deleteMultipleObjectsAsync,
-        models::DeleteMultipleObjectsRequest().setBucket(bucketName_).setDelete(deleteReq));
+    auto future = client->asyncCall(models::DeleteMultipleObjectsRequest().setBucket(bucketName_).setDelete(deleteReq));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());

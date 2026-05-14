@@ -41,13 +41,13 @@ TEST(OSSAsyncClientObjectTaggingTest, PutObjectTaggingAsync_RequiredField) {
     auto client = OSSAsyncClient(config);
 
     auto request = models::PutObjectTaggingRequest();
-    auto future = client.callAsync<PutObjectTaggingOutcome>(&OSSAsyncClient::putObjectTaggingAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
 
     request.setBucket("test-bucket");
-    auto future2 = client.callAsync<PutObjectTaggingOutcome>(&OSSAsyncClient::putObjectTaggingAsync, request);
+    auto future2 = client.asyncCall(request);
     auto outcome2 = future2.get();
     EXPECT_FALSE(outcome2.isSuccess());
     EXPECT_EQ("Missing field Key", outcome2.getError().getMessage());
@@ -62,7 +62,7 @@ TEST(OSSAsyncClientObjectTaggingTest, GetObjectTaggingAsync_RequiredField) {
     auto client = OSSAsyncClient(config);
 
     auto request = models::GetObjectTaggingRequest();
-    auto future = client.callAsync<GetObjectTaggingOutcome>(&OSSAsyncClient::getObjectTaggingAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
@@ -77,7 +77,7 @@ TEST(OSSAsyncClientObjectTaggingTest, DeleteObjectTaggingAsync_RequiredField) {
     auto client = OSSAsyncClient(config);
 
     auto request = models::DeleteObjectTaggingRequest();
-    auto future = client.callAsync<DeleteObjectTaggingOutcome>(&OSSAsyncClient::deleteObjectTaggingAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("Missing field Bucket", outcome.getError().getMessage());
@@ -96,7 +96,7 @@ TEST(OSSAsyncClientObjectTaggingTest, DeleteObjectTaggingAsync_Success) {
 
     auto request = models::DeleteObjectTaggingRequest();
     request.setBucket("test-bucket").setKey("test-key");
-    auto future = client.callAsync<DeleteObjectTaggingOutcome>(&OSSAsyncClient::deleteObjectTaggingAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_TRUE(outcome.isSuccess());

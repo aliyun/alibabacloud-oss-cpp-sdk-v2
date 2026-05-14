@@ -30,7 +30,7 @@ TEST(OSSClientObjectBasicCallAsyncTest, PutObject_Future_Success) {
     request.setKey("test-key");
     request.setBody(std::make_shared<StringContent>("test data"));
 
-    auto future = client.callAsync<PutObjectOutcome>(&OSSClient::putObject, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
     EXPECT_EQ(200, outcome.getResult().getStatusCode());
@@ -59,7 +59,7 @@ TEST(OSSClientObjectBasicCallAsyncTest, PutObject_Callback_Success) {
     std::promise<PutObjectOutcome> promise;
     auto future = promise.get_future();
 
-    client.callAsync<PutObjectOutcome>(&OSSClient::putObject, request,
+    client.asyncCallback(request,
         [&promise](const OSSClient*, const models::PutObjectRequest&, const PutObjectOutcome& outcome) {
             promise.set_value(outcome);
         });
@@ -81,7 +81,7 @@ TEST(OSSClientObjectBasicCallAsyncTest, PutObject_Future_NoExecutor) {
     request.setBucket("test-bucket");
     request.setKey("test-key");
 
-    auto future = client.callAsync<PutObjectOutcome>(&OSSClient::putObject, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("NoExecutor", outcome.getError().getCode());
@@ -102,7 +102,7 @@ TEST(OSSClientObjectBasicCallAsyncTest, PutObject_Callback_NoExecutor) {
     std::promise<PutObjectOutcome> promise;
     auto future = promise.get_future();
 
-    client.callAsync<PutObjectOutcome>(&OSSClient::putObject, request,
+    client.asyncCallback(request,
         [&promise](const OSSClient*, const models::PutObjectRequest&, const PutObjectOutcome& outcome) {
             promise.set_value(outcome);
         });
@@ -132,7 +132,7 @@ TEST(OSSClientObjectBasicCallAsyncTest, GetObject_Future_Success) {
     request.setBucket("test-bucket");
     request.setKey("test-key");
 
-    auto future = client.callAsync<GetObjectOutcome>(&OSSClient::getObject, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
     EXPECT_EQ(200, outcome.getResult().getStatusCode());
@@ -158,7 +158,7 @@ TEST(OSSClientObjectBasicCallAsyncTest, HeadObject_Future_Success) {
     request.setBucket("test-bucket");
     request.setKey("test-key");
 
-    auto future = client.callAsync<HeadObjectOutcome>(&OSSClient::headObject, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
     EXPECT_EQ(200, outcome.getResult().getStatusCode());
@@ -182,7 +182,7 @@ TEST(OSSClientObjectBasicCallAsyncTest, DeleteObject_Future_Success) {
     request.setBucket("test-bucket");
     request.setKey("test-key");
 
-    auto future = client.callAsync<DeleteObjectOutcome>(&OSSClient::deleteObject, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
 }
@@ -212,7 +212,7 @@ TEST(OSSClientObjectBasicCallAsyncTest, CopyObject_Future_Success) {
     request.setKey("dest-key");
     request.setSourceKey("src-key");
 
-    auto future = client.callAsync<CopyObjectOutcome>(&OSSClient::copyObject, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_TRUE(outcome.isSuccess());
 }
@@ -240,7 +240,7 @@ TEST(OSSClientObjectBasicCallAsyncTest, PutObject_Future_ErrorResponse) {
     request.setKey("test-key");
     request.setBody(std::make_shared<StringContent>("data"));
 
-    auto future = client.callAsync<PutObjectOutcome>(&OSSClient::putObject, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("AccessDenied", outcome.getError().getCode());

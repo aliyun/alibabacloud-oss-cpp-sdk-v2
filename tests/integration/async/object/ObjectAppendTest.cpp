@@ -13,8 +13,7 @@ class AsyncObjectAppendTest : public ::testing::Test {
     static void SetUpTestCase() {
         auto client = ClientHelper::GetDefaultClient();
         bucketName_ = Config::GenBucketName();
-        auto future = client->callAsync<PutBucketOutcome>(&OSSAsyncClient::putBucketAsync,
-                                                          models::PutBucketRequest().setBucket(bucketName_));
+        auto future = client->asyncCall(models::PutBucketRequest().setBucket(bucketName_));
         EXPECT_TRUE(future.get().isSuccess());
     }
 
@@ -34,16 +33,12 @@ TEST_F(AsyncObjectAppendTest, AppendObject_Normal) {
     std::string content1 = "Hello, ";
     std::string content2 = "World!";
 
-    auto future1 = client->callAsync<AppendObjectOutcome>(
-        &OSSAsyncClient::appendObjectAsync,
-        models::AppendObjectRequest().setBucket(bucketName_).setKey(key).setPosition(0).setBody(RequestBody::FromString(content1)));
+    auto future1 = client->asyncCall(models::AppendObjectRequest().setBucket(bucketName_).setKey(key).setPosition(0).setBody(RequestBody::FromString(content1)));
     auto outcome1 = future1.get();
     EXPECT_TRUE(outcome1.isSuccess());
     EXPECT_EQ(content1.size(), outcome1.getResult().getNextAppendPosition());
 
-    auto future2 = client->callAsync<AppendObjectOutcome>(
-        &OSSAsyncClient::appendObjectAsync,
-        models::AppendObjectRequest()
+    auto future2 = client->asyncCall(models::AppendObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
             .setPosition(outcome1.getResult().getNextAppendPosition())
@@ -55,9 +50,7 @@ TEST_F(AsyncObjectAppendTest, AppendObject_Normal) {
 
 TEST_F(AsyncObjectAppendTest, AppendObject_Fail) {
     auto client = ClientHelper::GetInvalidClient();
-    auto future = client->callAsync<AppendObjectOutcome>(
-        &OSSAsyncClient::appendObjectAsync,
-        models::AppendObjectRequest().setBucket(bucketName_).setKey("test-key").setPosition(0).setBody(RequestBody::FromString("content")));
+    auto future = client->asyncCall(models::AppendObjectRequest().setBucket(bucketName_).setKey("test-key").setPosition(0).setBody(RequestBody::FromString("content")));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());
@@ -68,14 +61,10 @@ TEST_F(AsyncObjectAppendTest, SealAppendObject_Normal) {
     std::string key = "test-seal-append-object";
     std::string content = "Content to seal";
 
-    auto appendFuture = client->callAsync<AppendObjectOutcome>(
-        &OSSAsyncClient::appendObjectAsync,
-        models::AppendObjectRequest().setBucket(bucketName_).setKey(key).setPosition(0).setBody(RequestBody::FromString(content)));
+    auto appendFuture = client->asyncCall(models::AppendObjectRequest().setBucket(bucketName_).setKey(key).setPosition(0).setBody(RequestBody::FromString(content)));
     EXPECT_TRUE(appendFuture.get().isSuccess());
 
-    auto sealFuture = client->callAsync<SealAppendObjectOutcome>(
-        &OSSAsyncClient::sealAppendObjectAsync,
-        models::SealAppendObjectRequest().setBucket(bucketName_).setKey(key).setPosition(content.size()));
+    auto sealFuture = client->asyncCall(models::SealAppendObjectRequest().setBucket(bucketName_).setKey(key).setPosition(content.size()));
     auto sealOutcome = sealFuture.get();
     if (!sealOutcome.isSuccess()) {
         auto& error = sealOutcome.getError();
@@ -85,9 +74,7 @@ TEST_F(AsyncObjectAppendTest, SealAppendObject_Normal) {
 
 TEST_F(AsyncObjectAppendTest, SealAppendObject_Fail) {
     auto client = ClientHelper::GetInvalidClient();
-    auto future = client->callAsync<SealAppendObjectOutcome>(
-        &OSSAsyncClient::sealAppendObjectAsync,
-        models::SealAppendObjectRequest().setBucket(bucketName_).setKey("test-key").setPosition(0));
+    auto future = client->asyncCall(models::SealAppendObjectRequest().setBucket(bucketName_).setKey("test-key").setPosition(0));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.isSuccess());
     EXPECT_EQ("InvalidAccessKeyId", outcome.getError().getCode());

@@ -54,7 +54,7 @@ TEST(OSSAsyncClientRegionTest, DescribeRegionsAsync_Success) {
             ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1234"}}, std::make_shared<std::stringstream>(body)}));
 
     auto request = models::DescribeRegionsRequest();
-    auto future = client.callAsync<DescribeRegionsOutcome>(&OSSAsyncClient::describeRegionsAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_TRUE(outcome.isSuccess());
@@ -81,7 +81,7 @@ TEST(OSSAsyncClientRegionTest, DescribeRegionsAsync_ErrorResponse) {
             403, "Forbidden", {{"x-oss-request-id", "id-12345"}}, std::make_shared<std::stringstream>(body)}));
 
     auto request = models::DescribeRegionsRequest();
-    auto future = client.callAsync<DescribeRegionsOutcome>(&OSSAsyncClient::describeRegionsAsync, request);
+    auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_FALSE(outcome.isSuccess());

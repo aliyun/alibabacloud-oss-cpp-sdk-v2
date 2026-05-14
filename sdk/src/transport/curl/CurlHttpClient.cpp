@@ -12,6 +12,7 @@ static const char* TAG = "CurlHttpClient";
 
 #if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 32, 0)
 static int xferInfoCallback(void* userdata, curl_off_t, curl_off_t, curl_off_t, curl_off_t) {
+    // cppcheck-suppress constVariablePointer
     auto* io = static_cast<TransferIO*>(userdata);
     if (io == nullptr) {
         return 0;
@@ -20,6 +21,7 @@ static int xferInfoCallback(void* userdata, curl_off_t, curl_off_t, curl_off_t, 
 }
 #else
 static int progressCallback(void* userdata, double, double, double, double) {
+    // cppcheck-suppress constVariablePointer
     auto* io = static_cast<TransferIO*>(userdata);
     if (io == nullptr) {
         return 0;
