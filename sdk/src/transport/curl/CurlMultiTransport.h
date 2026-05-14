@@ -35,7 +35,6 @@ class CurlMultiTransport : public AsyncHttpTransport {
     void processCompleted();
     void cleanupInflight();
     void setupCurlHandle(AsyncTransferContext* ctx);
-    static void cleanupTransferContext(AsyncTransferContext* ctx);
 
     std::unique_ptr<CurlContainer> curlContainer_;
     CURLM* multiHandle_{};

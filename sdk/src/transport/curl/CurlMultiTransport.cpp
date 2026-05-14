@@ -131,12 +131,6 @@ void CurlMultiTransport::sendAsync(std::unique_ptr<RequestMessage> request,
 #endif
 }
 
-void CurlMultiTransport::cleanupTransferContext(AsyncTransferContext* ctx) {
-    if (ctx->headers) {
-        curl_slist_free_all(ctx->headers);
-    }
-}
-
 void CurlMultiTransport::setupCurlHandle(AsyncTransferContext* ctx) {
     CURL* curl = ctx->io.curl;
 
@@ -176,7 +170,7 @@ void CurlMultiTransport::drainPending() {
         setupCurlHandle(raw);
         curl_multi_add_handle(multiHandle_, raw->io.curl);
         inflightHandles_.insert(raw);
-        ctx.release();
+        (void)ctx.release();
     }
 }
 
