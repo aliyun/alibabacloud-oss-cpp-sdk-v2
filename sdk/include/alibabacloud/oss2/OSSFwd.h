@@ -98,5 +98,45 @@ using ListPartsOutcome = Outcome<models::ListPartsResult, OperationError>;
 
 using PresignOutcome = Outcome<models::PresignResult, OperationError>;
 
+// Async Callbacks
+using ListBucketsAsyncCallback = std::function<void(ListBucketsOutcome)>;
+using DescribeRegionsAsyncCallback = std::function<void(DescribeRegionsOutcome)>;
+using GetBucketStatAsyncCallback = std::function<void(GetBucketStatOutcome)>;
+using PutBucketAsyncCallback = std::function<void(PutBucketOutcome)>;
+using DeleteBucketAsyncCallback = std::function<void(DeleteBucketOutcome)>;
+using ListObjectsAsyncCallback = std::function<void(ListObjectsOutcome)>;
+using ListObjectsV2AsyncCallback = std::function<void(ListObjectsV2Outcome)>;
+using GetBucketInfoAsyncCallback = std::function<void(GetBucketInfoOutcome)>;
+using GetBucketLocationAsyncCallback = std::function<void(GetBucketLocationOutcome)>;
+using PutBucketAclAsyncCallback = std::function<void(PutBucketAclOutcome)>;
+using GetBucketAclAsyncCallback = std::function<void(GetBucketAclOutcome)>;
+using PutBucketRefererAsyncCallback = std::function<void(PutBucketRefererOutcome)>;
+using GetBucketRefererAsyncCallback = std::function<void(GetBucketRefererOutcome)>;
+using PutObjectAsyncCallback = std::function<void(PutObjectOutcome)>;
+using CopyObjectAsyncCallback = std::function<void(CopyObjectOutcome)>;
+using GetObjectAsyncCallback = std::function<void(GetObjectOutcome)>;
+using AppendObjectAsyncCallback = std::function<void(AppendObjectOutcome)>;
+using SealAppendObjectAsyncCallback = std::function<void(SealAppendObjectOutcome)>;
+using DeleteObjectAsyncCallback = std::function<void(DeleteObjectOutcome)>;
+using DeleteMultipleObjectsAsyncCallback = std::function<void(DeleteMultipleObjectsOutcome)>;
+using HeadObjectAsyncCallback = std::function<void(HeadObjectOutcome)>;
+using GetObjectMetaAsyncCallback = std::function<void(GetObjectMetaOutcome)>;
+using RestoreObjectAsyncCallback = std::function<void(RestoreObjectOutcome)>;
+using CleanRestoredObjectAsyncCallback = std::function<void(CleanRestoredObjectOutcome)>;
+using PutObjectAclAsyncCallback = std::function<void(PutObjectAclOutcome)>;
+using GetObjectAclAsyncCallback = std::function<void(GetObjectAclOutcome)>;
+using PutSymlinkAsyncCallback = std::function<void(PutSymlinkOutcome)>;
+using GetSymlinkAsyncCallback = std::function<void(GetSymlinkOutcome)>;
+using PutObjectTaggingAsyncCallback = std::function<void(PutObjectTaggingOutcome)>;
+using GetObjectTaggingAsyncCallback = std::function<void(GetObjectTaggingOutcome)>;
+using DeleteObjectTaggingAsyncCallback = std::function<void(DeleteObjectTaggingOutcome)>;
+using InitiateMultipartUploadAsyncCallback = std::function<void(InitiateMultipartUploadOutcome)>;
+using UploadPartAsyncCallback = std::function<void(UploadPartOutcome)>;
+using CompleteMultipartUploadAsyncCallback = std::function<void(CompleteMultipartUploadOutcome)>;
+using UploadPartCopyAsyncCallback = std::function<void(UploadPartCopyOutcome)>;
+using AbortMultipartUploadAsyncCallback = std::function<void(AbortMultipartUploadOutcome)>;
+using ListMultipartUploadsAsyncCallback = std::function<void(ListMultipartUploadsOutcome)>;
+using ListPartsAsyncCallback = std::function<void(ListPartsOutcome)>;
+
 } // namespace oss2
 } // namespace alibabacloud
