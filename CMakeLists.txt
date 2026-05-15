@@ -47,6 +47,8 @@ sdk_option(ENABLE_CPPCHECK "Set to ON to enable Cppcheck static analysis." OFF)
 sdk_option(ENABLE_SANITIZER "Set to ON to enable sanitizers." OFF)
 message(STATUS "=======================================================")
 
+option(BUILD_PERF_TESTS "Build performance tests" OFF)
+
 #Platform
 
 # Find Dependencies
