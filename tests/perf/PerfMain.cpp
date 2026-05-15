@@ -14,6 +14,8 @@ int main(int argc, char** argv) {
                   << "  OSS_TEST_BUCKET\n"
                   << "  OSS_TEST_ENDPOINT (optional)\n"
                   << "\nCustom options:\n"
+                  << "  --concurrency <N>      Concurrency for BM_*_Custom_Concurrent tests\n"
+                  << "  --object_size <bytes>  Object size for BM_*_Custom_Concurrent tests (default: 1024)\n"
                   << "  --sync_pool_size <N>   Sync connection pool size (default: 16)\n"
                   << "  --async_pool_size <N>  Async connection pool size (default: 100)\n";
         return 1;
@@ -23,6 +25,8 @@ int main(int argc, char** argv) {
               << "  Region:          " << cfg.region << "\n"
               << "  Endpoint:        " << (cfg.endpoint.empty() ? "(auto)" : cfg.endpoint) << "\n"
               << "  Bucket:          " << cfg.bucket << "\n"
+              << "  Concurrency:     " << (cfg.concurrency > 0 ? std::to_string(cfg.concurrency) : "(not set)") << "\n"
+              << "  Object size:     " << cfg.objectSize << " bytes\n"
               << "  Sync pool size:  " << (cfg.syncPoolSize > 0 ? std::to_string(cfg.syncPoolSize) : "(default)") << "\n"
               << "  Async pool size: " << (cfg.asyncPoolSize > 0 ? std::to_string(cfg.asyncPoolSize) : "(default)") << "\n\n";
 

@@ -13,6 +13,8 @@
 
 namespace perf {
 
+constexpr const char* kKeyPrefix = "benchmark-cpp-sdk/";
+
 struct Config {
     std::string accessKeyId;
     std::string accessKeySecret;
@@ -20,6 +22,8 @@ struct Config {
     std::string endpoint;
     std::string bucket;
 
+    int concurrency = 0;            // 0 means not set, BM_*_Custom_Concurrent tests will be skipped
+    int objectSize = 1024;           // object size in bytes for BM_*_Custom_Concurrent tests
     unsigned int syncPoolSize = 0;  // 0 means use default
     unsigned int asyncPoolSize = 0; // 0 means use default
 
@@ -47,7 +51,11 @@ inline void ParseCustomArgs(int& argc, char** argv, Config& cfg) {
     int out = 1;
     for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
-        if (arg == "--sync_pool_size" && i + 1 < argc) {
+        if (arg == "--concurrency" && i + 1 < argc) {
+            cfg.concurrency = std::atoi(argv[++i]);
+        } else if (arg == "--object_size" && i + 1 < argc) {
+            cfg.objectSize = std::atoi(argv[++i]);
+        } else if (arg == "--sync_pool_size" && i + 1 < argc) {
             cfg.syncPoolSize = static_cast<unsigned int>(std::atoi(argv[++i]));
         } else if (arg == "--async_pool_size" && i + 1 < argc) {
             cfg.asyncPoolSize = static_cast<unsigned int>(std::atoi(argv[++i]));
