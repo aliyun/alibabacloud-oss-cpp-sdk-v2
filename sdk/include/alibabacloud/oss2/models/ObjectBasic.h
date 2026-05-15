@@ -806,10 +806,20 @@ class ALIBABACLOUD_OSS_API GetObjectRequest final : public RequestModel {
         return *this;
     }
 
+    inline const std::optional<OStreamFactory>& getOStreamFactory() const {
+        return ostreamFactory_;
+    }
+
+    GetObjectRequest& setOStreamFactory(OStreamFactory value) {
+        ostreamFactory_ = std::move(value);
+        return *this;
+    }
+
 
   private:
     std::string bucket_;
     std::string key_;
+    std::optional<OStreamFactory> ostreamFactory_;
 };
 
 /// The result for the GetObject operation.

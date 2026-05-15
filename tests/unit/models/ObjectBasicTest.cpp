@@ -272,8 +272,28 @@ TEST(ObjectBasicTest, GetObjectRequest_ConstructorDefault) {
     EXPECT_EQ("", request.getResponseContentDisposition());
     EXPECT_EQ("", request.getResponseContentEncoding());
     EXPECT_EQ("", request.getVersionId());
+    EXPECT_FALSE(request.getOStreamFactory().has_value());
     EXPECT_EQ(0, request.getHeaders().size());
     EXPECT_EQ(0, request.getParameters().size());
+}
+
+TEST(ObjectBasicTest, GetObjectRequest_OStreamFactory) {
+    auto request = GetObjectRequest();
+    EXPECT_FALSE(request.getOStreamFactory().has_value());
+
+    OStreamFactory factory;
+    factory.supplier = [](std::int64_t size) {
+        return std::make_shared<std::stringstream>();
+    };
+    factory.isOneShot = true;
+
+    request.setOStreamFactory(factory);
+    ASSERT_TRUE(request.getOStreamFactory().has_value());
+    EXPECT_TRUE(request.getOStreamFactory()->isOneShot);
+    EXPECT_NE(nullptr, request.getOStreamFactory()->supplier);
+
+    auto stream = request.getOStreamFactory()->operator()(100);
+    EXPECT_NE(nullptr, stream);
 }
 
 TEST(ObjectBasicTest, GetObjectRequest_Setter) {

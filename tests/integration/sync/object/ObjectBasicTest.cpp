@@ -131,6 +131,64 @@ TEST_F(ObjectBasicTest, GetObject_Fail) {
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 
+TEST_F(ObjectBasicTest, GetObject_WithOStreamFactory) {
+    auto client = ClientHelper::GetDefaultClient();
+    std::string key = "test-get-object-ostreamfactory";
+    std::string content = "Hello, OStreamFactory!";
+
+    auto body = RequestBody::FromString(content);
+    auto putOutcome = client->putObject(
+        models::PutObjectRequest()
+            .setBucket(bucketName_)
+            .setKey(key)
+            .setBody(body));
+    EXPECT_TRUE(putOutcome.has_value());
+
+    auto userStream = std::make_shared<std::stringstream>();
+    OStreamFactory factory;
+    factory.supplier = [userStream](std::int64_t size) {
+        return userStream;
+    };
+    factory.isOneShot = false;
+
+    auto outcome = client->getObject(
+        models::GetObjectRequest()
+            .setBucket(bucketName_)
+            .setKey(key)
+            .setOStreamFactory(factory));
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(content, userStream->str());
+}
+
+TEST_F(ObjectBasicTest, GetObject_WithOStreamFactory_OneShot) {
+    auto client = ClientHelper::GetDefaultClient();
+    std::string key = "test-get-object-ostreamfactory-oneshot";
+    std::string content = "OneShot content!";
+
+    auto body = RequestBody::FromString(content);
+    auto putOutcome = client->putObject(
+        models::PutObjectRequest()
+            .setBucket(bucketName_)
+            .setKey(key)
+            .setBody(body));
+    EXPECT_TRUE(putOutcome.has_value());
+
+    auto userStream = std::make_shared<std::stringstream>();
+    OStreamFactory factory;
+    factory.supplier = [userStream](std::int64_t size) {
+        return userStream;
+    };
+    factory.isOneShot = true;
+
+    auto outcome = client->getObject(
+        models::GetObjectRequest()
+            .setBucket(bucketName_)
+            .setKey(key)
+            .setOStreamFactory(factory));
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(content, userStream->str());
+}
+
 // CopyObject Tests
 TEST_F(ObjectBasicTest, CopyObject_Normal) {
     auto client = ClientHelper::GetDefaultClient();

@@ -136,6 +136,68 @@ TEST(OSSAsyncClientObjectBasicTest, GetObjectAsync_Success) {
     EXPECT_EQ(200, outcome.value().getStatusCode());
 }
 
+TEST(OSSAsyncClientObjectBasicTest, GetObjectAsync_WithOStreamFactory) {
+    class ContextCaptureMockAsync : public AsyncHttpTransport {
+      public:
+        void sendAsync(std::unique_ptr<RequestMessage> request,
+                       RequestContext context,
+                       RequestCallback callback) override {
+            capturedContext = context;
+            auto response = std::make_unique<ResponseMessage>(ResponseMessage{
+                    200, "OK",
+                    {{"x-oss-request-id", "id-5678"}, {"Content-Length", "11"}},
+                    std::make_shared<std::stringstream>("hello world")});
+            callback(std::move(response), std::move(request), std::move(context));
+        }
+        std::string getName() const override { return "ContextCaptureMockAsync"; }
+        RequestContext capturedContext;
+    };
+
+    auto mockTransport = std::make_shared<ContextCaptureMockAsync>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.asyncHttpTransport = mockTransport;
+    auto client = OSSAsyncClient(config);
+
+    OStreamFactory factory;
+    factory.supplier = [](std::int64_t size) {
+        return std::make_shared<std::stringstream>();
+    };
+    factory.isOneShot = false;
+
+    auto request = models::GetObjectRequest();
+    request.setBucket("test-bucket").setKey("test-key").setOStreamFactory(factory);
+    auto future = client.asyncCall(request);
+    auto outcome = future.get();
+
+    EXPECT_TRUE(outcome.has_value());
+    ASSERT_TRUE(mockTransport->capturedContext.ostreamFactory.has_value());
+    EXPECT_FALSE(mockTransport->capturedContext.ostreamFactory->isOneShot);
+    EXPECT_NE(nullptr, mockTransport->capturedContext.ostreamFactory->supplier);
+}
+
+TEST(OSSAsyncClientObjectBasicTest, GetObjectAsync_WithoutOStreamFactory) {
+    auto mockTransport = std::make_shared<MockAsyncTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.asyncHttpTransport = mockTransport;
+    auto client = OSSAsyncClient(config);
+
+    mockTransport->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-1234"}, {"Content-Length", "5"}},
+            std::make_shared<std::stringstream>("hello")}));
+
+    auto request = models::GetObjectRequest();
+    request.setBucket("test-bucket").setKey("test-key");
+    auto future = client.asyncCall(request);
+    auto outcome = future.get();
+
+    EXPECT_TRUE(outcome.has_value());
+}
+
 TEST(OSSAsyncClientObjectBasicTest, AppendObjectAsync_RequiredField) {
     auto mockTransport = std::make_shared<MockAsyncTransport>();
     auto config = ClientConfiguration::loadDefault();
