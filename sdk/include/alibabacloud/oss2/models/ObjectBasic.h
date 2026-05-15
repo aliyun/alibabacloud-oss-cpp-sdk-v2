@@ -809,6 +809,16 @@ class ALIBABACLOUD_OSS_API GetObjectRequest final : public RequestModel {
     // The factory to create an output stream for receiving response body data.
     // When set, the response body is written directly to the stream returned by the factory
     // instead of being buffered in memory.
+    //
+    // Example (zero-copy download into a user-provided buffer):
+    //   char buf[4 * 1024 * 1024];
+    //   std::size_t bufSize = sizeof(buf);
+    //   OStreamFactory factory;
+    //   factory.supplier = [ptr = buf, bufSize](std::int64_t) -> std::shared_ptr<std::ostream> {
+    //       return std::make_shared<MemoryOStream>(ptr, bufSize);
+    //   };
+    //   factory.isOneShot = false;  // supports retry
+    //   request.setOStreamFactory(factory);
     inline const std::optional<OStreamFactory>& getOStreamFactory() const {
         return ostreamFactory_;
     }
