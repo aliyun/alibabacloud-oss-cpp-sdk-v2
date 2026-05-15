@@ -54,13 +54,19 @@ void OSSAsyncClient::getObjectAsync(const models::GetObjectRequest& request,
     requiredFieldAsync(Key);
 
     auto input = transform::fromGetObject(request);
+
+    internal::OperationInnerOptions innerOpts;
+    if (request.getOStreamFactory().has_value()) {
+        innerOpts.ostreamFactory = request.getOStreamFactory();
+    }
+
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
             callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toGetObject(std::move(std::get<OperationOutput>(result))));
-    }, options);
+    }, options, &innerOpts);
 }
 
 void OSSAsyncClient::appendObjectAsync(const models::AppendObjectRequest& request,

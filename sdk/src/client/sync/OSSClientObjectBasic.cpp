@@ -46,7 +46,13 @@ GetObjectOutcome OSSClient::getObject(const models::GetObjectRequest& request, c
     requiredField(Key);
 
     auto input = transform::fromGetObject(request);
-    auto result = client_->Execute(input, options);
+
+    internal::OperationInnerOptions innerOpts;
+    if (request.getOStreamFactory().has_value()) {
+        innerOpts.ostreamFactory = request.getOStreamFactory();
+    }
+
+    auto result = client_->Execute(input, options, &innerOpts);
     if (std::holds_alternative<OperationError>(result)) {
         return makeUnexpected(std::get<OperationError>(result));
     }
