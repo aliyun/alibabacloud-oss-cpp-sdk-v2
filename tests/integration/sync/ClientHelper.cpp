@@ -37,7 +37,7 @@ static void cleanBucket(OSSClient* client, const std::string& bucketName) {
     auto listOutcome = client->listMultipartUploads(models::ListMultipartUploadsRequest().setBucket(bucketName));
     if (listOutcome.has_value()) {
         for (auto const& upload : listOutcome.value().getUploads()) {
-            client->abortMultipartUpload(models::AbortMultipartUploadRequest()
+            (void)client->abortMultipartUpload(models::AbortMultipartUploadRequest()
                                                  .setBucket(bucketName)
                                                  .setKey(upload.key)
                                                  .setUploadId(upload.uploadId));
@@ -52,7 +52,7 @@ static void cleanBucket(OSSClient* client, const std::string& bucketName) {
         auto outcome = client->listObjectsV2(request);
         if (outcome.has_value()) {
             for (auto const &obj : outcome.value().getContents()) {
-                client->deleteObject(models::DeleteObjectRequest().setBucket(bucketName).setKey(obj.key));
+                (void)client->deleteObject(models::DeleteObjectRequest().setBucket(bucketName).setKey(obj.key));
             }
         }
         else {
@@ -62,7 +62,7 @@ static void cleanBucket(OSSClient* client, const std::string& bucketName) {
         IsTruncated = outcome.value().getIsTruncated();
     } while (IsTruncated);
 
-    client->deleteBucket(models::DeleteBucketRequest().setBucket(bucketName));
+    (void)client->deleteBucket(models::DeleteBucketRequest().setBucket(bucketName));
 }
 
 void ClientHelper::CleanBucket(const std::string& bucketName) {

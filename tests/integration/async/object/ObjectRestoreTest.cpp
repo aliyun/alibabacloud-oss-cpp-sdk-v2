@@ -42,7 +42,7 @@ TEST_F(AsyncObjectRestoreTest, RestoreObject_Normal) {
     restoreReq.setJobParameters(jobParams);
 
     auto future = client->asyncCall(models::RestoreObjectRequest().setBucket(bucketName_).setKey(key).setRestoreRequest(restoreReq));
-    future.get();
+    (void)future.get();
 }
 
 TEST_F(AsyncObjectRestoreTest, RestoreObject_Fail) {
@@ -63,7 +63,7 @@ TEST_F(AsyncObjectRestoreTest, CleanRestoredObject_Normal) {
     EXPECT_TRUE(putFuture.get().has_value());
 
     auto future = client->asyncCall(models::CleanRestoredObjectRequest().setBucket(bucketName_).setKey(key));
-    future.get();
+    (void)future.get();
 }
 
 TEST_F(AsyncObjectRestoreTest, CleanRestoredObject_Fail) {

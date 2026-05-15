@@ -37,7 +37,7 @@ static void cleanBucket(OSSAsyncClient* client, const std::string& bucketName) {
     auto listOutcome = client->asyncCall(models::ListMultipartUploadsRequest().setBucket(bucketName)).get();
     if (listOutcome.has_value()) {
         for (auto const& upload : listOutcome.value().getUploads()) {
-            client->asyncCall(models::AbortMultipartUploadRequest()
+            (void)client->asyncCall(models::AbortMultipartUploadRequest()
                     .setBucket(bucketName)
                     .setKey(upload.key)
                     .setUploadId(upload.uploadId)).get();
@@ -52,7 +52,7 @@ static void cleanBucket(OSSAsyncClient* client, const std::string& bucketName) {
         auto outcome = client->asyncCall(request).get();
         if (outcome.has_value()) {
             for (auto const& obj : outcome.value().getContents()) {
-                client->asyncCall(models::DeleteObjectRequest().setBucket(bucketName).setKey(obj.key)).get();
+                (void)client->asyncCall(models::DeleteObjectRequest().setBucket(bucketName).setKey(obj.key)).get();
             }
             request.setContinuationToken(outcome.value().getNextContinuationToken());
             IsTruncated = outcome.value().getIsTruncated();
@@ -61,7 +61,7 @@ static void cleanBucket(OSSAsyncClient* client, const std::string& bucketName) {
         }
     } while (IsTruncated);
 
-    client->asyncCall(models::DeleteBucketRequest().setBucket(bucketName)).get();
+    (void)client->asyncCall(models::DeleteBucketRequest().setBucket(bucketName)).get();
 }
 
 void ClientHelper::CleanBucket(const std::string& bucketName) {

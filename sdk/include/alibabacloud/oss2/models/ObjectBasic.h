@@ -806,10 +806,23 @@ class ALIBABACLOUD_OSS_API GetObjectRequest final : public RequestModel {
         return *this;
     }
 
+    // The factory to create an output stream for receiving response body data.
+    // When set, the response body is written directly to the stream returned by the factory
+    // instead of being buffered in memory.
+    inline const std::optional<OStreamFactory>& getOStreamFactory() const {
+        return ostreamFactory_;
+    }
+
+    GetObjectRequest& setOStreamFactory(OStreamFactory value) {
+        ostreamFactory_ = std::move(value);
+        return *this;
+    }
+
 
   private:
     std::string bucket_;
     std::string key_;
+    std::optional<OStreamFactory> ostreamFactory_;
 };
 
 /// The result for the GetObject operation.
