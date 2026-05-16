@@ -62,6 +62,8 @@ TEST(ExecuteStackTest, ExecuteStackCtor) {
             },
             "test2");
 
+    stack->Apply();
+
     auto requestMessage = std::make_unique<RequestMessage>();
     auto executeContext = ExecuteContext();
     stack->Execute(requestMessage, executeContext);

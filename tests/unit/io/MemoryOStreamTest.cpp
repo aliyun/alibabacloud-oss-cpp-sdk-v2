@@ -84,7 +84,7 @@ TEST(MemoryOStreamTest, WithOStreamFactory) {
     stream1->write("hello", 5);
     EXPECT_EQ(0, std::memcmp(buf, "hello", 5));
 
-    // Second call (simulates retry) — starts from beginning
+    // Second call (simulates retry) -- starts from beginning
     auto stream2 = factory(0);
     ASSERT_NE(nullptr, stream2);
     stream2->write("world", 5);

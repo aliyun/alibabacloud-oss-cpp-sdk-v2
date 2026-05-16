@@ -5,7 +5,6 @@
 
 #include <functional>
 #include <memory>
-#include <mutex>
 #include <string>
 #include <vector>
 
@@ -20,14 +19,13 @@ class ExecuteStack final {
             std::function<std::unique_ptr<ExecuteMiddleware>(std::unique_ptr<ExecuteMiddleware>)>;
 
     explicit ExecuteStack(std::function<std::unique_ptr<ExecuteMiddleware>()> createTransport)
-            : cached_(nullptr), createTransport_(createTransport) {}
+            : createTransport_(std::move(createTransport)) {}
 
-    virtual ~ExecuteStack() = default;
+    ~ExecuteStack() = default;
 
     void Push(CreateExecuteMiddleware create, const std::string& name) {
         ((void) (name));
-        this->stack_.emplace_back(create);
-        this->cached_ = nullptr;
+        stack_.emplace_back(std::move(create));
     }
 
     void Apply() {
@@ -35,28 +33,21 @@ class ExecuteStack final {
     }
 
     std::unique_ptr<ResponseMessage> Execute(std::unique_ptr<RequestMessage>& request, ExecuteContext& context) {
-        return resolve()->Execute(request, context);
+        return handler_->Execute(request, context);
     }
 
   private:
-    ExecuteMiddleware* resolve() {
-        if (cached_ == nullptr) {
-            std::lock_guard<std::mutex> lock(lock_);
-            if (cached_ == nullptr) { // cppcheck-suppress identicalInnerCondition
-                auto prev = createTransport_();
-                for (auto it = stack_.rbegin(); it != stack_.rend(); ++it) {
-                    prev = (*it)(std::move(prev));
-                }
-                cached_ = std::move(prev);
-            }
+    void resolve() {
+        auto prev = createTransport_();
+        for (auto it = stack_.rbegin(); it != stack_.rend(); ++it) {
+            prev = (*it)(std::move(prev));
         }
-        return cached_.get();
+        handler_ = std::move(prev);
     }
 
-    std::unique_ptr<ExecuteMiddleware> cached_;
+    std::unique_ptr<ExecuteMiddleware> handler_;
     std::vector<CreateExecuteMiddleware> stack_;
     std::function<std::unique_ptr<ExecuteMiddleware>()> createTransport_;
-    std::mutex lock_;
 };
 
 } // namespace internal
