@@ -112,34 +112,24 @@ TEST(AsyncExecuteStackTest, BasicExecution) {
     resp->headers["x-test"] = "value";
     transport->pushResponse(std::move(resp));
 
-    AsyncExecuteStack stack(transport);
+    StackTestHelper helper;
+    auto onFinished = [&helper](const std::shared_ptr<AsyncExecuteState>& s) {
+        helper.notify(s);
+    };
+
+    AsyncExecuteStack stack(transport, onFinished);
+    stack.Push(
+        [](std::unique_ptr<AsyncExecuteMiddleware> next) {
+            return std::make_unique<RetryerAsyncMiddleware>(
+                std::move(next), std::make_shared<NopRetryer>());
+        }, "Retryer");
     stack.Apply();
 
-    StackTestHelper helper;
     auto state = std::make_shared<AsyncExecuteState>();
     state->request = std::make_unique<RequestMessage>();
     state->request->uri = "https://bucket.oss-cn-hangzhou.aliyuncs.com/key";
 
-    state->callback = [&helper](OperationResult) {
-        // not used directly here
-    };
-
-    // Manually wire a terminal to capture the response
-    // Since we can't easily hook onOperationFinished without RetryerAsyncMiddleware,
-    // push a retryer that calls our helper
-    auto retryerOnFinished = [&helper](const std::shared_ptr<AsyncExecuteState>& s) {
-        helper.notify(s);
-    };
-
-    AsyncExecuteStack stack2(transport);
-    stack2.Push(
-        [&retryerOnFinished](std::unique_ptr<AsyncExecuteMiddleware> next) {
-            return std::make_unique<RetryerAsyncMiddleware>(
-                std::move(next), std::make_shared<NopRetryer>(), retryerOnFinished);
-        }, "Retryer");
-    stack2.Apply();
-
-    stack2.executeAsync(state);
+    stack.executeAsync(state);
     helper.wait();
 
     EXPECT_EQ(1, transport->requestCount);
@@ -162,13 +152,13 @@ TEST(AsyncExecuteStackTest, MiddlewareOrdering) {
         helper.notify(s);
     };
 
-    AsyncExecuteStack stack(transport);
+    AsyncExecuteStack stack(transport, onFinished);
 
     // Push Retryer (outermost)
     stack.Push(
-        [&onFinished](std::unique_ptr<AsyncExecuteMiddleware> next) {
+        [](std::unique_ptr<AsyncExecuteMiddleware> next) {
             return std::make_unique<RetryerAsyncMiddleware>(
-                std::move(next), std::make_shared<NopRetryer>(), onFinished);
+                std::move(next), std::make_shared<NopRetryer>());
         }, "Retryer");
 
     // Push two tracking middlewares to verify order
@@ -208,11 +198,11 @@ TEST(AsyncExecuteStackTest, TransportErrorCodeSetsContextError) {
         helper.notify(s);
     };
 
-    AsyncExecuteStack stack(transport);
+    AsyncExecuteStack stack(transport, onFinished);
     stack.Push(
-        [&onFinished](std::unique_ptr<AsyncExecuteMiddleware> next) {
+        [](std::unique_ptr<AsyncExecuteMiddleware> next) {
             return std::make_unique<RetryerAsyncMiddleware>(
-                std::move(next), std::make_shared<NopRetryer>(), onFinished);
+                std::move(next), std::make_shared<NopRetryer>());
         }, "Retryer");
     stack.Apply();
 
@@ -238,11 +228,11 @@ TEST(AsyncExecuteStackTest, TransportResponsePreservesOstreamFactory) {
         helper.notify(s);
     };
 
-    AsyncExecuteStack stack(transport);
+    AsyncExecuteStack stack(transport, onFinished);
     stack.Push(
-        [&onFinished](std::unique_ptr<AsyncExecuteMiddleware> next) {
+        [](std::unique_ptr<AsyncExecuteMiddleware> next) {
             return std::make_unique<RetryerAsyncMiddleware>(
-                std::move(next), std::make_shared<NopRetryer>(), onFinished);
+                std::move(next), std::make_shared<NopRetryer>());
         }, "Retryer");
     stack.Apply();
 
@@ -276,11 +266,11 @@ TEST(AsyncExecuteStackTest, TransportErrorPreservesOstreamFactory) {
         helper.notify(s);
     };
 
-    AsyncExecuteStack stack(transport);
+    AsyncExecuteStack stack(transport, onFinished);
     stack.Push(
-        [&onFinished](std::unique_ptr<AsyncExecuteMiddleware> next) {
+        [](std::unique_ptr<AsyncExecuteMiddleware> next) {
             return std::make_unique<RetryerAsyncMiddleware>(
-                std::move(next), std::make_shared<NopRetryer>(), onFinished);
+                std::move(next), std::make_shared<NopRetryer>());
         }, "Retryer");
     stack.Apply();
 
@@ -329,11 +319,11 @@ TEST(AsyncExecuteStackTest, TransportErrorContextFields) {
     };
 
     auto errorTransport = std::make_shared<ErrorTransport>();
-    AsyncExecuteStack stack(errorTransport);
+    AsyncExecuteStack stack(errorTransport, onFinished);
     stack.Push(
-        [&onFinished](std::unique_ptr<AsyncExecuteMiddleware> next) {
+        [](std::unique_ptr<AsyncExecuteMiddleware> next) {
             return std::make_unique<RetryerAsyncMiddleware>(
-                std::move(next), std::make_shared<NopRetryer>(), onFinished);
+                std::move(next), std::make_shared<NopRetryer>());
         }, "Retryer");
     stack.Apply();
 
@@ -363,11 +353,11 @@ TEST(AsyncExecuteStackTest, ResponseCheckerInvokesCallbacks) {
         helper.notify(s);
     };
 
-    AsyncExecuteStack stack(transport);
+    AsyncExecuteStack stack(transport, onFinished);
     stack.Push(
-        [&onFinished](std::unique_ptr<AsyncExecuteMiddleware> next) {
+        [](std::unique_ptr<AsyncExecuteMiddleware> next) {
             return std::make_unique<RetryerAsyncMiddleware>(
-                std::move(next), std::make_shared<NopRetryer>(), onFinished);
+                std::move(next), std::make_shared<NopRetryer>());
         }, "Retryer");
     stack.Push(
         [](std::unique_ptr<AsyncExecuteMiddleware> next) {
@@ -409,11 +399,11 @@ TEST(AsyncExecuteStackTest, ResponseCheckerSkippedOnError) {
         helper.notify(s);
     };
 
-    AsyncExecuteStack stack(transport);
+    AsyncExecuteStack stack(transport, onFinished);
     stack.Push(
-        [&onFinished](std::unique_ptr<AsyncExecuteMiddleware> next) {
+        [](std::unique_ptr<AsyncExecuteMiddleware> next) {
             return std::make_unique<RetryerAsyncMiddleware>(
-                std::move(next), std::make_shared<NopRetryer>(), onFinished);
+                std::move(next), std::make_shared<NopRetryer>());
         }, "Retryer");
     stack.Push(
         [](std::unique_ptr<AsyncExecuteMiddleware> next) {
@@ -448,11 +438,11 @@ TEST(AsyncExecuteStackTest, SignerErrorShortCircuits) {
         helper.notify(s);
     };
 
-    AsyncExecuteStack stack(transport);
+    AsyncExecuteStack stack(transport, onFinished);
     stack.Push(
-        [&onFinished](std::unique_ptr<AsyncExecuteMiddleware> next) {
+        [](std::unique_ptr<AsyncExecuteMiddleware> next) {
             return std::make_unique<RetryerAsyncMiddleware>(
-                std::move(next), std::make_shared<NopRetryer>(), onFinished);
+                std::move(next), std::make_shared<NopRetryer>());
         }, "Retryer");
     // Signer with null provider triggers error
     stack.Push(

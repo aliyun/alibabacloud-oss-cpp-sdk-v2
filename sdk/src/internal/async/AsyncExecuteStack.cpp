@@ -6,8 +6,8 @@ namespace alibabacloud {
 namespace oss2 {
 namespace internal {
 
-AsyncExecuteStack::AsyncExecuteStack(std::shared_ptr<AsyncHttpTransport> transport)
-        : transport_(std::move(transport)) {}
+AsyncExecuteStack::AsyncExecuteStack(std::shared_ptr<AsyncHttpTransport> transport, OnFinished onFinished)
+        : sentinel_(std::move(onFinished)), transport_(std::move(transport)) {}
 
 AsyncExecuteStack::~AsyncExecuteStack() = default;
 
@@ -32,6 +32,7 @@ void AsyncExecuteStack::resolve() {
         inner->setPrev(prev.get());
     }
     handler_ = std::move(prev);
+    handler_->setPrev(&sentinel_);
 }
 
 void AsyncExecuteStack::executeAsync(const std::shared_ptr<AsyncExecuteState>& state) {

@@ -10,14 +10,10 @@ namespace internal {
 
 class RetryerAsyncMiddleware final : public AsyncExecuteMiddleware {
   public:
-    using OnFinished = std::function<void(const std::shared_ptr<AsyncExecuteState>&)>;
-
     RetryerAsyncMiddleware(std::unique_ptr<AsyncExecuteMiddleware> next,
-                           std::shared_ptr<Retryer> retryer,
-                           OnFinished onFinished)
+                           std::shared_ptr<Retryer> retryer)
             : next_(std::move(next)),
-              retryer_(std::move(retryer)),
-              onFinished_(std::move(onFinished)) {}
+              retryer_(std::move(retryer)) {}
 
     void handleRequest(const std::shared_ptr<AsyncExecuteState>& state) override {
         state->action = ResponseAction::Stop;
@@ -53,13 +49,12 @@ class RetryerAsyncMiddleware final : public AsyncExecuteMiddleware {
             }
         }
 
-        onFinished_(state);
+        prev_->handleResponse(state);
     }
 
   private:
     std::unique_ptr<AsyncExecuteMiddleware> next_;
     std::shared_ptr<Retryer> retryer_;
-    OnFinished onFinished_;
 };
 
 } // namespace internal

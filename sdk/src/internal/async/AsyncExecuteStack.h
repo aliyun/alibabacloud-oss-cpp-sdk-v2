@@ -2,6 +2,7 @@
 #pragma once
 
 #include "AsyncExecuteMiddleware.h"
+#include "OnFinishedAsyncMiddleware.h"
 #include "alibabacloud/oss2/Operation.h"
 #include "alibabacloud/oss2/transport/HttpTransport.h"
 
@@ -18,8 +19,9 @@ class AsyncExecuteStack {
   public:
     using CreateMiddleware =
             std::function<std::unique_ptr<AsyncExecuteMiddleware>(std::unique_ptr<AsyncExecuteMiddleware>)>;
+    using OnFinished = OnFinishedAsyncMiddleware::OnFinished;
 
-    explicit AsyncExecuteStack(std::shared_ptr<AsyncHttpTransport> transport);
+    AsyncExecuteStack(std::shared_ptr<AsyncHttpTransport> transport, OnFinished onFinished);
     ~AsyncExecuteStack();
 
     void Push(CreateMiddleware create, const std::string& name);
@@ -31,6 +33,7 @@ class AsyncExecuteStack {
     void resolve();
 
     std::vector<CreateMiddleware> stack_;
+    OnFinishedAsyncMiddleware sentinel_;
     std::unique_ptr<AsyncExecuteMiddleware> handler_;
     std::shared_ptr<AsyncHttpTransport> transport_;
 };

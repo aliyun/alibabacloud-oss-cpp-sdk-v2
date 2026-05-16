@@ -41,15 +41,15 @@ AsyncClientImpl::AsyncClientImpl(const struct ClientConfiguration& config, const
             : std::make_shared<DefaultScheduledExecutor>();
 
     stack_ = std::make_shared<AsyncExecuteStack>(
-            options_.asyncHttpTransport);
+            options_.asyncHttpTransport,
+            [this](const std::shared_ptr<AsyncExecuteState>& state) {
+                onOperationFinished(state);
+            });
 
     stack_->Push(
-            [this, retryer = options_.retryer]
+            [retryer = options_.retryer]
             (std::unique_ptr<AsyncExecuteMiddleware> next) -> std::unique_ptr<AsyncExecuteMiddleware> {
-                return std::make_unique<RetryerAsyncMiddleware>(std::move(next), retryer,
-                    [this](const std::shared_ptr<AsyncExecuteState>& state) {
-                        onOperationFinished(state);
-                    });
+                return std::make_unique<RetryerAsyncMiddleware>(std::move(next), retryer);
             },
             "Retryer");
 
