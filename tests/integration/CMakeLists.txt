@@ -22,7 +22,10 @@ target_include_directories(${PROJECT_NAME}
 	PRIVATE ${TEST_ROOT}/external/googletest/include
     PRIVATE ${TEST_ROOT}/external/googletest/)
 
-target_link_libraries(${PROJECT_NAME} cpp-sdk-v2 ${CURL_LIB})
+target_link_libraries(${PROJECT_NAME} cpp-sdk-v2)
+if(USE_CURL_TRANSPORT)
+    target_link_libraries(${PROJECT_NAME} ${CURL_LIB})
+endif()
 
 target_compile_options(${PROJECT_NAME}
     PRIVATE "${SDK_COMPILER_FLAGS}"

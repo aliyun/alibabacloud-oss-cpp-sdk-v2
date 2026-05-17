@@ -14,7 +14,15 @@ file(GLOB_RECURSE test_unit_utils_src "utils/*.cpp")
 file(GLOB_RECURSE test_unit_io_src "io/*.cpp")
 file(GLOB_RECURSE test_unit_signer_src "signer/*.cpp")
 file(GLOB_RECURSE test_unit_transform_src "transform/*.cpp")
-file(GLOB_RECURSE test_unit_transport_src "transport/*.cpp")
+file(GLOB test_unit_transport_src "transport/*.cpp")
+if(USE_CURL_TRANSPORT)
+    file(GLOB_RECURSE test_unit_transport_curl_src "transport/curl/*.cpp")
+    list(APPEND test_unit_transport_src ${test_unit_transport_curl_src})
+endif()
+if(USE_WINHTTP_TRANSPORT AND WIN32)
+    file(GLOB_RECURSE test_unit_transport_winhttp_src "transport/winhttp/*.cpp")
+    list(APPEND test_unit_transport_src ${test_unit_transport_winhttp_src})
+endif()
 
 add_executable(${PROJECT_NAME}
 	${test_gtest_src}
@@ -38,7 +46,10 @@ target_include_directories(${PROJECT_NAME}
 	PRIVATE ${TEST_ROOT}/external/googletest/include
     PRIVATE ${TEST_ROOT}/external/googletest/)
 
-target_link_libraries(${PROJECT_NAME} cpp-sdk-v2 ${CURL_LIB})
+target_link_libraries(${PROJECT_NAME} cpp-sdk-v2)
+if(USE_CURL_TRANSPORT)
+    target_link_libraries(${PROJECT_NAME} ${CURL_LIB})
+endif()
 
 target_compile_options(${PROJECT_NAME}
     PRIVATE "${SDK_COMPILER_FLAGS}")

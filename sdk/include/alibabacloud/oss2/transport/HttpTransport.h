@@ -35,6 +35,16 @@ class NopHttpTransport : public HttpTransport {
     }
 };
 
+class NopAsyncHttpTransport : public AsyncHttpTransport {
+  public:
+    void sendAsync(std::unique_ptr<RequestMessage> request,
+                   const RequestOptions& options,
+                   RequestCallback callback) override;
+    std::string getName() const override {
+        return "NopAsyncHttpTransport";
+    }
+};
+
 struct ALIBABACLOUD_OSS_API HttpTransportOptions {
     // Connection timeout in milliseconds, default 5s (kDefaultConnectTimeoutMs)
     std::optional<long> connectTimeout;

@@ -43,7 +43,7 @@ class ALIBABACLOUD_OSS_API CancellationTokenSource : public std::enable_shared_f
   public:
     explicit CancellationTokenSource(Key)
             : deadline_(std::make_shared<std::atomic<std::chrono::steady_clock::time_point>>(
-                      std::chrono::steady_clock::time_point::max())) {}
+                      (std::chrono::steady_clock::time_point::max)())) {}
 
     static std::shared_ptr<CancellationTokenSource> create() {
         return std::make_shared<CancellationTokenSource>(Key{});
@@ -71,8 +71,11 @@ class ALIBABACLOUD_OSS_API CancellationTokenSource : public std::enable_shared_f
 
   private:
     void updateDeadline(std::chrono::steady_clock::time_point timepoint) {
-        if (timepoint < deadline_->load()) {
-            deadline_->store(timepoint);
+        auto current = deadline_->load();
+        while (timepoint < current) {
+            if (deadline_->compare_exchange_weak(current, timepoint)) {
+                break;
+            }
         }
     }
 };

@@ -171,7 +171,7 @@ std::shared_ptr<Signer> ClientImplBase::resolveSigner(const struct ClientConfigu
 std::string ClientImplBase::resolveUserAgent(const struct ClientConfiguration& config) {
     std::stringstream ss;
     ss << "alibabacloud-cpp-sdk-v2/";
-    ss << ALIBABACLOUD_OSS_VERSION_STR;
+    ss << ALIBABACLOUD_OSS_SDK_VERSION_STR;
     if (options_.httpTransport != nullptr) {
         ss << "/" << options_.httpTransport->getName();
     } else if (options_.asyncHttpTransport != nullptr) {
@@ -233,6 +233,10 @@ void ClientImplBase::applyOperationOptions(ExecuteContext& context, const Operat
 
     if (innerOpts->ostreamFactory.has_value()) {
         context.transportContext.ostreamFactory = innerOpts->ostreamFactory;
+    }
+
+    if (opts->cancellationToken.has_value()) {
+        context.transportContext.cancellationToken = opts->cancellationToken;
     }
 }
 

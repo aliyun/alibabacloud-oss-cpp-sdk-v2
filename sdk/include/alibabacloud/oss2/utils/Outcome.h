@@ -1,6 +1,6 @@
 #pragma once
 
-#include "alibabacloud/oss2/utils/OutcomeConfig.h"
+#include "alibabacloud/oss2/Config.h"
 
 #ifdef ALIBABACLOUD_OSS_USE_STD_EXPECTED
 #include <expected>

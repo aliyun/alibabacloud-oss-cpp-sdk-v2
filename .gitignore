@@ -65,5 +65,4 @@ build-*/
 .vs/
 
 # cmake generated
-sdk/include/alibabacloud/oss2/utils/OutcomeConfig.h
 

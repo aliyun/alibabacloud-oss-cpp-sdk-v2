@@ -1,4 +1,7 @@
 #include "HttpClients.h"
+
+#ifdef ALIBABACLOUD_OSS_HAS_CURL
+
 #include <cstring>
 #include <cassert>
 
@@ -187,3 +190,5 @@ HttpClient::Response HttpClient::put(const std::string& url, const std::string& 
 } // namespace test
 } // namespace oss2
 } // namespace alibabacloud
+
+#endif // ALIBABACLOUD_OSS_HAS_CURL

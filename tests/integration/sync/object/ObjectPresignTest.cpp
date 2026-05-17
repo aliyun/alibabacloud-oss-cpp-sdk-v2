@@ -1,9 +1,12 @@
 #include <gtest/gtest.h>
 
+#include "alibabacloud/oss2/Config.h"
 #include "Config.h"
 #include "sync/ClientHelper.h"
 #include "HttpClients.h"
 #include "alibabacloud/oss2/OSSClient.h"
+
+#ifdef ALIBABACLOUD_OSS_HAS_CURL
 
 namespace alibabacloud {
 namespace oss2 {
@@ -213,3 +216,5 @@ TEST_F(ObjectPresignTest, PresignUploadPart) {
 } // namespace sync
 } // namespace oss2
 } // namespace alibabacloud
+
+#endif // ALIBABACLOUD_OSS_HAS_CURL
