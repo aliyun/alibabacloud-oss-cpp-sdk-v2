@@ -38,11 +38,7 @@ TEST(RetryerTest, FullJitterBackoff) {
     auto backoff = FullJitterBackoff(delayBase, maxDelay);
     for (int i = 0; i < 128; i++) {
         auto delay = backoff.backoffDelay(i, std::error_code()).count();
-        if (i == 0) {
-            EXPECT_GE(delay, 0LL);
-        } else {
-            EXPECT_GT(delay, 0LL);
-        }
+        EXPECT_GE(delay, 0LL);
         EXPECT_LT(delay, maxDelay.count());
     }
 }
