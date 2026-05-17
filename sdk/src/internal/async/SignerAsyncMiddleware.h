@@ -4,6 +4,7 @@
 #include "AsyncExecuteMiddleware.h"
 #include "src/internal/OSSUtils.h"
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
+#include "alibabacloud/oss2/Error.h"
 #include "alibabacloud/oss2/signer/Signer.h"
 
 namespace alibabacloud {
@@ -21,7 +22,7 @@ class SignerAsyncMiddleware final : public AsyncExecuteMiddleware {
 
     void handleRequest(const std::shared_ptr<AsyncExecuteState>& state) override {
         if (provider_ == nullptr) {
-            updateError(state->context, SdkErrorCode::CREDENTIALS_PROVIDER_NULL,
+            updateError(state->context, CredentialsErrorCode::ProviderNull,
                         "IllegalArgument", "Credentials provider is null.");
             prev_->handleResponse(state);
             return;
@@ -34,7 +35,7 @@ class SignerAsyncMiddleware final : public AsyncExecuteMiddleware {
 
         auto cred = provider_->getCredentials();
         if (!cred.hasKeys()) {
-            updateError(state->context, SdkErrorCode::CREDENTIALS_EMPTYNULL,
+            updateError(state->context, CredentialsErrorCode::Empty,
                         "CredentialsError", "Credentials is null or empty.");
             prev_->handleResponse(state);
             return;
@@ -44,7 +45,7 @@ class SignerAsyncMiddleware final : public AsyncExecuteMiddleware {
         state->context.signingContext.request = state->request.get();
 
         if (!signer_->sign(state->context.signingContext)) {
-            updateError(state->context, SdkErrorCode::SIGN_ERROR,
+            updateError(state->context, SignerErrorCode::SignFailed,
                         "SignatureError", "The signer encountered an error while signing.");
             prev_->handleResponse(state);
             return;

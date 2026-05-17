@@ -190,7 +190,7 @@ TEST(AsyncExecuteStackTest, MiddlewareOrdering) {
 
 TEST(AsyncExecuteStackTest, TransportErrorCodeSetsContextError) {
     auto transport = std::make_shared<MockAsyncTransport>();
-    transport->pushResponse(TransportError{make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT)});
+    transport->pushResponse(TransportError{make_error_code(TransportErrorCode::ConnectionFailed)});
 
     StackTestHelper helper;
     auto onFinished = [&helper](const std::shared_ptr<AsyncExecuteState>& s) {
@@ -212,7 +212,7 @@ TEST(AsyncExecuteStackTest, TransportErrorCodeSetsContextError) {
     helper.wait();
 
     EXPECT_TRUE(helper.finalState->context.errorContext.error);
-    EXPECT_EQ(static_cast<int>(SdkErrorCode::CURLE_COULDNT_CONNECT),
+    EXPECT_EQ(static_cast<int>(TransportErrorCode::ConnectionFailed),
               helper.finalState->context.errorContext.error.value());
 }
 
@@ -258,7 +258,7 @@ TEST(AsyncExecuteStackTest, TransportResponsePreservesOstreamFactory) {
 
 TEST(AsyncExecuteStackTest, TransportErrorPreservesOstreamFactory) {
     auto transport = std::make_shared<MockAsyncTransport>();
-    transport->pushResponse(TransportError{make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT)});
+    transport->pushResponse(TransportError{make_error_code(TransportErrorCode::ConnectionFailed)});
 
     StackTestHelper helper;
     auto onFinished = [&helper](const std::shared_ptr<AsyncExecuteState>& s) {
@@ -296,7 +296,7 @@ TEST(AsyncExecuteStackTest, TransportErrorContextFields) {
     auto transport = std::make_shared<MockAsyncTransport>();
 
     // Return error_code with errorCode/errorMessage in context
-    transport->pushResponse(TransportError{make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT)});
+    transport->pushResponse(TransportError{make_error_code(TransportErrorCode::ConnectionFailed)});
 
     StackTestHelper helper;
     auto onFinished = [&helper](const std::shared_ptr<AsyncExecuteState>& s) {
@@ -310,7 +310,7 @@ TEST(AsyncExecuteStackTest, TransportErrorContextFields) {
                        const RequestOptions&,
                        RequestCallback callback) override {
             TransportError te;
-            te.error = make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT);
+            te.error = make_error_code(TransportErrorCode::ConnectionFailed);
             te.errorCode = "CURLcode 7";
             te.errorMessage = "Could not connect";
             callback(std::move(te), std::move(request));
@@ -375,8 +375,7 @@ TEST(AsyncExecuteStackTest, ResponseCheckerInvokesCallbacks) {
         [&callbackInvoked](std::unique_ptr<ResponseMessage>& response, ExecuteContext& context) -> bool {
             callbackInvoked = true;
             if (response->statusCode / 100 != 2) {
-                context.errorContext.error = make_error_code(
-                    static_cast<SdkErrorCode>(response->statusCode));
+                context.errorContext.error = make_server_error_code(response->statusCode);
                 return false;
             }
             return true;
@@ -392,7 +391,7 @@ TEST(AsyncExecuteStackTest, ResponseCheckerInvokesCallbacks) {
 
 TEST(AsyncExecuteStackTest, ResponseCheckerSkippedOnError) {
     auto transport = std::make_shared<MockAsyncTransport>();
-    transport->pushResponse(TransportError{make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT)});
+    transport->pushResponse(TransportError{make_error_code(TransportErrorCode::ConnectionFailed)});
 
     StackTestHelper helper;
     auto onFinished = [&helper](const std::shared_ptr<AsyncExecuteState>& s) {
@@ -460,7 +459,7 @@ TEST(AsyncExecuteStackTest, SignerErrorShortCircuits) {
     // Transport should NOT have been called
     EXPECT_EQ(0, transport->requestCount);
     EXPECT_TRUE(helper.finalState->context.errorContext.error);
-    EXPECT_EQ(static_cast<int>(SdkErrorCode::CREDENTIALS_PROVIDER_NULL),
+    EXPECT_EQ(static_cast<int>(CredentialsErrorCode::ProviderNull),
               helper.finalState->context.errorContext.error.value());
 }
 

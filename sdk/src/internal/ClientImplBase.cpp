@@ -4,6 +4,7 @@
 #include "OSSUtils.h"
 #include "Url.h"
 #include "alibabacloud/oss2/Config.h"
+#include "alibabacloud/oss2/Error.h"
 #include "alibabacloud/oss2/retry/StandardRetryer.h"
 #include "alibabacloud/oss2/signer/SignerV1.h"
 #include "alibabacloud/oss2/signer/SignerV4.h"
@@ -23,7 +24,7 @@ static bool onServiceError(std::unique_ptr<ResponseMessage>& response, ExecuteCo
         return true;
     }
 
-    context.errorContext.error = make_error_code(static_cast<SdkErrorCode>(response->statusCode));
+    context.errorContext.error = make_server_error_code(response->statusCode);
 
     // read from response body
     if (context.errorContext.snapshot.empty() && response->body != nullptr) {
@@ -189,21 +190,21 @@ int ClientImplBase::resolveFeatureFlags(const struct ClientConfiguration& config
 
 void ClientImplBase::verifyOperation(const OperationInput& input, ExecuteContext& context) const {
     if (innerOptions_.endpointAuthority.empty()) {
-        updateError(context, SdkErrorCode::ENDPOINT_INVALID, "IllegalArgument", "endpoint or region is invalid");
+        updateError(context, ClientErrorCode::EndpointInvalid, "IllegalArgument", "endpoint or region is invalid");
         return;
     }
     if (!isValidMethod(input.method)) {
-        updateError(context, SdkErrorCode::REQUEST_METHOD_EMPTY, "IllegalArgument",
+        updateError(context, ClientErrorCode::RequestMethodEmpty, "IllegalArgument",
                     "input.method is empty or invalid, got " + input.method + ".");
         return;
     }
     if (input.bucket.has_value() && !isValidBucketName(input.bucket.value())) {
-        updateError(context, SdkErrorCode::REQUEST_METHOD_EMPTY, "IllegalArgument",
+        updateError(context, ClientErrorCode::BucketNameInvalid, "IllegalArgument",
                     "input.bucket is invalid, got " + input.bucket.value() + ".");
         return;
     }
     if (input.key.has_value() && !isValidObjectName(input.key.value())) {
-        updateError(context, SdkErrorCode::OBJECT_NAME_INVALID, "IllegalArgument",
+        updateError(context, ClientErrorCode::ObjectNameInvalid, "IllegalArgument",
                     "input.key is invalid, got " + input.key.value() + ".");
     }
 }

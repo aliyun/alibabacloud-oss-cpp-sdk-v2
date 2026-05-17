@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
+#include "alibabacloud/oss2/Error.h"
 #include "alibabacloud/oss2/retry/Retryer.h"
 #include "alibabacloud/oss2/retry/StandardRetryer.h"
 #include "alibabacloud/oss2/signer/Signer.h"
@@ -1701,7 +1702,7 @@ struct CRC64ResponseChecker {
                     return true;
                 }
 
-                context.errorContext.error = make_error_code(SdkErrorCode::CRC_INCONSISTENT);
+                context.errorContext.error = make_error_code(ClientErrorCode::CrcMismatch);
                 context.errorContext.errorFields.emplace("Code", "CRCInconsistent");
                 context.errorContext.errorFields.emplace(
                         "Message", "crc is inconsistent, client crc:" + ccrc + ", server crc:" + it->second);

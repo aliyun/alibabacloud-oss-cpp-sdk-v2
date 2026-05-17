@@ -1,11 +1,12 @@
 #pragma once
 
 #include "OSSClientFieldCheck.h"
+#include "alibabacloud/oss2/Error.h"
 
 #define requiredField(field)                                                                              \
     do {                                                                                                  \
         if (isFieldMissing(request.get##field())) {                                                       \
-            return makeUnexpected(OperationError(SdkErrorCode::ARGUMENT_REQUIRED,                                        \
+            return makeUnexpected(OperationError(ClientErrorCode::ArgumentRequired,                                        \
                                   {{"Code", "ArgumentRequired"}, {"Message", "Missing field " #field ""}})); \
         }                                                                                                 \
     } while (false)
@@ -14,7 +15,7 @@
     do {                                                                                                     \
         if (isFieldMissing(request.get##f1()) && isFieldMissing(request.get##f2())) {                        \
             return makeUnexpected(OperationError(                                                                           \
-                    SdkErrorCode::ARGUMENT_REQUIRED,                                                         \
+                    ClientErrorCode::ArgumentRequired,                                                         \
                     {{"Code", "ArgumentRequired"}, {"Message", "Missing field " #f1 " or " #f2 ""}}));       \
         }                                                                                                    \
     } while (false)
@@ -24,7 +25,7 @@
         if (isFieldMissing(request.get##f1()) && isFieldMissing(request.get##f2())                           \
             && isFieldMissing(request.get##f3())) {                                                          \
             return makeUnexpected(OperationError(                                                                           \
-                    SdkErrorCode::ARGUMENT_REQUIRED,                                                         \
+                    ClientErrorCode::ArgumentRequired,                                                         \
                     {{"Code", "ArgumentRequired"},                                                           \
                      {"Message", "Missing field " #f1 " or " #f2 " or " #f3 ""}}));                          \
         }                                                                                                    \
@@ -35,7 +36,7 @@
         if (isFieldMissing(request.get##f1()) && isFieldMissing(request.get##f2())                           \
             && isFieldMissing(request.get##f3()) && isFieldMissing(request.get##f4())) {                     \
             return makeUnexpected(OperationError(                                                                           \
-                    SdkErrorCode::ARGUMENT_REQUIRED,                                                         \
+                    ClientErrorCode::ArgumentRequired,                                                         \
                     {{"Code", "ArgumentRequired"},                                                           \
                      {"Message", "Missing field " #f1 " or " #f2 " or " #f3 " or " #f4 ""}}));              \
         }                                                                                                    \
@@ -49,7 +50,7 @@
 #define requiredHasField(field)                                                                           \
     do {                                                                                                  \
         if (!request.has##field()) {                                                                      \
-            return makeUnexpected(OperationError(SdkErrorCode::ARGUMENT_REQUIRED,                                        \
+            return makeUnexpected(OperationError(ClientErrorCode::ArgumentRequired,                                        \
                                   {{"Code", "ArgumentRequired"}, {"Message", "Missing field " #field ""}})); \
         }                                                                                                 \
     } while (false)

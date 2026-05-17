@@ -197,7 +197,7 @@ Outcome<models::CopyObjectResult, OperationError> toCopyObject(OperationOutput&&
                 return models::CopyObjectResult(output.statusCode, std::move(output.headers), toCopyObjectResult(root));
             }
         } else {
-            auto opErr = OperationError{SdkErrorCode::Deserialization_ERROR,
+            auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
                                                 {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
                                                 {"Message", doc.ErrorStr()},
@@ -420,7 +420,7 @@ Outcome<models::DeleteMultipleObjectsResult, OperationError> toDeleteMultipleObj
                 return result;
             }
         } else {
-            auto opErr = OperationError{SdkErrorCode::Deserialization_ERROR,
+            auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
                                                 {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
                                                 {"Message", doc.ErrorStr()},

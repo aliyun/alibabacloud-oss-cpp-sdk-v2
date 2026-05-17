@@ -37,7 +37,7 @@ TEST(OutcomeTest, Value) {
 }
 
 TEST(OutcomeTest, Error) {
-    auto outcome = StubResultOutcome(makeUnexpected(OperationError(SdkErrorCode::ARGUMENT_INVALID,
+    auto outcome = StubResultOutcome(makeUnexpected(OperationError(ClientErrorCode::ArgumentInvalid,
         {{"Code", "TestError"}, {"Message", "test message"}})));
     EXPECT_EQ(outcome.error().getCode(), "TestError");
 
@@ -75,7 +75,7 @@ TEST(OutcomeTest, LegacyInterface) {
     success.getResult().val = "legacy";
     EXPECT_EQ(success.getResult().val, "legacy");
 
-    auto failure = StubResultOutcome(makeUnexpected(OperationError(SdkErrorCode::ARGUMENT_INVALID,
+    auto failure = StubResultOutcome(makeUnexpected(OperationError(ClientErrorCode::ArgumentInvalid,
         {{"Code", "Err"}})));
     EXPECT_FALSE(failure.isSuccess());
     EXPECT_EQ(failure.getError().getCode(), "Err");

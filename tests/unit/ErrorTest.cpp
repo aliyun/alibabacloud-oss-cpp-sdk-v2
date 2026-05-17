@@ -6,106 +6,159 @@
 
 using namespace alibabacloud::oss2;
 
-TEST(ErrorTest, MakeErrorCodeNoError) {
-    auto ec = make_error_code(SdkErrorCode::NO_ERROR);
-    EXPECT_FALSE(ec);
-    EXPECT_EQ(0, ec.value());
-    EXPECT_EQ(std::string("SdkError"), ec.category().name());
-}
-
-TEST(ErrorTest, MakeErrorCodeCrcInconsistent) {
-    auto ec = make_error_code(SdkErrorCode::CRC_INCONSISTENT);
-    EXPECT_TRUE(ec);
-    EXPECT_EQ(static_cast<int>(SdkErrorCode::CRC_INCONSISTENT), ec.value());
-}
-
-TEST(ErrorTest, MakeErrorCodeRequestDisable) {
-    auto ec = make_error_code(SdkErrorCode::REQUEST_DISABLE);
-    EXPECT_TRUE(ec);
-    EXPECT_EQ(static_cast<int>(SdkErrorCode::REQUEST_DISABLE), ec.value());
-}
-
-TEST(ErrorTest, MakeErrorCodeNullPointer) {
-    auto ec = make_error_code(SdkErrorCode::NULL_POINTER);
-    EXPECT_TRUE(ec);
-    EXPECT_EQ(static_cast<int>(SdkErrorCode::NULL_POINTER), ec.value());
-}
-
-TEST(ErrorTest, MakeErrorCodeArgumentInvalid) {
-    auto ec = make_error_code(SdkErrorCode::ARGUMENT_INVALID);
-    EXPECT_TRUE(ec);
-    EXPECT_EQ(static_cast<int>(SdkErrorCode::ARGUMENT_INVALID), ec.value());
-}
-
-TEST(ErrorTest, MakeErrorCodeArgumentNull) {
-    auto ec = make_error_code(SdkErrorCode::ARGUMENT_NULL);
-    EXPECT_TRUE(ec);
-    EXPECT_EQ(static_cast<int>(SdkErrorCode::ARGUMENT_NULL), ec.value());
-}
-
-TEST(ErrorTest, MakeErrorCodeEndpointInvalid) {
-    auto ec = make_error_code(SdkErrorCode::ENDPOINT_INVALID);
-    EXPECT_TRUE(ec);
-    EXPECT_EQ(static_cast<int>(SdkErrorCode::ENDPOINT_INVALID), ec.value());
-}
-
-TEST(ErrorTest, MakeErrorCodeSignError) {
-    auto ec = make_error_code(SdkErrorCode::SIGN_ERROR);
-    EXPECT_TRUE(ec);
-    EXPECT_EQ(static_cast<int>(SdkErrorCode::SIGN_ERROR), ec.value());
-}
-
-TEST(ErrorTest, MakeErrorCodeCredentialsEmpty) {
-    auto ec = make_error_code(SdkErrorCode::CREDENTIALS_EMPTYNULL);
-    EXPECT_TRUE(ec);
-    EXPECT_EQ(static_cast<int>(SdkErrorCode::CREDENTIALS_EMPTYNULL), ec.value());
-}
-
-TEST(ErrorTest, MakeErrorCodeCurlyCouldntConnect) {
-    auto ec = make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT);
-    EXPECT_TRUE(ec);
-    EXPECT_EQ(static_cast<int>(SdkErrorCode::CURLE_COULDNT_CONNECT), ec.value());
-}
-
-TEST(ErrorTest, ErrorCodeCategoryName) {
-    auto ec = make_error_code(SdkErrorCode::NO_ERROR);
-    EXPECT_EQ(std::string("SdkError"), ec.category().name());
-}
-
-TEST(ErrorTest, ErrorCodeMessage) {
-    auto ec = make_error_code(SdkErrorCode::NO_ERROR);
-    EXPECT_EQ(std::string("no error"), ec.message());
-}
-
-TEST(ErrorTest, ErrorCodeUnknownMessage) {
-    auto ec = make_error_code(static_cast<SdkErrorCode>(999));
-    EXPECT_EQ(std::string("unknown sdk error"), ec.message());
-}
-
-TEST(ErrorTest, ErrorCodeComparison) {
-    auto ec1 = make_error_code(SdkErrorCode::NO_ERROR);
-    auto ec2 = make_error_code(SdkErrorCode::CRC_INCONSISTENT);
-
-    EXPECT_EQ(ec1, ec1);
-    EXPECT_NE(ec1, ec2);
-}
-
 TEST(ErrorTest, ErrorCodeDefaultConstruction) {
     std::error_code ec;
     EXPECT_FALSE(ec);
     EXPECT_EQ(0, ec.value());
 }
 
-TEST(ErrorTest, ErrorClassDefaultConstruction) {
-    Error error;
-    // Note: status_ is not initialized in default constructor
-    EXPECT_EQ("", error.code());
-    EXPECT_EQ("", error.message());
+// --- ClientErrorCode ---
+
+TEST(ErrorTest, ClientErrorCategory) {
+    auto ec = make_error_code(ClientErrorCode::ArgumentRequired);
+    EXPECT_TRUE(ec);
+    EXPECT_EQ(std::string("oss2.client"), ec.category().name());
+    EXPECT_EQ(static_cast<int>(ClientErrorCode::ArgumentRequired), ec.value());
 }
 
-TEST(ErrorTest, ErrorClassWithValues) {
-    Error error("AccessDenied", "Access denied to resource");
-    EXPECT_EQ(0, error.status());
-    EXPECT_EQ("AccessDenied", error.code());
-    EXPECT_EQ("Access denied to resource", error.message());
+TEST(ErrorTest, ClientErrorConditionInvalidArgument) {
+    EXPECT_EQ(make_error_code(ClientErrorCode::ArgumentInvalid), ErrorCondition::InvalidArgument);
+    EXPECT_EQ(make_error_code(ClientErrorCode::ArgumentRequired), ErrorCondition::InvalidArgument);
+    EXPECT_EQ(make_error_code(ClientErrorCode::EndpointInvalid), ErrorCondition::InvalidArgument);
+    EXPECT_EQ(make_error_code(ClientErrorCode::BucketNameInvalid), ErrorCondition::InvalidArgument);
+    EXPECT_EQ(make_error_code(ClientErrorCode::ObjectNameInvalid), ErrorCondition::InvalidArgument);
+    EXPECT_EQ(make_error_code(ClientErrorCode::RequestMethodEmpty), ErrorCondition::InvalidArgument);
 }
+
+TEST(ErrorTest, ClientErrorConditionRetryable) {
+    EXPECT_EQ(make_error_code(ClientErrorCode::CrcMismatch), ErrorCondition::Retryable);
+}
+
+TEST(ErrorTest, ClientErrorConditionCanceled) {
+    EXPECT_EQ(make_error_code(ClientErrorCode::OperationCanceled), ErrorCondition::Canceled);
+}
+
+TEST(ErrorTest, ClientErrorConditionNonRetryable) {
+    EXPECT_EQ(make_error_code(ClientErrorCode::RequestDisable), ErrorCondition::NonRetryable);
+    EXPECT_EQ(make_error_code(ClientErrorCode::OperationNotSupported), ErrorCondition::NonRetryable);
+    EXPECT_EQ(make_error_code(ClientErrorCode::ReadDataFail), ErrorCondition::NonRetryable);
+}
+
+// --- CredentialsErrorCode ---
+
+TEST(ErrorTest, CredentialsErrorCategory) {
+    auto ec = make_error_code(CredentialsErrorCode::Empty);
+    EXPECT_TRUE(ec);
+    EXPECT_EQ(std::string("oss2.credentials"), ec.category().name());
+}
+
+TEST(ErrorTest, CredentialsErrorConditionRetryable) {
+    EXPECT_EQ(make_error_code(CredentialsErrorCode::FetchError), ErrorCondition::Retryable);
+}
+
+TEST(ErrorTest, CredentialsErrorConditionAuthentication) {
+    EXPECT_EQ(make_error_code(CredentialsErrorCode::Empty), ErrorCondition::AuthenticationError);
+    EXPECT_EQ(make_error_code(CredentialsErrorCode::ProviderNull), ErrorCondition::AuthenticationError);
+}
+
+// --- SignerErrorCode ---
+
+TEST(ErrorTest, SignerErrorCategory) {
+    auto ec = make_error_code(SignerErrorCode::SignFailed);
+    EXPECT_TRUE(ec);
+    EXPECT_EQ(std::string("oss2.signer"), ec.category().name());
+}
+
+TEST(ErrorTest, SignerErrorConditionAuthentication) {
+    EXPECT_EQ(make_error_code(SignerErrorCode::SignFailed), ErrorCondition::AuthenticationError);
+}
+
+// --- SerdeErrorCode ---
+
+TEST(ErrorTest, SerdeErrorCategory) {
+    auto ec = make_error_code(SerdeErrorCode::DeserializationFailed);
+    EXPECT_TRUE(ec);
+    EXPECT_EQ(std::string("oss2.serde"), ec.category().name());
+}
+
+TEST(ErrorTest, SerdeErrorConditionNonRetryable) {
+    EXPECT_EQ(make_error_code(SerdeErrorCode::DeserializationFailed), ErrorCondition::NonRetryable);
+}
+
+// --- ServerError ---
+
+TEST(ErrorTest, ServerErrorCategory) {
+    auto ec = make_server_error_code(500);
+    EXPECT_TRUE(ec);
+    EXPECT_EQ(std::string("oss2.server"), ec.category().name());
+    EXPECT_EQ(500, ec.value());
+}
+
+TEST(ErrorTest, ServerErrorConditionRetryable) {
+    EXPECT_EQ(make_server_error_code(500), ErrorCondition::Retryable);
+    EXPECT_EQ(make_server_error_code(502), ErrorCondition::Retryable);
+    EXPECT_EQ(make_server_error_code(503), ErrorCondition::Retryable);
+    EXPECT_EQ(make_server_error_code(401), ErrorCondition::Retryable);
+    EXPECT_EQ(make_server_error_code(408), ErrorCondition::Retryable);
+    EXPECT_EQ(make_server_error_code(429), ErrorCondition::Retryable);
+}
+
+TEST(ErrorTest, ServerErrorConditionNonRetryable) {
+    EXPECT_EQ(make_server_error_code(400), ErrorCondition::NonRetryable);
+    EXPECT_EQ(make_server_error_code(403), ErrorCondition::NonRetryable);
+    EXPECT_EQ(make_server_error_code(404), ErrorCondition::NonRetryable);
+}
+
+TEST(ErrorTest, RetryableServerErrorAlwaysRetryable) {
+    EXPECT_EQ(make_retryable_server_error_code(403), ErrorCondition::Retryable);
+    EXPECT_EQ(make_retryable_server_error_code(404), ErrorCondition::Retryable);
+    EXPECT_EQ(make_retryable_server_error_code(400), ErrorCondition::Retryable);
+    EXPECT_EQ(make_retryable_server_error_code(500), ErrorCondition::Retryable);
+}
+
+TEST(ErrorTest, RetryableServerErrorCategory) {
+    auto ec = make_retryable_server_error_code(403);
+    EXPECT_TRUE(ec);
+    EXPECT_EQ(std::string("oss2.server"), ec.category().name());
+    EXPECT_EQ(10403, ec.value());
+}
+
+TEST(ErrorTest, RetryableServerErrorMessage) {
+    auto ec = make_retryable_server_error_code(403);
+    EXPECT_EQ("Forbidden", ec.message());
+}
+
+// --- TransportErrorCode ---
+
+TEST(ErrorTest, TransportErrorCategory) {
+    auto ec = make_error_code(TransportErrorCode::ConnectionFailed);
+    EXPECT_TRUE(ec);
+    EXPECT_EQ(std::string("oss2.transport"), ec.category().name());
+}
+
+TEST(ErrorTest, TransportErrorConditionRetryable) {
+    EXPECT_EQ(make_error_code(TransportErrorCode::ConnectionFailed), ErrorCondition::Retryable);
+    EXPECT_EQ(make_error_code(TransportErrorCode::DnsError), ErrorCondition::Retryable);
+    EXPECT_EQ(make_error_code(TransportErrorCode::Timeout), ErrorCondition::Retryable);
+    EXPECT_EQ(make_error_code(TransportErrorCode::SendRecvError), ErrorCondition::Retryable);
+    EXPECT_EQ(make_error_code(TransportErrorCode::PartialTransfer), ErrorCondition::Retryable);
+}
+
+TEST(ErrorTest, TransportErrorConditionNonRetryable) {
+    EXPECT_EQ(make_error_code(TransportErrorCode::SslError), ErrorCondition::NonRetryable);
+    EXPECT_EQ(make_error_code(TransportErrorCode::NotSupported), ErrorCondition::NonRetryable);
+    EXPECT_EQ(make_error_code(TransportErrorCode::Unknown), ErrorCondition::NonRetryable);
+}
+
+TEST(ErrorTest, TransportErrorConditionCanceled) {
+    EXPECT_EQ(make_error_code(TransportErrorCode::Canceled), ErrorCondition::Canceled);
+}
+
+// --- ErrorCondition ---
+
+TEST(ErrorTest, ErrorConditionCategory) {
+    auto cond = make_error_condition(ErrorCondition::Retryable);
+    EXPECT_EQ(std::string("oss2.condition"), cond.category().name());
+}
+
+

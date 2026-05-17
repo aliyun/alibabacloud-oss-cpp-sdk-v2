@@ -2,6 +2,7 @@
 #pragma once
 
 #include "src/internal/ExecuteMiddleware.h"
+#include "alibabacloud/oss2/Error.h"
 #include "alibabacloud/oss2/retry/Retryer.h"
 
 
@@ -36,7 +37,9 @@ class RetryerExecuteMiddleware final : public ExecuteMiddleware {
                 break;
             }
 
-            // CancellationRequested
+            if (context.errorContext.error == ErrorCondition::Canceled) {
+                break;
+            }
 
             // request.body().isReplayable()
             if (request->body != nullptr && request->body->isOneShot()) {
@@ -57,7 +60,7 @@ class RetryerExecuteMiddleware final : public ExecuteMiddleware {
             auto delay = retryer_->calcDelayTime(context.errorContext.error, retries + 1);
             if (waitForRetry(delay)) {
                 // cancel, and break
-                context.errorContext.error = make_error_code(SdkErrorCode::OPERATION_CANCELED);
+                context.errorContext.error = make_error_code(ClientErrorCode::OperationCanceled);
                 break;
             }
 

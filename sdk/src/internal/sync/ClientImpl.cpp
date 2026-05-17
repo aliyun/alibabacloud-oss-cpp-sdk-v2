@@ -5,6 +5,7 @@
 #include "RetryerExecuteMiddleware.h"
 #include "SignerExecuteMiddleware.h"
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
+#include "alibabacloud/oss2/Error.h"
 #include "src/transport/HttpTransportFactory.h"
 #include "src/utils/Utils.h"
 
@@ -104,7 +105,7 @@ PresignInnerResult ClientImpl::Presign(const OperationInput& input, const Operat
     }
 
     if (options_.credentialsProvider == nullptr) {
-        return OperationError(SdkErrorCode::CREDENTIALS_PROVIDER_NULL,
+        return OperationError(CredentialsErrorCode::ProviderNull,
                               {{"Code", "IllegalArgument"}, {"Message", "Credentials provider is null."}});
     }
 
@@ -125,7 +126,7 @@ PresignInnerResult ClientImpl::Presign(const OperationInput& input, const Operat
         Credentials cred = provider->getCredentials();
 
         if (!cred.hasKeys()) {
-            updateError(context, SdkErrorCode::CREDENTIALS_EMPTYNULL, "CredentialsError",
+            updateError(context, CredentialsErrorCode::Empty, "CredentialsError",
                         "Credentials is null or empty.");
             break;
         }
@@ -135,7 +136,7 @@ PresignInnerResult ClientImpl::Presign(const OperationInput& input, const Operat
         context.signingContext.authMethodQuery = true;
 
         if (!options_.signer->sign(context.signingContext)) {
-            updateError(context, SdkErrorCode::SIGN_ERROR, "SignatureError",
+            updateError(context, SignerErrorCode::SignFailed, "SignatureError",
                         "The signer encountered an error while signing.");
             break;
         }

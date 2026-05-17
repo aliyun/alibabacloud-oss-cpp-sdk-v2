@@ -658,7 +658,7 @@ Outcome<models::GetBucketStatResult, OperationError> toGetBucketStat(OperationOu
             }
             return result;
         } else {
-            auto opErr = OperationError{SdkErrorCode::Deserialization_ERROR,
+            auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
                                                 {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
                                                 {"Message", doc.ErrorStr()},
@@ -791,7 +791,7 @@ Outcome<models::ListObjectsResult, OperationError> toListObjects(OperationOutput
                                                  toListBucketResult(root));
             }
         } else {
-            auto opErr = OperationError{SdkErrorCode::Deserialization_ERROR,
+            auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
                                                 {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
                                                 {"Message", doc.ErrorStr()},
@@ -849,7 +849,7 @@ Outcome<models::ListObjectsV2Result, OperationError> toListObjectsV2(OperationOu
                                                    toListBucketResult(root));
             }
         } else {
-            auto opErr = OperationError{SdkErrorCode::Deserialization_ERROR,
+            auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
                                                 {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
                                                 {"Message", doc.ErrorStr()},
@@ -909,7 +909,7 @@ Outcome<models::GetBucketInfoResult, OperationError> toGetBucketInfo(OperationOu
             }
             return result;
         } else {
-            auto opErr = OperationError{SdkErrorCode::Deserialization_ERROR,
+            auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
                                                 {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
                                                 {"Message", doc.ErrorStr()},
@@ -969,7 +969,7 @@ Outcome<models::GetBucketLocationResult, OperationError> toGetBucketLocation(Ope
                 return result;
             }
         } else {
-            auto opErr = OperationError{SdkErrorCode::Deserialization_ERROR,
+            auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
                                                 {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
                                                 {"Message", doc.ErrorStr()},
