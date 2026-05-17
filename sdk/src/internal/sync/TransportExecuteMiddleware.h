@@ -15,15 +15,15 @@ class TransportExecuteMiddleware final : public ExecuteMiddleware {
 
     std::unique_ptr<ResponseMessage> Execute(std::unique_ptr<RequestMessage>& request,
                                              ExecuteContext& context) override {
-        // Send Request
         auto result = httpTransport_->send(request, context.transportContext);
-        if (std::holds_alternative<std::error_code>(result)) {
-            context.errorContext.error = std::get<1>(result);
-            if (!context.transportContext.errorCode.empty()) {
-                context.errorContext.errorFields.emplace("Code", std::move(context.transportContext.errorCode));
+        if (std::holds_alternative<TransportError>(result)) {
+            auto& te = std::get<TransportError>(result);
+            context.errorContext.error = te.error;
+            if (!te.errorCode.empty()) {
+                context.errorContext.errorFields.emplace("Code", std::move(te.errorCode));
             }
-            if (!context.transportContext.errorMessage.empty()) {
-                context.errorContext.errorFields.emplace("Message", std::move(context.transportContext.errorMessage));
+            if (!te.errorMessage.empty()) {
+                context.errorContext.errorFields.emplace("Message", std::move(te.errorMessage));
             }
             return nullptr;
         }

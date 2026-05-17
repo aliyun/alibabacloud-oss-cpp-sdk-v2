@@ -41,6 +41,7 @@ Debug
 Release
 .build
 build_*/
+build-*/
 
 #vim swap file
 *.swp

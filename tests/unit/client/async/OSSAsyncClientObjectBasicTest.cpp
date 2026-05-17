@@ -115,17 +115,17 @@ TEST(OSSAsyncClientObjectBasicTest, GetObjectAsync_WithOStreamFactory) {
     class ContextCaptureMockAsync : public AsyncHttpTransport {
       public:
         void sendAsync(std::unique_ptr<RequestMessage> request,
-                       RequestContext context,
+                       const RequestOptions& options,
                        RequestCallback callback) override {
-            capturedContext = context;
+            capturedOptions = options;
             auto response = std::make_unique<ResponseMessage>(ResponseMessage{
                     200, "OK",
                     {{"x-oss-request-id", "id-5678"}, {"Content-Length", "11"}},
                     std::make_shared<std::stringstream>("hello world")});
-            callback(std::move(response), std::move(request), std::move(context));
+            callback(std::move(response), std::move(request));
         }
         std::string getName() const override { return "ContextCaptureMockAsync"; }
-        RequestContext capturedContext;
+        RequestOptions capturedOptions;
     };
 
     auto mockTransport = std::make_shared<ContextCaptureMockAsync>();
@@ -147,9 +147,9 @@ TEST(OSSAsyncClientObjectBasicTest, GetObjectAsync_WithOStreamFactory) {
     auto outcome = future.get();
 
     EXPECT_TRUE(outcome.has_value());
-    ASSERT_TRUE(mockTransport->capturedContext.ostreamFactory.has_value());
-    EXPECT_FALSE(mockTransport->capturedContext.ostreamFactory->isOneShot);
-    EXPECT_NE(nullptr, mockTransport->capturedContext.ostreamFactory->supplier);
+    ASSERT_TRUE(mockTransport->capturedOptions.ostreamFactory.has_value());
+    EXPECT_FALSE(mockTransport->capturedOptions.ostreamFactory->isOneShot);
+    EXPECT_NE(nullptr, mockTransport->capturedOptions.ostreamFactory->supplier);
 }
 
 TEST(OSSAsyncClientObjectBasicTest, GetObjectAsync_WithoutOStreamFactory) {

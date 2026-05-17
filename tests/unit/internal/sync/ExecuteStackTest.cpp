@@ -33,7 +33,7 @@ class Test2ExecuteMiddleware : public ExecuteMiddleware {
 class MockHttpTransport : public HttpTransport {
   public:
     MockHttpTransport() {}
-    ResponseResult send(std::unique_ptr<RequestMessage>& request, RequestContext& context) override {
+    ResponseResult send(std::unique_ptr<RequestMessage>& request, const RequestOptions& options) override {
         std::cout << "MockHttpTransport" << std::endl;
         return std::make_unique<ResponseMessage>();
     }

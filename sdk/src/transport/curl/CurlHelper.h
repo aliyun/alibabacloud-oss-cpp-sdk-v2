@@ -92,4 +92,6 @@ bool headerNameEquals(const std::string& header, const std::string& expect);
 
 std::string curlVersionString();
 
+std::error_code make_transport_error_code(int curlCode);
+
 } // namespace alibabacloud::oss2::transport::curl

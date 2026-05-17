@@ -14,31 +14,26 @@ class TransportAsyncMiddleware final : public AsyncExecuteMiddleware {
             : transport_(transport) {}
 
     void handleRequest(const std::shared_ptr<AsyncExecuteState>& state) override {
-        RequestContext transportCtx;
-        transportCtx.ostreamFactory = state->context.transportContext.ostreamFactory;
-
         auto req = std::move(state->request);
         auto self = this;
         auto s = state;
-        transport_->sendAsync(std::move(req), std::move(transportCtx),
-            [self, s](ResponseResult result, std::unique_ptr<RequestMessage> request,
-                       RequestContext context) mutable {
+        transport_->sendAsync(std::move(req), s->context.transportContext,
+            [self, s](ResponseResult result, std::unique_ptr<RequestMessage> request) mutable {
                 s->request = std::move(request);
-                s->context.transportContext.errorCode = std::move(context.errorCode);
-                s->context.transportContext.errorMessage = std::move(context.errorMessage);
 
-                if (std::holds_alternative<std::error_code>(result)) {
-                    s->context.errorContext.error = std::get<std::error_code>(result);
-                    if (!s->context.transportContext.errorCode.empty()) {
+                if (std::holds_alternative<TransportError>(result)) {
+                    auto& te = std::get<TransportError>(result);
+                    s->context.errorContext.error = te.error;
+                    if (!te.errorCode.empty()) {
                         s->context.errorContext.errorFields.emplace(
-                            "Code", std::move(s->context.transportContext.errorCode));
+                            "Code", std::move(te.errorCode));
                     }
-                    if (!s->context.transportContext.errorMessage.empty()) {
+                    if (!te.errorMessage.empty()) {
                         s->context.errorContext.errorFields.emplace(
-                            "Message", std::move(s->context.transportContext.errorMessage));
+                            "Message", std::move(te.errorMessage));
                     }
                 } else {
-                    s->result = std::move(result);
+                    s->response = std::move(std::get<std::unique_ptr<ResponseMessage>>(result));
                 }
 
                 self->handleResponse(s);

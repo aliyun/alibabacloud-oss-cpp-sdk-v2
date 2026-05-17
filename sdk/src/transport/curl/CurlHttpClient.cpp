@@ -52,7 +52,7 @@ CurlHttpClient::CurlHttpClient(const CurlTransportOptions& options)
     (void)CurlGlobalInitializer::instance();
 }
 
-ResponseResult CurlHttpClient::send(std::unique_ptr<RequestMessage>& request, RequestContext& context) {
+ResponseResult CurlHttpClient::send(std::unique_ptr<RequestMessage>& request, const RequestOptions& options) {
     OSS_LOG(LogLevel::LogDebug, TAG, "request(%p) enter Send", request.get());
 
     int64_t contentLength = -1;
@@ -63,11 +63,13 @@ ResponseResult CurlHttpClient::send(std::unique_ptr<RequestMessage>& request, Re
     CURL* curl = curlContainer_->Acquire();
     OSS_LOG(LogLevel::LogDebug, TAG, "request(%p) acquire curl handle:%p", request.get(), curl);
 
+    auto ostreamFactory = options.ostreamFactory;
+
     TransferIO io{};
     io.curl = curl;
     io.request = request.get();
     io.response = response.get();
-    io.ostreamFactory = &context.ostreamFactory;
+    io.ostreamFactory = &ostreamFactory;
 
     if (request->body != nullptr) {
         io.source = request->body->spanSource();
@@ -116,17 +118,20 @@ ResponseResult CurlHttpClient::send(std::unique_ptr<RequestMessage>& request, Re
             } else if (io.sink->fail()) {
                 ss << ". Caused by sink is in fail state(Logical error on i/o operation).";
             }
-        } else if (res == CURLE_ABORTED_BY_CALLBACK) {
-            // TODO
         }
-        context.errorCode = "CURLcode " + std::to_string(res);
-        context.errorMessage = ss.str();
+
+        curlContainer_->Release(curl, true);
+        curl_slist_free_all(list);
+
+        OSS_LOG(LogLevel::LogDebug, TAG, "request(%p) leave Send, CURLcode:%d", request.get(), res);
+        return TransportError{make_transport_error_code(res),
+                              "CURLcode " + std::to_string(res), ss.str()};
     }
 
     response->statusCode = response_code;
     response->body = io.defaultSink;
 
-    curlContainer_->Release(curl, (res != CURLE_OK));
+    curlContainer_->Release(curl, false);
 
     curl_slist_free_all(list);
 

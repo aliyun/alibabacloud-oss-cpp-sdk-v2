@@ -341,15 +341,15 @@ TEST(OSSClientObjectBasicTest, GetObject_RequiredField) {
 TEST(OSSClientObjectBasicTest, GetObject_WithOStreamFactory) {
     class ContextCaptureMock : public HttpTransport {
       public:
-        ResponseResult send(std::unique_ptr<RequestMessage>& request, RequestContext& context) override {
-            capturedContext = context;
+        ResponseResult send(std::unique_ptr<RequestMessage>& request, const RequestOptions& options) override {
+            capturedOptions = options;
             return std::make_unique<ResponseMessage>(ResponseMessage{
                     200, "OK",
                     {{"x-oss-request-id", "id-5678"}, {"Content-Length", "11"}},
                     std::make_shared<std::stringstream>("hello world")});
         }
         std::string getName() const override { return "ContextCaptureMock"; }
-        RequestContext capturedContext;
+        RequestOptions capturedOptions;
     };
 
     auto mockHandler = std::make_shared<ContextCaptureMock>();
@@ -370,23 +370,23 @@ TEST(OSSClientObjectBasicTest, GetObject_WithOStreamFactory) {
 
     auto outcome = client.getObject(request);
     EXPECT_TRUE(outcome.has_value());
-    ASSERT_TRUE(mockHandler->capturedContext.ostreamFactory.has_value());
-    EXPECT_TRUE(mockHandler->capturedContext.ostreamFactory->isOneShot);
-    EXPECT_NE(nullptr, mockHandler->capturedContext.ostreamFactory->supplier);
+    ASSERT_TRUE(mockHandler->capturedOptions.ostreamFactory.has_value());
+    EXPECT_TRUE(mockHandler->capturedOptions.ostreamFactory->isOneShot);
+    EXPECT_NE(nullptr, mockHandler->capturedOptions.ostreamFactory->supplier);
 }
 
 TEST(OSSClientObjectBasicTest, GetObject_WithoutOStreamFactory) {
     class ContextCaptureMock : public HttpTransport {
       public:
-        ResponseResult send(std::unique_ptr<RequestMessage>& request, RequestContext& context) override {
-            capturedContext = context;
+        ResponseResult send(std::unique_ptr<RequestMessage>& request, const RequestOptions& options) override {
+            capturedOptions = options;
             return std::make_unique<ResponseMessage>(ResponseMessage{
                     200, "OK",
                     {{"x-oss-request-id", "id-5678"}, {"Content-Length", "5"}},
                     std::make_shared<std::stringstream>("hello")});
         }
         std::string getName() const override { return "ContextCaptureMock"; }
-        RequestContext capturedContext;
+        RequestOptions capturedOptions;
     };
 
     auto mockHandler = std::make_shared<ContextCaptureMock>();
@@ -401,7 +401,7 @@ TEST(OSSClientObjectBasicTest, GetObject_WithoutOStreamFactory) {
 
     auto outcome = client.getObject(request);
     EXPECT_TRUE(outcome.has_value());
-    EXPECT_FALSE(mockHandler->capturedContext.ostreamFactory.has_value());
+    EXPECT_FALSE(mockHandler->capturedOptions.ostreamFactory.has_value());
 }
 
 // Test CopyObject operation

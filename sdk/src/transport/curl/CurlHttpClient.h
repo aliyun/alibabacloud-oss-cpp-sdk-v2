@@ -10,7 +10,7 @@ class CurlHttpClient : public HttpTransport {
     explicit CurlHttpClient(const HttpTransportOptions& options);
     explicit CurlHttpClient(const CurlTransportOptions& options);
 
-    ResponseResult send(std::unique_ptr<RequestMessage>& request, RequestContext& context) override;
+    ResponseResult send(std::unique_ptr<RequestMessage>& request, const RequestOptions& options) override;
 
     std::string getName() const override;
 

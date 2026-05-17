@@ -24,7 +24,7 @@ struct AsyncExecuteState {
     ExecuteContext context;
 
     std::unique_ptr<RequestMessage> request;
-    ResponseResult result;
+    std::unique_ptr<ResponseMessage> response;
 
     ResponseAction action{ResponseAction::Stop};
     std::chrono::milliseconds retryDelay{0};

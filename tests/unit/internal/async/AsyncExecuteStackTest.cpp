@@ -20,12 +20,12 @@ namespace internal {
 class MockAsyncTransport : public AsyncHttpTransport {
   public:
     void sendAsync(std::unique_ptr<RequestMessage> request,
-                   RequestContext context,
+                   const RequestOptions&,
                    RequestCallback callback) override {
         requestCount++;
         lastUri = request->uri;
         auto result = popResponse();
-        callback(std::move(result), std::move(request), std::move(context));
+        callback(std::move(result), std::move(request));
     }
 
     std::string getName() const override { return "MockAsyncTransport"; }
@@ -133,10 +133,9 @@ TEST(AsyncExecuteStackTest, BasicExecution) {
     helper.wait();
 
     EXPECT_EQ(1, transport->requestCount);
-    ASSERT_TRUE(std::holds_alternative<std::unique_ptr<ResponseMessage>>(helper.finalState->result));
-    auto& response = std::get<std::unique_ptr<ResponseMessage>>(helper.finalState->result);
-    EXPECT_EQ(200, response->statusCode);
-    EXPECT_EQ("value", response->headers["x-test"]);
+    ASSERT_NE(nullptr, helper.finalState->response);
+    EXPECT_EQ(200, helper.finalState->response->statusCode);
+    EXPECT_EQ("value", helper.finalState->response->headers["x-test"]);
 }
 
 TEST(AsyncExecuteStackTest, MiddlewareOrdering) {
@@ -191,7 +190,7 @@ TEST(AsyncExecuteStackTest, MiddlewareOrdering) {
 
 TEST(AsyncExecuteStackTest, TransportErrorCodeSetsContextError) {
     auto transport = std::make_shared<MockAsyncTransport>();
-    transport->pushResponse(make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT));
+    transport->pushResponse(TransportError{make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT)});
 
     StackTestHelper helper;
     auto onFinished = [&helper](const std::shared_ptr<AsyncExecuteState>& s) {
@@ -259,7 +258,7 @@ TEST(AsyncExecuteStackTest, TransportResponsePreservesOstreamFactory) {
 
 TEST(AsyncExecuteStackTest, TransportErrorPreservesOstreamFactory) {
     auto transport = std::make_shared<MockAsyncTransport>();
-    transport->pushResponse(make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT));
+    transport->pushResponse(TransportError{make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT)});
 
     StackTestHelper helper;
     auto onFinished = [&helper](const std::shared_ptr<AsyncExecuteState>& s) {
@@ -297,7 +296,7 @@ TEST(AsyncExecuteStackTest, TransportErrorContextFields) {
     auto transport = std::make_shared<MockAsyncTransport>();
 
     // Return error_code with errorCode/errorMessage in context
-    transport->pushResponse(make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT));
+    transport->pushResponse(TransportError{make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT)});
 
     StackTestHelper helper;
     auto onFinished = [&helper](const std::shared_ptr<AsyncExecuteState>& s) {
@@ -308,12 +307,13 @@ TEST(AsyncExecuteStackTest, TransportErrorContextFields) {
     class ErrorTransport : public AsyncHttpTransport {
       public:
         void sendAsync(std::unique_ptr<RequestMessage> request,
-                       RequestContext context,
+                       const RequestOptions&,
                        RequestCallback callback) override {
-            context.errorCode = "CURLcode 7";
-            context.errorMessage = "Could not connect";
-            callback(make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT),
-                     std::move(request), std::move(context));
+            TransportError te;
+            te.error = make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT);
+            te.errorCode = "CURLcode 7";
+            te.errorMessage = "Could not connect";
+            callback(std::move(te), std::move(request));
         }
         std::string getName() const override { return "ErrorTransport"; }
     };
@@ -392,7 +392,7 @@ TEST(AsyncExecuteStackTest, ResponseCheckerInvokesCallbacks) {
 
 TEST(AsyncExecuteStackTest, ResponseCheckerSkippedOnError) {
     auto transport = std::make_shared<MockAsyncTransport>();
-    transport->pushResponse(make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT));
+    transport->pushResponse(TransportError{make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT)});
 
     StackTestHelper helper;
     auto onFinished = [&helper](const std::shared_ptr<AsyncExecuteState>& s) {

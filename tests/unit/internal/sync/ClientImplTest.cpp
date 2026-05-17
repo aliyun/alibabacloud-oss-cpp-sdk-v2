@@ -25,8 +25,8 @@ class NopSigner : public Signer {
 class NopTransport : public HttpTransport {
   public:
     NopTransport() {}
-    ResponseResult send(std::unique_ptr<RequestMessage>& request, RequestContext& context) override {
-        return std::error_code();
+    ResponseResult send(std::unique_ptr<RequestMessage>& request, const RequestOptions& options) override {
+        return TransportError{};
     }
     std::string getName() const override {
         return "NopTransport";

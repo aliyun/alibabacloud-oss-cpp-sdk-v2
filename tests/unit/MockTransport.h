@@ -11,7 +11,7 @@ namespace oss2 {
 class MockTransport : public HttpTransport {
   public:
     MockTransport() {}
-    ResponseResult send(std::unique_ptr<RequestMessage>& request, RequestContext& context) override {
+    ResponseResult send(std::unique_ptr<RequestMessage>& request, const RequestOptions& options) override {
         saveRequest(request);
         return popResponse();
     }
@@ -46,7 +46,7 @@ class MockTransport : public HttpTransport {
             responses.erase(responses.begin());
             return res;
         }
-        return std::make_error_code(std::errc::result_out_of_range);
+        return TransportError{std::make_error_code(std::errc::result_out_of_range)};
     }
 };
 

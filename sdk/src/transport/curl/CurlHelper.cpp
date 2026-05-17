@@ -1,3 +1,4 @@
+#include "alibabacloud/oss2/Error.h"
 #include "CurlHelper.h"
 
 #include <curl/curlver.h>
@@ -253,6 +254,10 @@ std::string curlVersionString() {
         return "unknown";
     }
     return info->version;
+}
+
+std::error_code make_transport_error_code(int curlCode) {
+    return oss2::make_error_code(static_cast<SdkErrorCode>(ERROR_CURL_BASE + curlCode));
 }
 
 } // namespace alibabacloud::oss2::transport::curl
