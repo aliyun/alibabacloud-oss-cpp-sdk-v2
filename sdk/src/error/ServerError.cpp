@@ -6,8 +6,6 @@
 namespace alibabacloud {
 namespace oss2 {
 
-namespace {
-
 class server_error_category : public std::error_category {
   public:
     const char* name() const noexcept override { return "oss2.server"; }
@@ -49,16 +47,14 @@ class server_error_category : public std::error_category {
     }
 };
 
-} // namespace
+static const server_error_category g_server_error_category{};
 
 std::error_code make_server_error_code(int httpStatus) {
-    static const server_error_category cat{};
-    return {httpStatus, cat};
+    return {httpStatus, g_server_error_category};
 }
 
 std::error_code make_retryable_server_error_code(int httpStatus) {
-    static const server_error_category cat{};
-    return {10000 + httpStatus, cat};
+    return {10000 + httpStatus, g_server_error_category};
 }
 
 } // namespace oss2

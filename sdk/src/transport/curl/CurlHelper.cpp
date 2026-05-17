@@ -264,7 +264,7 @@ static TransportErrorCode curlCodeToTransportError(int curlCode) {
         case 18: return TransportErrorCode::PartialTransfer;   // CURLE_PARTIAL_FILE
         case 23: return TransportErrorCode::SendRecvError;     // CURLE_WRITE_ERROR
         case 28: return TransportErrorCode::Timeout;           // CURLE_OPERATION_TIMEDOUT
-        case 35: return TransportErrorCode::SslError;          // CURLE_SSL_CONNECT_ERROR
+        case 35: return TransportErrorCode::ConnectionFailed;  // CURLE_SSL_CONNECT_ERROR
         case 51: return TransportErrorCode::SslError;          // CURLE_PEER_FAILED_VERIFICATION
         case 53: return TransportErrorCode::SslError;          // CURLE_SSL_ENGINE_NOTFOUND
         case 55: return TransportErrorCode::SendRecvError;     // CURLE_SEND_ERROR
