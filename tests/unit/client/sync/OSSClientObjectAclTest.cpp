@@ -3,47 +3,9 @@
 #include "alibabacloud/oss2/ClientConfiguration.h"
 #include "alibabacloud/oss2/OSSClient.h"
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
-#include "alibabacloud/oss2/transport/HttpTransport.h"
+#include "MockTransport.h"
 
 namespace alibabacloud::oss2 {
-
-class MockTransport : public HttpTransport {
-  public:
-    MockTransport() {}
-    ResponseResult send(std::unique_ptr<RequestMessage>& request, RequestContext& context) override {
-        return popResponse();
-    }
-    std::string getName() const override {
-        return "MockTransport";
-    }
-
-  public:
-    std::vector<std::unique_ptr<ResponseMessage>> responses;
-
-    void Clear() {
-        responses.clear();
-    }
-
-  private:
-    void saveRequest(std::unique_ptr<RequestMessage>& request) {
-        auto req = std::make_unique<RequestMessage>(*request);
-        auto lastRequest = req.get();
-        // read data
-        if (lastRequest->body != nullptr) {
-            auto src = lastRequest->body->spanSource();
-            src->readToEnd();
-        }
-    }
-
-    ResponseResult popResponse() {
-        if (!responses.empty()) {
-            auto res = std::move(responses.front());
-            responses.erase(responses.begin());
-            return res;
-        }
-        return std::make_error_code(std::errc::result_out_of_range);
-    }
-};
 
 
 TEST(OSSClientObjectAclTest, GetObjectAcl_FullXml) {
