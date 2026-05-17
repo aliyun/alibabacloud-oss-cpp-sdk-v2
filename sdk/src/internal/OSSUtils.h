@@ -2,11 +2,11 @@
 
 #include "Defaults.h"
 #include "ExecuteMiddleware.h"
-#include "alibabacloud/oss2/Error.h"
 #include "alibabacloud/oss2/Operation.h"
 #include "alibabacloud/oss2/transport/HttpTypes.h"
 
 #include <string>
+#include <system_error>
 
 namespace alibabacloud {
 namespace oss2 {
@@ -23,8 +23,8 @@ std::string addScheme(const std::string& value, bool disableSsl);
 std::string regionToEndpoint(const std::string& value, EndpointType type, bool disableSsl);
 std::string buildHostPath(const OperationInput& input, const std::string& baseUrl, AddressStyleType addressStyle);
 
-void updateError(ExecuteContext& context, SdkErrorCode errorCode, const char* code, const char* message);
-void updateError(ExecuteContext& context, SdkErrorCode errorCode, const char* code, std::string&& message);
+void updateError(ExecuteContext& context, std::error_code errorCode, const char* code, const char* message);
+void updateError(ExecuteContext& context, std::error_code errorCode, const char* code, std::string&& message);
 
 } // namespace internal
 } // namespace oss2

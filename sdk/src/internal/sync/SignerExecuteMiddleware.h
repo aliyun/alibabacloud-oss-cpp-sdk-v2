@@ -4,6 +4,7 @@
 #include "src/internal/ExecuteMiddleware.h"
 #include "src/internal/OSSUtils.h"
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
+#include "alibabacloud/oss2/Error.h"
 #include "alibabacloud/oss2/signer/SignerV4.h"
 
 
@@ -22,7 +23,7 @@ class SignerExecuteMiddleware final : public ExecuteMiddleware {
     std::unique_ptr<ResponseMessage> Execute(std::unique_ptr<RequestMessage>& request,
                                              ExecuteContext& context) override {
         if (provider_ == nullptr) {
-            updateError(context, SdkErrorCode::CREDENTIALS_PROVIDER_NULL, "IllegalArgument",
+            updateError(context, CredentialsErrorCode::ProviderNull, "IllegalArgument",
                         "Credentials provider is null.");
             return nullptr;
         }
@@ -34,7 +35,7 @@ class SignerExecuteMiddleware final : public ExecuteMiddleware {
         auto cred = provider_->getCredentials();
 
         if (!cred.hasKeys()) {
-            updateError(context, SdkErrorCode::CREDENTIALS_EMPTYNULL, "CredentialsError",
+            updateError(context, CredentialsErrorCode::Empty, "CredentialsError",
                         "Credentials is null or empty.");
             return nullptr;
         }
@@ -43,7 +44,7 @@ class SignerExecuteMiddleware final : public ExecuteMiddleware {
         context.signingContext.request = request.get();
 
         if (!signer_->sign(context.signingContext)) {
-            updateError(context, SdkErrorCode::SIGN_ERROR, "SignatureError",
+            updateError(context, SignerErrorCode::SignFailed, "SignatureError",
                         "The signer encountered an error while signing.");
             return nullptr;
         }

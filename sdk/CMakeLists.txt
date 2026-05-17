@@ -35,6 +35,7 @@ file(GLOB sdk_client_async_src "src/client/async/*.cpp")
 file(GLOB sdk_internal_src "src/internal/*.cpp")
 file(GLOB sdk_internal_sync_src "src/internal/sync/*.cpp")
 file(GLOB sdk_internal_async_src "src/internal/async/*.cpp")
+file(GLOB sdk_error_src "src/error/*.cpp")
 file(GLOB sdk_io_src "src/io/*.cpp")
 file(GLOB sdk_models_src "src/models/*.cpp")
 file(GLOB sdk_transform_src "src/transform/*.cpp")
@@ -81,6 +82,7 @@ file(GLOB sdk_src
     ${sdk_signer_src}
     ${sdk_retry_src}
     ${sdk_transport_src}
+    ${sdk_error_src}
     ${sdk_utils_src}
     ${sdk_utils_hash_src}
     ${sdk_client_sync_src}

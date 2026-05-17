@@ -1,6 +1,5 @@
 #include "SerdeObjectSymlink.h"
 #include "SerdeUtils.h"
-#include "alibabacloud/oss2/Error.h"
 #include "src/utils/Utils.h"
 
 

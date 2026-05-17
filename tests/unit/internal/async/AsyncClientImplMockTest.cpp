@@ -652,9 +652,9 @@ TEST(AsyncClientImplMockTest, transportErrorRetryable) {
     auto client = AsyncClientImpl(config, asyncDefaultClientFns);
 
     mockHandler->Clear();
-    mockHandler->responses.emplace_back(TransportError{make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT)});
-    mockHandler->responses.emplace_back(TransportError{make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT)});
-    mockHandler->responses.emplace_back(TransportError{make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT)});
+    mockHandler->responses.emplace_back(TransportError{make_error_code(TransportErrorCode::ConnectionFailed)});
+    mockHandler->responses.emplace_back(TransportError{make_error_code(TransportErrorCode::ConnectionFailed)});
+    mockHandler->responses.emplace_back(TransportError{make_error_code(TransportErrorCode::ConnectionFailed)});
 
     auto input = OperationInput{};
     input.opName = "GetObject";

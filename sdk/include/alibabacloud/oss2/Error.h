@@ -3,132 +3,121 @@
 
 #include "alibabacloud/oss2/OSS_EXPORTS.h"
 
-#include <string>
 #include <system_error>
-
 
 namespace alibabacloud {
 namespace oss2 {
 
-/// Error codes from library operations
-enum class SdkErrorCode {
-    NO_ERROR = 0,
+// ---------------------------------------------------------------------------
+// ErrorCondition - cross-category semantic matching
+// ---------------------------------------------------------------------------
 
-    // server: [100-600)
-    SERVER_START = 100,
-    SERVER_END = 599,
-
-    // client: [100000-199999]
-    CLIENT_START = 100000,
-
-    CRC_INCONSISTENT = CLIENT_START + 1,
-    REQUEST_DISABLE,
-
-    NULL_POINTER,
-    ARGUMENT_INVALID,
-    ARGUMENT_NULL,
-    ARGUMENT_REQUIRED,
-    OPERATION_UNSUPPORT,
-    OPERATION_CANCELED,
-    ENDPOINT_REGION_NULL,
-    ENDPOINT_INVALID,
-    REQUEST_METHOD_EMPTY,
-
-    BUCKET_NAME_INVALID,
-    OBJECT_NAME_INVALID,
-
-    READ_DATA_FAIL,
-
-    // Credentials
-    CREDENTIALS_START = CLIENT_START + 1000,
-    CREDENTIALS_EMPTYNULL = CREDENTIALS_START + 1,
-    CREDENTIALS_FETCH_ERROR,
-    CREDENTIALS_PROVIDER_NULL,
-
-    CREDENTIALS_END = CLIENT_START + 1999,
-
-    // Signer
-    SIGNER_START = CLIENT_START + 2000,
-    SIGN_ERROR = SIGNER_START + 1,
-
-    SIGNER_END = CLIENT_START + 2999,
-
-    // Serialization & Deserialization
-    SERDE_START = CLIENT_START + 3000,
-    Deserialization_ERROR,
-    SERDE_END = CLIENT_START + 3999,
-
-    CLIENT_END = 199999,
-
-    // transport
-    TRANSPORT_START = 200000,
-
-    // transport:curl [200000-200999], 200000 + CURLcode
-    CURLE_START = TRANSPORT_START,
-    CURLE_COULDNT_CONNECT = CURLE_START + 7,
-    CURLE_PARTIAL_FILE = CURLE_START + 18,
-    CURLE_WRITE_ERROR = CURLE_START + 23,
-    CURLE_OPERATION_TIMEDOUT = CURLE_START + 28,
-    CURLE_GOT_NOTHING = CURLE_START + 52,
-    CURLE_SEND_ERROR = CURLE_START + 55,
-    CURLE_RECV_ERROR = CURLE_START + 56,
-    CURLE_SEND_FAIL_REWIND = CURLE_START + 65,
-
-    CURL_END = TRANSPORT_START + 999,
+enum class ErrorCondition {
+    Retryable = 1,
+    NonRetryable,
+    Canceled,
+    InvalidArgument,
+    AuthenticationError,
 };
 
-std::error_code make_error_code(SdkErrorCode e);
+ALIBABACLOUD_OSS_API std::error_condition make_error_condition(ErrorCondition e);
 
-/// Error conditions corresponding to sets of library error codes.
-// enum class SdkErrorCondition {};
+// ---------------------------------------------------------------------------
+// ClientErrorCode - validation, argument, and general client errors
+// ---------------------------------------------------------------------------
 
-// std::error_condition make_error_condition(SdkErrorCondition e);
-
-/*
-The status comes from the following modules: client, server, httpclient(ex. curl).
-server: [100-600)
-client: [100000-199999]
-curl  : [200000-299999], 200000 + CURLcode
-
-it's sucessful only if the status/100 equals to 2.
-*/
-const int ERROR_CLIENT_BASE = 100000;
-const int ERROR_CRC_INCONSISTENT = ERROR_CLIENT_BASE + 1;
-const int ERROR_REQUEST_DISABLE = ERROR_CLIENT_BASE + 2;
-
-const int ERROR_CURL_BASE = 200000;
-
-class ALIBABACLOUD_OSS_API Error {
-  public:
-    Error() = default;
-    Error(const std::string& code, const std::string& message) : status_(0), code_(code), message_(message) {}
-    ~Error() = default;
-
-    long status() const {
-        return status_;
-    }
-    const std::string& code() const {
-        return code_;
-    }
-    const std::string& message() const {
-        return message_;
-    }
-
-  private:
-    long status_{0};
-    std::string code_;
-    std::string message_;
+enum class ClientErrorCode {
+    ArgumentInvalid = 1,
+    ArgumentRequired,
+    EndpointInvalid,
+    EndpointRegionNull,
+    BucketNameInvalid,
+    ObjectNameInvalid,
+    CrcMismatch,
+    RequestDisable,
+    OperationCanceled,
+    OperationNotSupported,
+    RequestMethodEmpty,
+    ReadDataFail,
 };
+
+ALIBABACLOUD_OSS_API std::error_code make_error_code(ClientErrorCode e);
+
+// ---------------------------------------------------------------------------
+// CredentialsErrorCode - credential retrieval and provider errors
+// ---------------------------------------------------------------------------
+
+enum class CredentialsErrorCode {
+    Empty = 1,
+    FetchError,
+    ProviderNull,
+};
+
+ALIBABACLOUD_OSS_API std::error_code make_error_code(CredentialsErrorCode e);
+
+// ---------------------------------------------------------------------------
+// SignerErrorCode - request signing errors
+// ---------------------------------------------------------------------------
+
+enum class SignerErrorCode {
+    SignFailed = 1,
+};
+
+ALIBABACLOUD_OSS_API std::error_code make_error_code(SignerErrorCode e);
+
+// ---------------------------------------------------------------------------
+// SerdeErrorCode - serialization/deserialization errors
+// ---------------------------------------------------------------------------
+
+enum class SerdeErrorCode {
+    DeserializationFailed = 1,
+};
+
+ALIBABACLOUD_OSS_API std::error_code make_error_code(SerdeErrorCode e);
+
+// ---------------------------------------------------------------------------
+// ServerError - HTTP status codes as error codes (no enum, int = status)
+// ---------------------------------------------------------------------------
+
+ALIBABACLOUD_OSS_API std::error_code make_server_error_code(int httpStatus);
+ALIBABACLOUD_OSS_API std::error_code make_retryable_server_error_code(int httpStatus);
+
+// ---------------------------------------------------------------------------
+// TransportErrorCode - abstract transport-layer errors
+// ---------------------------------------------------------------------------
+
+enum class TransportErrorCode {
+    ConnectionFailed = 1,
+    DnsError,
+    SslError,
+    Timeout,
+    SendRecvError,
+    PartialTransfer,
+    Canceled,
+    NotSupported,
+    Unknown,
+};
+
+ALIBABACLOUD_OSS_API std::error_code make_error_code(TransportErrorCode e);
+
 
 } // namespace oss2
 } // namespace alibabacloud
 
+template<>
+struct std::is_error_condition_enum<alibabacloud::oss2::ErrorCondition> : std::true_type {};
 
-namespace std {
-template <>
-struct is_error_code_enum<::alibabacloud::oss2::SdkErrorCode> : true_type {};
+template<>
+struct std::is_error_code_enum<alibabacloud::oss2::ClientErrorCode> : std::true_type {};
 
-// template <>
-// struct is_error_condition_enum<::alibabacloud::oss2::SdkErrorCondition> : true_type {};
+template<>
+struct std::is_error_code_enum<alibabacloud::oss2::CredentialsErrorCode> : std::true_type {};
 
-} // namespace std
+template<>
+struct std::is_error_code_enum<alibabacloud::oss2::SignerErrorCode> : std::true_type {};
+
+template<>
+struct std::is_error_code_enum<alibabacloud::oss2::SerdeErrorCode> : std::true_type {};
+
+template<>
+struct std::is_error_code_enum<alibabacloud::oss2::TransportErrorCode> : std::true_type {};

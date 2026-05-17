@@ -2,6 +2,7 @@
 
 #include "alibabacloud/oss2/ClientOptions.h"
 #include "alibabacloud/oss2/OSSFwd.h"
+#include "alibabacloud/oss2/Error.h"
 
 #include <future>
 #include <functional>
@@ -506,7 +507,7 @@ class ALIBABACLOUD_OSS_API OSSClient final {
         using OutcomeT = typename Traits::OutcomeType;
         if (!executor_) {
             std::promise<OutcomeT> p;
-            p.set_value(OutcomeT(makeUnexpected(OperationError(SdkErrorCode::ARGUMENT_INVALID,
+            p.set_value(OutcomeT(makeUnexpected(OperationError(ClientErrorCode::ArgumentInvalid,
                 {{"Code", "NoExecutor"}, {"Message", "No executor configured for async operations"}}))));
             return p.get_future();
         }
@@ -547,7 +548,7 @@ class ALIBABACLOUD_OSS_API OSSClient final {
         using Traits = OperationTraits<std::decay_t<RequestT>>;
         using OutcomeT = typename Traits::OutcomeType;
         if (!executor_) {
-            handler(this, request, OutcomeT(makeUnexpected(OperationError(SdkErrorCode::ARGUMENT_INVALID,
+            handler(this, request, OutcomeT(makeUnexpected(OperationError(ClientErrorCode::ArgumentInvalid,
                 {{"Code", "NoExecutor"}, {"Message", "No executor configured for async operations"}}))));
             return;
         }

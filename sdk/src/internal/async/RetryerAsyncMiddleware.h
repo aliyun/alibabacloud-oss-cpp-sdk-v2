@@ -2,6 +2,7 @@
 #pragma once
 
 #include "AsyncExecuteMiddleware.h"
+#include "alibabacloud/oss2/Error.h"
 #include "alibabacloud/oss2/retry/Retryer.h"
 
 namespace alibabacloud {
@@ -24,7 +25,9 @@ class RetryerAsyncMiddleware final : public AsyncExecuteMiddleware {
     void handleResponse(const std::shared_ptr<AsyncExecuteState>& state) override {
         if (state->context.errorContext.error) {
             long attempts = state->context.retryMaxAttempts;
-            if (state->retries + 1 < attempts) {
+            if (state->context.errorContext.error == ErrorCondition::Canceled) {
+                // do not retry canceled operations
+            } else if (state->retries + 1 < attempts) {
                 bool canRetry = true;
                 if (state->request->body != nullptr && state->request->body->isOneShot()) {
                     canRetry = false;

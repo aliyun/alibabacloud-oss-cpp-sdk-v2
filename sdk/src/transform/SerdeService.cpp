@@ -185,7 +185,7 @@ Outcome<models::ListBucketsResult, OperationError> toListBuckets(OperationOutput
                                                  toListAllMyBucketsResult(root));
             }
         } else {
-            auto opErr = OperationError{SdkErrorCode::Deserialization_ERROR,
+            auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
                                                 {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
                                                 {"Message", doc.ErrorStr()},

@@ -1,5 +1,5 @@
-#include "alibabacloud/oss2/Error.h"
 #include "CurlHelper.h"
+#include "alibabacloud/oss2/Error.h"
 
 #include <curl/curlver.h>
 
@@ -256,8 +256,27 @@ std::string curlVersionString() {
     return info->version;
 }
 
+static TransportErrorCode curlCodeToTransportError(int curlCode) {
+    switch (curlCode) {
+        case 5:  return TransportErrorCode::DnsError;          // CURLE_COULDNT_RESOLVE_PROXY
+        case 6:  return TransportErrorCode::DnsError;          // CURLE_COULDNT_RESOLVE_HOST
+        case 7:  return TransportErrorCode::ConnectionFailed;  // CURLE_COULDNT_CONNECT
+        case 18: return TransportErrorCode::PartialTransfer;   // CURLE_PARTIAL_FILE
+        case 23: return TransportErrorCode::SendRecvError;     // CURLE_WRITE_ERROR
+        case 28: return TransportErrorCode::Timeout;           // CURLE_OPERATION_TIMEDOUT
+        case 35: return TransportErrorCode::SslError;          // CURLE_SSL_CONNECT_ERROR
+        case 51: return TransportErrorCode::SslError;          // CURLE_PEER_FAILED_VERIFICATION
+        case 53: return TransportErrorCode::SslError;          // CURLE_SSL_ENGINE_NOTFOUND
+        case 55: return TransportErrorCode::SendRecvError;     // CURLE_SEND_ERROR
+        case 56: return TransportErrorCode::SendRecvError;     // CURLE_RECV_ERROR
+        case 52: return TransportErrorCode::SendRecvError;     // CURLE_GOT_NOTHING
+        case 65: return TransportErrorCode::SendRecvError;     // CURLE_SEND_FAIL_REWIND
+        default: return TransportErrorCode::Unknown;
+    }
+}
+
 std::error_code make_transport_error_code(int curlCode) {
-    return oss2::make_error_code(static_cast<SdkErrorCode>(ERROR_CURL_BASE + curlCode));
+    return make_error_code(curlCodeToTransportError(curlCode));
 }
 
 } // namespace alibabacloud::oss2::transport::curl

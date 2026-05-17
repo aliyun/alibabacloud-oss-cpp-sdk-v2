@@ -348,7 +348,7 @@ Outcome<models::InitiateMultipartUploadResult, OperationError> toInitiateMultipa
                                                              toInitiateMultipartUploadResultXml(root));
             }
         } else {
-            auto opErr = OperationError{SdkErrorCode::Deserialization_ERROR,
+            auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
                                                 {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
                                                 {"Message", doc.ErrorStr()},
@@ -439,7 +439,7 @@ Outcome<models::CompleteMultipartUploadResult, OperationError> toCompleteMultipa
         if ((xml_err = doc.Parse(str.c_str(), str.size())) == thirdparty::tinyxml2::XML_SUCCESS) {
             const auto* root = doc.RootElement();
             if (root == nullptr) {
-                auto opErr = OperationError{SdkErrorCode::Deserialization_ERROR,
+                auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                             {
                                                     {"Code", "XMLError"},
                                                     {"Message", "RootElement is null"},
@@ -476,7 +476,7 @@ Outcome<models::CompleteMultipartUploadResult, OperationError> toCompleteMultipa
             }
             return result;
         } else {
-            auto opErr = OperationError{SdkErrorCode::Deserialization_ERROR,
+            auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
                                                 {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
                                                 {"Message", doc.ErrorStr()},
@@ -544,7 +544,7 @@ Outcome<models::UploadPartCopyResult, OperationError> toUploadPartCopy(Operation
                                                     toCopyPartResult(root));
             }
         } else {
-            auto opErr = OperationError{SdkErrorCode::Deserialization_ERROR,
+            auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
                                                 {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
                                                 {"Message", doc.ErrorStr()},
@@ -638,7 +638,7 @@ Outcome<models::ListMultipartUploadsResult, OperationError> toListMultipartUploa
                                                           toListMultipartUploadsResult(root));
             }
         } else {
-            auto opErr = OperationError{SdkErrorCode::Deserialization_ERROR,
+            auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
                                                 {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
                                                 {"Message", doc.ErrorStr()},
@@ -694,7 +694,7 @@ Outcome<models::ListPartsResult, OperationError> toListParts(OperationOutput&& o
                 return models::ListPartsResult(output.statusCode, std::move(output.headers), toListPartResult(root));
             }
         } else {
-            auto opErr = OperationError{SdkErrorCode::Deserialization_ERROR,
+            auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
                                                 {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
                                                 {"Message", doc.ErrorStr()},

@@ -104,8 +104,8 @@ std::string buildHostPath(const OperationInput& input, const std::string& baseUr
     return host + "/" + utils::StringJoin(paths, "/");
 }
 
-void updateError(ExecuteContext& context, SdkErrorCode errorCode, const char* code, const char* message) {
-    context.errorContext.error = make_error_code(errorCode);
+void updateError(ExecuteContext& context, std::error_code errorCode, const char* code, const char* message) {
+    context.errorContext.error = errorCode;
     if (code) {
         context.errorContext.errorFields.emplace("Code", code);
     }
@@ -114,8 +114,8 @@ void updateError(ExecuteContext& context, SdkErrorCode errorCode, const char* co
     }
 }
 
-void updateError(ExecuteContext& context, SdkErrorCode errorCode, const char* code, std::string&& message) {
-    context.errorContext.error = make_error_code(errorCode);
+void updateError(ExecuteContext& context, std::error_code errorCode, const char* code, std::string&& message) {
+    context.errorContext.error = errorCode;
     if (code) {
         context.errorContext.errorFields.emplace("Code", code);
     }

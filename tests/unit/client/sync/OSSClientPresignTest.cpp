@@ -2,6 +2,7 @@
 
 #include "alibabacloud/oss2/OSSClient.h"
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
+#include "alibabacloud/oss2/Error.h"
 #include "alibabacloud/oss2/models/Presign.h"
 #include "alibabacloud/oss2/models/ObjectBasic.h"
 #include "alibabacloud/oss2/models/ObjectMultipart.h"
@@ -247,7 +248,7 @@ TEST_F(OSSClientPresignTest, presignEmptyCredentials) {
 
     auto outcome = client.presign(request, nullptr);
     ASSERT_FALSE(outcome.has_value());
-    EXPECT_EQ(SdkErrorCode::CREDENTIALS_EMPTYNULL, outcome.error().getErrorCode());
+    EXPECT_EQ(CredentialsErrorCode::Empty, outcome.error().getErrorCode());
 }
 
 TEST_F(OSSClientPresignTest, presignGetObject_withSignedHeaders) {
@@ -409,7 +410,7 @@ TEST_F(OSSClientPresignTest, presignPutObject_emptyBucket) {
 
     auto outcome = client.presign(request, nullptr);
     ASSERT_FALSE(outcome.has_value());
-    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.error().getErrorCode());
+    EXPECT_EQ(ClientErrorCode::ArgumentRequired, outcome.error().getErrorCode());
     EXPECT_NE(std::string::npos, outcome.error().getMessage().find("Bucket"));
 }
 
@@ -427,7 +428,7 @@ TEST_F(OSSClientPresignTest, presignPutObject_emptyKey) {
 
     auto outcome = client.presign(request, nullptr);
     ASSERT_FALSE(outcome.has_value());
-    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.error().getErrorCode());
+    EXPECT_EQ(ClientErrorCode::ArgumentRequired, outcome.error().getErrorCode());
     EXPECT_NE(std::string::npos, outcome.error().getMessage().find("Key"));
 }
 
@@ -445,7 +446,7 @@ TEST_F(OSSClientPresignTest, presignGetObject_emptyBucket) {
 
     auto outcome = client.presign(request, nullptr);
     ASSERT_FALSE(outcome.has_value());
-    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.error().getErrorCode());
+    EXPECT_EQ(ClientErrorCode::ArgumentRequired, outcome.error().getErrorCode());
 }
 
 TEST_F(OSSClientPresignTest, presignGetObject_emptyKey) {
@@ -462,7 +463,7 @@ TEST_F(OSSClientPresignTest, presignGetObject_emptyKey) {
 
     auto outcome = client.presign(request, nullptr);
     ASSERT_FALSE(outcome.has_value());
-    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.error().getErrorCode());
+    EXPECT_EQ(ClientErrorCode::ArgumentRequired, outcome.error().getErrorCode());
 }
 
 TEST_F(OSSClientPresignTest, presignHeadObject_emptyBucket) {
@@ -479,7 +480,7 @@ TEST_F(OSSClientPresignTest, presignHeadObject_emptyBucket) {
 
     auto outcome = client.presign(request, nullptr);
     ASSERT_FALSE(outcome.has_value());
-    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.error().getErrorCode());
+    EXPECT_EQ(ClientErrorCode::ArgumentRequired, outcome.error().getErrorCode());
 }
 
 TEST_F(OSSClientPresignTest, presignUploadPart_emptyBucket) {
@@ -498,7 +499,7 @@ TEST_F(OSSClientPresignTest, presignUploadPart_emptyBucket) {
 
     auto outcome = client.presign(request, nullptr);
     ASSERT_FALSE(outcome.has_value());
-    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.error().getErrorCode());
+    EXPECT_EQ(ClientErrorCode::ArgumentRequired, outcome.error().getErrorCode());
 }
 
 TEST_F(OSSClientPresignTest, presignUploadPart_emptyUploadId) {
@@ -517,7 +518,7 @@ TEST_F(OSSClientPresignTest, presignUploadPart_emptyUploadId) {
 
     auto outcome = client.presign(request, nullptr);
     ASSERT_FALSE(outcome.has_value());
-    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.error().getErrorCode());
+    EXPECT_EQ(ClientErrorCode::ArgumentRequired, outcome.error().getErrorCode());
 }
 
 TEST_F(OSSClientPresignTest, presignUploadPart_invalidPartNumber) {
@@ -536,7 +537,7 @@ TEST_F(OSSClientPresignTest, presignUploadPart_invalidPartNumber) {
 
     auto outcome = client.presign(request, nullptr);
     ASSERT_FALSE(outcome.has_value());
-    EXPECT_EQ(SdkErrorCode::ARGUMENT_REQUIRED, outcome.error().getErrorCode());
+    EXPECT_EQ(ClientErrorCode::ArgumentRequired, outcome.error().getErrorCode());
 }
 
 } // namespace oss2
