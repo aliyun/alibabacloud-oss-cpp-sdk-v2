@@ -4,53 +4,9 @@
 #include "alibabacloud/oss2/OSSClient.h"
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
 #include "alibabacloud/oss2/models/ObjectMultipart.h"
-#include "alibabacloud/oss2/transport/HttpTransport.h"
+#include "MockTransport.h"
 
 namespace alibabacloud::oss2 {
-
-namespace {    
-class MockTransport : public HttpTransport {
-  public:
-    MockTransport() {}
-    ResponseResult send(std::unique_ptr<RequestMessage>& request, RequestContext& context) override {
-        saveRequest(request);
-        return popResponse();
-    }
-    std::string getName() const override {
-        return "MockTransport";
-    }
-
-  public:
-    std::vector<std::unique_ptr<ResponseMessage>> responses;
-    std::vector<std::unique_ptr<RequestMessage>> requests;
-    RequestMessage* lastRequest = nullptr;
-
-    void Clear() {
-        responses.clear();
-    }
-
-  private:
-    void saveRequest(std::unique_ptr<RequestMessage>& request) {
-        auto req = std::make_unique<RequestMessage>(*request);
-        lastRequest = req.get();
-        requests.emplace_back(std::move(req));
-        // read data
-        if (lastRequest->body != nullptr) {
-            auto src = lastRequest->body->spanSource();
-            src->readToEnd();
-        }
-    }
-
-    ResponseResult popResponse() {
-        if (!responses.empty()) {
-            auto res = std::move(responses.front());
-            responses.erase(responses.begin());
-            return res;
-        }
-        return std::make_error_code(std::errc::result_out_of_range);
-    }
-};
-}
 // Test InitiateMultipartUpload operation
 TEST(OSSClientObjectMultipartTest, InitiateMultipartUpload_Success) {
     auto mockHandler = std::make_shared<MockTransport>();

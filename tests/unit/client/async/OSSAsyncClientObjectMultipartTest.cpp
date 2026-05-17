@@ -3,34 +3,9 @@
 #include "alibabacloud/oss2/ClientConfiguration.h"
 #include "alibabacloud/oss2/OSSAsyncClient.h"
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
-#include "alibabacloud/oss2/transport/HttpTransport.h"
+#include "MockAsyncTransport.h"
 
 namespace alibabacloud::oss2 {
-
-namespace {
-
-class MockAsyncTransport : public AsyncHttpTransport {
-  public:
-    void sendAsync(std::unique_ptr<RequestMessage> request,
-                   RequestContext context,
-                   RequestCallback callback) override {
-        ResponseResult responseResult = std::make_error_code(std::errc::result_out_of_range);
-        {
-            std::lock_guard<std::mutex> lock(mutex_);
-            if (!responses.empty()) {
-                responseResult = std::move(responses.front());
-                responses.erase(responses.begin());
-            }
-        }
-        callback(std::move(responseResult), std::move(request), std::move(context));
-    }
-    std::string getName() const override { return "MockAsyncTransport"; }
-
-    std::vector<std::unique_ptr<ResponseMessage>> responses;
-    std::mutex mutex_;
-};
-
-} // namespace
 
 TEST(OSSAsyncClientObjectMultipartTest, InitiateMultipartUploadAsync_RequiredField) {
     auto mockTransport = std::make_shared<MockAsyncTransport>();
