@@ -2,6 +2,7 @@
 
 #include "alibabacloud/oss2/Types.h"
 #include "alibabacloud/oss2/io/ByteStream.h"
+#include "alibabacloud/oss2/utils/Cancellation.h"
 
 namespace alibabacloud {
 namespace oss2 {
@@ -10,6 +11,7 @@ enum class HttpMethod { Get, Head, Post, Put, Delete, Connect, Options, Patch, T
 
 struct ALIBABACLOUD_OSS_API RequestOptions {
     std::optional<OStreamFactory> ostreamFactory;
+    std::optional<CancellationToken> cancellationToken;
 };
 
 struct ALIBABACLOUD_OSS_API TransportError {

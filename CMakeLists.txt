@@ -40,6 +40,9 @@ sdk_option(USE_SYSTEM_CURL "If enabled we will use the curl lib already installe
 sdk_option(USE_SYSTEM_OPENSSL "If enabled we will use the openssl lib already installed on this system." OFF)
 sdk_option(USE_SYSTEM_MBEDTLS "If enabled we will use the mbedtls lib already installed on this system." OFF)
 
+sdk_option(USE_CURL_TRANSPORT "Compile curl transport support" ON)
+sdk_option(USE_WINHTTP_TRANSPORT "Compile WinHTTP transport support (Windows only)" OFF)
+
 sdk_option(USE_STD_EXPECTED "Use std::expected instead of Outcome (requires C++23)" OFF)
 
 sdk_option(ENABLE_COVERAGE "Set to ON to generate coverage reports." OFF)
@@ -107,69 +110,71 @@ if(USE_SYSTEM_MBEDTLS)
 endif()
 
 #Find dependency Library curl
-if(USE_SYSTEM_CURL)
-    find_package(CURL)
-    if(CURL_FOUND)
-        message(STATUS "Curl found on this system.")
-    else()
-        message(FATAL_ERROR "Curl not found on this system. To use the built-in version set USE_SYSTEM_CURL to OFF.")
-    endif()
-else()
-    message(STATUS "Configuring built-in curl...")
-    # --- CURL ---
-    FetchContent_Declare(
-        curl
-        URL https://github.com/curl/curl/releases/download/curl-8_13_0/curl-8.13.0.tar.xz
-        URL_HASH SHA256=4a093979a3c2d02de2fbc00549a32771007f2e78032c6faa5ecd2f7a9e152025
-    )
-
-    # Common curl options
-    #set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build curl as shared library" FORCE)
-    set(CURL_STATICLIB ON CACHE BOOL "Build curl as static library" FORCE)
-    set(BUILD_CURL_EXE OFF CACHE BOOL "Disable curl CLI" FORCE)
-    set(BUILD_EXAMPLES OFF CACHE BOOL "Build curl examples" FORCE)
-    set(BUILD_TESTING OFF CACHE BOOL "Disable curl tests" FORCE)
-    set(CURL_DISABLE_TESTS ON CACHE BOOL "Disable curl-specific tests" FORCE)
-    set(CURL_DISABLE_INSTALL ON CACHE BOOL "Disable curl install" FORCE)
-
-    # Disable unnecessary protocols
-    set(HTTP_ONLY ON CACHE BOOL "Only need HTTP (and HTTPS) support" FORCE)
-    set(CURL_USE_LIBPSL OFF CACHE INTERNAL "Disable lib psl" FORCE)
-    # Platform-specific TLS backend
-    if(WIN32)
-        set(CURL_USE_SCHANNEL ON CACHE BOOL "Use Windows native SSL backend" FORCE)
-    elseif(ANDROID)
-        message(STATUS "Disabling TLS for Android cross-compilation")
-        set(CURL_USE_OPENSSL OFF CACHE BOOL "" FORCE)
-        set(CURL_USE_MBEDTLS OFF CACHE BOOL "" FORCE)
-        set(CURL_DISABLE_LDAP ON CACHE BOOL "" FORCE)
-        set(CURL_DISABLE_LDAPS ON CACHE BOOL "" FORCE)
-    else()
-        find_package(OpenSSL QUIET)
-        if(OpenSSL_FOUND)
-            message(STATUS "Using OpenSSL for TLS")
-            set(OPENSSL_USE_STATIC_LIBS TRUE)
-            set(CMAKE_USE_OPENSSL ON CACHE BOOL "" FORCE)
-            set(USE_OPENSSL ON CACHE BOOL "" FORCE)
+if(USE_CURL_TRANSPORT)
+    if(USE_SYSTEM_CURL)
+        find_package(CURL)
+        if(CURL_FOUND)
+            message(STATUS "Curl found on this system.")
         else()
-            find_package(GnuTLS QUIET)
-            if(GnuTLS_FOUND)
-                message(STATUS "Using GnuTLS for TLS")
-                set(GNUTLS_USE_STATIC_LIBS TRUE)
-                set(CMAKE_USE_GNUTLS ON CACHE BOOL "" FORCE)
-                set(USE_GNUTLS ON CACHE BOOL "" FORCE)
+            message(FATAL_ERROR "Curl not found on this system. To use the built-in version set USE_SYSTEM_CURL to OFF.")
+        endif()
+    else()
+        message(STATUS "Configuring built-in curl...")
+        # --- CURL ---
+        FetchContent_Declare(
+            curl
+            URL https://github.com/curl/curl/releases/download/curl-8_13_0/curl-8.13.0.tar.xz
+            URL_HASH SHA256=4a093979a3c2d02de2fbc00549a32771007f2e78032c6faa5ecd2f7a9e152025
+        )
+
+        # Common curl options
+        #set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build curl as shared library" FORCE)
+        set(CURL_STATICLIB ON CACHE BOOL "Build curl as static library" FORCE)
+        set(BUILD_CURL_EXE OFF CACHE BOOL "Disable curl CLI" FORCE)
+        set(BUILD_EXAMPLES OFF CACHE BOOL "Build curl examples" FORCE)
+        set(BUILD_TESTING OFF CACHE BOOL "Disable curl tests" FORCE)
+        set(CURL_DISABLE_TESTS ON CACHE BOOL "Disable curl-specific tests" FORCE)
+        set(CURL_DISABLE_INSTALL ON CACHE BOOL "Disable curl install" FORCE)
+
+        # Disable unnecessary protocols
+        set(HTTP_ONLY ON CACHE BOOL "Only need HTTP (and HTTPS) support" FORCE)
+        set(CURL_USE_LIBPSL OFF CACHE INTERNAL "Disable lib psl" FORCE)
+        # Platform-specific TLS backend
+        if(WIN32)
+            set(CURL_USE_SCHANNEL ON CACHE BOOL "Use Windows native SSL backend" FORCE)
+        elseif(ANDROID)
+            message(STATUS "Disabling TLS for Android cross-compilation")
+            set(CURL_USE_OPENSSL OFF CACHE BOOL "" FORCE)
+            set(CURL_USE_MBEDTLS OFF CACHE BOOL "" FORCE)
+            set(CURL_DISABLE_LDAP ON CACHE BOOL "" FORCE)
+            set(CURL_DISABLE_LDAPS ON CACHE BOOL "" FORCE)
+        else()
+            find_package(OpenSSL QUIET)
+            if(OpenSSL_FOUND)
+                message(STATUS "Using OpenSSL for TLS")
+                set(OPENSSL_USE_STATIC_LIBS TRUE)
+                set(CMAKE_USE_OPENSSL ON CACHE BOOL "" FORCE)
+                set(USE_OPENSSL ON CACHE BOOL "" FORCE)
             else()
-                message(FATAL_ERROR "No supported TLS backend (OpenSSL or GnuTLS) found!")
+                find_package(GnuTLS QUIET)
+                if(GnuTLS_FOUND)
+                    message(STATUS "Using GnuTLS for TLS")
+                    set(GNUTLS_USE_STATIC_LIBS TRUE)
+                    set(CMAKE_USE_GNUTLS ON CACHE BOOL "" FORCE)
+                    set(USE_GNUTLS ON CACHE BOOL "" FORCE)
+                else()
+                    message(FATAL_ERROR "No supported TLS backend (OpenSSL or GnuTLS) found!")
+                endif()
             endif()
         endif()
+        FetchContent_MakeAvailable(curl)
     endif()
-    FetchContent_MakeAvailable(curl)
-endif()
 
-if(TARGET libcurl)
-    set(CURL_LIB libcurl)
-else()
-    set(CURL_LIB CURL::libcurl)
+    if(TARGET libcurl)
+        set(CURL_LIB libcurl)
+    else()
+        set(CURL_LIB CURL::libcurl)
+    endif()
 endif()
 
 add_subdirectory(sdk)

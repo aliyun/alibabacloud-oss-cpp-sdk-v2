@@ -1,9 +1,15 @@
 
 project(cpp-sdk-v2 VERSION ${version})
 
-configure_file(src/Config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/alibabacloud/oss2/Config.h @ONLY)
+if(USE_CURL_TRANSPORT)
+    set(ALIBABACLOUD_OSS_HAS_CURL 1)
+endif()
+if(USE_WINHTTP_TRANSPORT AND WIN32)
+    set(ALIBABACLOUD_OSS_HAS_WINHTTP 1)
+endif()
+
 set(ALIBABACLOUD_OSS_USE_STD_EXPECTED ${USE_STD_EXPECTED})
-configure_file(src/utils/OutcomeConfig.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/alibabacloud/oss2/utils/OutcomeConfig.h)
+configure_file(src/Config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/alibabacloud/oss2/Config.h)
 
 #common header
 file(GLOB sdk_base_header "include/alibabacloud/oss2/*.h")
@@ -40,13 +46,19 @@ file(GLOB sdk_io_src "src/io/*.cpp")
 file(GLOB sdk_models_src "src/models/*.cpp")
 file(GLOB sdk_transform_src "src/transform/*.cpp")
 
-# transport 
+# transport
 file(GLOB sdk_transport_common_src "src/transport/*.cpp")
-file(GLOB sdk_transport_curl_src "src/transport/curl/*.cpp")
-file(GLOB sdk_transport_src
-    ${sdk_transport_common_src}
-    ${sdk_transport_curl_src}
-)
+set(sdk_transport_src ${sdk_transport_common_src})
+
+if(USE_CURL_TRANSPORT)
+    file(GLOB sdk_transport_curl_src "src/transport/curl/*.cpp")
+    list(APPEND sdk_transport_src ${sdk_transport_curl_src})
+endif()
+
+if(USE_WINHTTP_TRANSPORT AND WIN32)
+    file(GLOB sdk_transport_winhttp_src "src/transport/winhttp/*.cpp")
+    list(APPEND sdk_transport_src ${sdk_transport_winhttp_src})
+endif()
 
 # add source by DISABLE_XX option
 
@@ -107,9 +119,13 @@ else()
 endif()
     
 
-target_link_libraries(${PROJECT_NAME}
-    PRIVATE ${CURL_LIB}
-)
+if(USE_CURL_TRANSPORT)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${CURL_LIB})
+endif()
+
+if(USE_WINHTTP_TRANSPORT AND WIN32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE winhttp)
+endif()
 
 if(USE_SYSTEM_OPENSSL)
     target_link_libraries(${PROJECT_NAME} PRIVATE OpenSSL::Crypto)

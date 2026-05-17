@@ -1,5 +1,9 @@
 #pragma once
 
+#include "alibabacloud/oss2/Config.h"
+
+#ifdef ALIBABACLOUD_OSS_HAS_CURL
+
 #include <curl/curl.h>
 #include <string>
 #include <map>
@@ -9,70 +13,23 @@ namespace alibabacloud {
 namespace oss2 {
 namespace test {
 
-/**
- * @brief Simple HTTP client wrapper using libcurl for integration tests.
- *
- * Provides basic GET and PUT operations for testing OSS presigned URLs.
- */
 class HttpClient {
   public:
     HttpClient();
     ~HttpClient();
 
-    /**
-     * @brief Response structure containing status code, headers, and body.
-     */
     struct Response {
         long statusCode = 0;
         std::string body;
         std::map<std::string, std::string> headers;
     };
 
-    /**
-     * @brief Perform a GET request to the specified URL.
-     *
-     * @param url The URL to request
-     * @param headers Optional headers to include in the request
-     * @return Response containing status code, headers, and body
-     */
     Response get(const std::string& url);
-
-    /**
-     * @brief Perform a GET request to the specified URL with headers.
-     *
-     * @param url The URL to request
-     * @param headers Headers to include in the request
-     * @return Response containing status code, headers, and body
-     */
     Response get(const std::string& url, const std::map<std::string, std::string>& headers);
-
-    /**
-     * @brief Perform a PUT request to the specified URL with data.
-     *
-     * @param url The URL to request
-     * @param data The data to upload
-     * @return Response containing status code, headers, and body
-     */
     Response put(const std::string& url, const std::string& data);
-
-    /**
-     * @brief Perform a PUT request to the specified URL with data and headers.
-     *
-     * @param url The URL to request
-     * @param data The data to upload
-     * @param headers Headers to include in the request
-     * @return Response containing status code, headers, and body
-     */
     Response put(const std::string& url, const std::string& data, const std::map<std::string, std::string>& headers);
 
-    /**
-     * @brief Set connection timeout in seconds.
-     */
     void setConnectTimeout(long seconds);
-
-    /**
-     * @brief Set read/write timeout in seconds.
-     */
     void setReadWriteTimeout(long seconds);
 
   private:
@@ -88,3 +45,5 @@ class HttpClient {
 } // namespace test
 } // namespace oss2
 } // namespace alibabacloud
+
+#endif // ALIBABACLOUD_OSS_HAS_CURL
