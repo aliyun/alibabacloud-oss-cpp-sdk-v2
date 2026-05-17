@@ -16,7 +16,7 @@ namespace oss2 {
 
 class MockTransportForPresign : public HttpTransport {
   public:
-    ResponseResult send(std::unique_ptr<RequestMessage>& request, RequestContext& context) override {
+    ResponseResult send(std::unique_ptr<RequestMessage>& request, const RequestOptions& options) override {
         lastRequest = std::move(request);
         auto response = std::make_unique<ResponseMessage>();
         response->statusCode = 200;

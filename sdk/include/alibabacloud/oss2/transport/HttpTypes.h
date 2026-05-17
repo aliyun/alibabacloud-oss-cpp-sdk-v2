@@ -8,10 +8,12 @@ namespace oss2 {
 
 enum class HttpMethod { Get, Head, Post, Put, Delete, Connect, Options, Patch, Trace };
 
-struct ALIBABACLOUD_OSS_API RequestContext {
+struct ALIBABACLOUD_OSS_API RequestOptions {
     std::optional<OStreamFactory> ostreamFactory;
+};
 
-    // error detail
+struct ALIBABACLOUD_OSS_API TransportError {
+    std::error_code error;
     std::string errorCode;
     std::string errorMessage;
 };
@@ -32,9 +34,9 @@ struct ALIBABACLOUD_OSS_API ResponseMessage {
 
 // C++23 Expected<T>
 // using ResponseResult = std::expected<std::unique_ptr<ResponseMessage>, std::error_code>;
-using ResponseResult = std::variant<std::unique_ptr<ResponseMessage>, std::error_code>;
+using ResponseResult = std::variant<std::unique_ptr<ResponseMessage>, TransportError>;
 
-using RequestCallback = std::function<void(ResponseResult, std::unique_ptr<RequestMessage>, RequestContext)>;
+using RequestCallback = std::function<void(ResponseResult, std::unique_ptr<RequestMessage>)>;
 
 } // namespace oss2
 } // namespace alibabacloud

@@ -7,8 +7,8 @@
 namespace alibabacloud {
 namespace oss2 {
 
-ResponseResult NopHttpTransport::send(std::unique_ptr<RequestMessage>&, RequestContext&) {
-    return std::error_code();
+ResponseResult NopHttpTransport::send(std::unique_ptr<RequestMessage>&, const RequestOptions&) {
+    return TransportError{};
 }
 
 

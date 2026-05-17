@@ -12,7 +12,7 @@ namespace oss2 {
 
 class ALIBABACLOUD_OSS_API HttpTransport {
   public:
-    virtual ResponseResult send(std::unique_ptr<RequestMessage>& request, RequestContext& context) = 0;
+    virtual ResponseResult send(std::unique_ptr<RequestMessage>& request, const RequestOptions& options) = 0;
     virtual std::string getName() const = 0;
     virtual ~HttpTransport() = default;
 };
@@ -20,7 +20,7 @@ class ALIBABACLOUD_OSS_API HttpTransport {
 class ALIBABACLOUD_OSS_API AsyncHttpTransport {
   public:
     virtual void sendAsync(std::unique_ptr<RequestMessage> request,
-                           RequestContext context,
+                           const RequestOptions& options,
                            RequestCallback callback) = 0;
     virtual std::string getName() const = 0;
     virtual ~AsyncHttpTransport() = default;
@@ -29,7 +29,7 @@ class ALIBABACLOUD_OSS_API AsyncHttpTransport {
 class NopHttpTransport : public HttpTransport {
   public:
     NopHttpTransport() {}
-    ResponseResult send(std::unique_ptr<RequestMessage>& request, RequestContext& context) override;
+    ResponseResult send(std::unique_ptr<RequestMessage>& request, const RequestOptions& options) override;
     std::string getName() const override {
         return "NopHttpTransport";
     }

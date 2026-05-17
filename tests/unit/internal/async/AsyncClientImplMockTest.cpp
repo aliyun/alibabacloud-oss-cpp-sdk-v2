@@ -23,11 +23,11 @@ static ClientOptionsFns asyncDefaultClientFns;
 class MockAsyncTransportImpl : public AsyncHttpTransport {
   public:
     void sendAsync(std::unique_ptr<RequestMessage> request,
-                   RequestContext context,
+                   const RequestOptions&,
                    RequestCallback callback) override {
         saveRequest(request);
         auto result = popResponse();
-        callback(std::move(result), std::move(request), std::move(context));
+        callback(std::move(result), std::move(request));
     }
 
     std::string getName() const override {
@@ -62,7 +62,7 @@ class MockAsyncTransportImpl : public AsyncHttpTransport {
             responses.erase(responses.begin());
             return res;
         }
-        return std::make_error_code(std::errc::result_out_of_range);
+        return TransportError{std::make_error_code(std::errc::result_out_of_range)};
     }
 };
 
@@ -652,9 +652,9 @@ TEST(AsyncClientImplMockTest, transportErrorRetryable) {
     auto client = AsyncClientImpl(config, asyncDefaultClientFns);
 
     mockHandler->Clear();
-    mockHandler->responses.emplace_back(make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT));
-    mockHandler->responses.emplace_back(make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT));
-    mockHandler->responses.emplace_back(make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT));
+    mockHandler->responses.emplace_back(TransportError{make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT)});
+    mockHandler->responses.emplace_back(TransportError{make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT)});
+    mockHandler->responses.emplace_back(TransportError{make_error_code(SdkErrorCode::CURLE_COULDNT_CONNECT)});
 
     auto input = OperationInput{};
     input.opName = "GetObject";
@@ -684,7 +684,7 @@ TEST(AsyncClientImplMockTest, transportErrorNonRetryable) {
     auto client = AsyncClientImpl(config, asyncDefaultClientFns);
 
     mockHandler->Clear();
-    mockHandler->responses.emplace_back(std::make_error_code(std::errc::connection_refused));
+    mockHandler->responses.emplace_back(TransportError{std::make_error_code(std::errc::connection_refused)});
 
     auto input = OperationInput{};
     input.opName = "GetObject";

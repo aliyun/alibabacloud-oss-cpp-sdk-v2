@@ -113,32 +113,23 @@ void AsyncClientImpl::onOperationFinished(const std::shared_ptr<AsyncExecuteStat
 
     scheduler_->schedule(std::chrono::milliseconds(0), [state]() {
         auto buildResult = [&]() -> OperationResult {
-            if (state->context.errorContext.error) {
+            if (state->context.errorContext.error || state->response == nullptr) {
                 auto err = OperationError{state->opName, std::move(state->request->method),
                                           std::move(state->request->uri),
                                           state->context.errorContext.error,
                                           std::move(state->context.errorContext.errorFields)};
-                if (std::holds_alternative<std::unique_ptr<ResponseMessage>>(state->result)) {
-                    auto& response = std::get<std::unique_ptr<ResponseMessage>>(state->result);
-                    if (response != nullptr) {
-                        err.setResponseResult(static_cast<int>(response->statusCode),
-                                              std::move(response->headers),
-                                              std::move(state->context.errorContext.snapshot));
-                    }
+                if (state->response != nullptr) {
+                    err.setResponseResult(static_cast<int>(state->response->statusCode),
+                                          std::move(state->response->headers),
+                                          std::move(state->context.errorContext.snapshot));
                 }
                 return err;
             }
-            if (std::holds_alternative<std::unique_ptr<ResponseMessage>>(state->result)) {
-                auto& response = std::get<std::unique_ptr<ResponseMessage>>(state->result);
-                if (response != nullptr) {
-                    return OperationOutput{
-                            static_cast<int>(response->statusCode),
-                            std::move(response->headers),
-                            std::move(response->body),
-                    };
-                }
-            }
-            return OperationOutput{};
+            return OperationOutput{
+                    static_cast<int>(state->response->statusCode),
+                    std::move(state->response->headers),
+                    std::move(state->response->body),
+            };
         };
         state->callback(buildResult());
     });

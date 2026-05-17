@@ -12,9 +12,9 @@ namespace oss2 {
 class MockAsyncTransport : public AsyncHttpTransport {
   public:
     void sendAsync(std::unique_ptr<RequestMessage> request,
-                   RequestContext context,
+                   const RequestOptions&,
                    RequestCallback callback) override {
-        ResponseResult responseResult = std::make_error_code(std::errc::result_out_of_range);
+        ResponseResult responseResult = TransportError{std::make_error_code(std::errc::result_out_of_range)};
         {
             std::lock_guard<std::mutex> lock(mutex_);
             auto req = std::make_unique<RequestMessage>(*request);
@@ -26,7 +26,7 @@ class MockAsyncTransport : public AsyncHttpTransport {
                 responses.erase(responses.begin());
             }
         }
-        callback(std::move(responseResult), std::move(request), std::move(context));
+        callback(std::move(responseResult), std::move(request));
     }
 
     std::string getName() const override { return "MockAsyncTransport"; }

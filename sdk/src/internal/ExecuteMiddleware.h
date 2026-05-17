@@ -35,7 +35,7 @@ struct ExecuteContext {
 
     SigningContext signingContext;
 
-    RequestContext transportContext;
+    RequestOptions transportContext;
 
     ErrorContext errorContext;
 };

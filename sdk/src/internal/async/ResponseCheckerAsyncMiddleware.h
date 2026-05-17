@@ -17,13 +17,10 @@ class ResponseCheckerAsyncMiddleware final : public AsyncExecuteMiddleware {
     }
 
     void handleResponse(const std::shared_ptr<AsyncExecuteState>& state) override {
-        if (!std::holds_alternative<std::error_code>(state->result)) {
-            auto& response = std::get<std::unique_ptr<ResponseMessage>>(state->result);
-            if (response != nullptr && !state->context.errorContext.error) {
-                for (const auto& fn : state->context.onResponseMessage) {
-                    if (!fn(response, state->context)) {
-                        break;
-                    }
+        if (state->response != nullptr && !state->context.errorContext.error) {
+            for (const auto& fn : state->context.onResponseMessage) {
+                if (!fn(state->response, state->context)) {
+                    break;
                 }
             }
         }
