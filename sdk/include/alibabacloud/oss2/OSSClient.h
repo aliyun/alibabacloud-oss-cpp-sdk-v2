@@ -189,6 +189,37 @@ class ALIBABACLOUD_OSS_API OSSClient final {
     GetBucketRefererOutcome getBucketReferer(const models::GetBucketRefererRequest& request,
                                              const OperationOptions* options = nullptr);
 
+    // Bucket Versioning
+    /**
+     * @brief Configures the versioning state for a bucket.
+     *
+     * @param request The request parameter to send
+     * @param options Optional, operation options
+     * @return The result instance
+     */
+    PutBucketVersioningOutcome putBucketVersioning(const models::PutBucketVersioningRequest& request,
+                                                   const OperationOptions* options = nullptr);
+
+    /**
+     * @brief Queries the versioning state of a bucket.
+     *
+     * @param request The request parameter to send
+     * @param options Optional, operation options
+     * @return The result instance
+     */
+    GetBucketVersioningOutcome getBucketVersioning(const models::GetBucketVersioningRequest& request,
+                                                   const OperationOptions* options = nullptr);
+
+    /**
+     * @brief Lists the versions of all objects in a bucket, including delete markers.
+     *
+     * @param request The request parameter to send
+     * @param options Optional, operation options
+     * @return The result instance
+     */
+    ListObjectVersionsOutcome listObjectVersions(const models::ListObjectVersionsRequest& request,
+                                                  const OperationOptions* options = nullptr);
+
     // Object Basic
     /**
      * @brief You can call this operation to upload an object.
@@ -641,6 +672,22 @@ template<> struct OSSClient::OperationTraits<models::PutBucketRefererRequest> {
 template<> struct OSSClient::OperationTraits<models::GetBucketRefererRequest> {
     using OutcomeType = GetBucketRefererOutcome;
     static constexpr auto method = &OSSClient::getBucketReferer;
+};
+
+// Bucket Versioning
+template<> struct OSSClient::OperationTraits<models::PutBucketVersioningRequest> {
+    using OutcomeType = PutBucketVersioningOutcome;
+    static constexpr auto method = &OSSClient::putBucketVersioning;
+};
+
+template<> struct OSSClient::OperationTraits<models::GetBucketVersioningRequest> {
+    using OutcomeType = GetBucketVersioningOutcome;
+    static constexpr auto method = &OSSClient::getBucketVersioning;
+};
+
+template<> struct OSSClient::OperationTraits<models::ListObjectVersionsRequest> {
+    using OutcomeType = ListObjectVersionsOutcome;
+    static constexpr auto method = &OSSClient::listObjectVersions;
 };
 
 // Object Basic

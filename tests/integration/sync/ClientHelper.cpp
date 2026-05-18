@@ -70,6 +70,33 @@ void ClientHelper::CleanBucket(const std::string& bucketName) {
     cleanBucket(client.get(), bucketName);
 }
 
+void ClientHelper::CleanVersioningBucket(const std::string& bucketName) {
+    auto client = GetDefaultClient();
+
+    auto request = models::ListObjectVersionsRequest();
+    request.setBucket(bucketName);
+
+    bool isTruncated = false;
+    do {
+        auto outcome = client->listObjectVersions(request);
+        if (!outcome.has_value()) {
+            break;
+        }
+        for (auto const& ver : outcome.value().getVersions()) {
+            (void)client->deleteObject(
+                    models::DeleteObjectRequest().setBucket(bucketName).setKey(ver.key).setVersionId(ver.versionId));
+        }
+        for (auto const& marker : outcome.value().getDeleteMarkers()) {
+            (void)client->deleteObject(
+                    models::DeleteObjectRequest().setBucket(bucketName).setKey(marker.key).setVersionId(
+                            marker.versionId));
+        }
+        request.setKeyMarker(outcome.value().getNextKeyMarker());
+        request.setVersionIdMarker(outcome.value().getNextVersionIdMarker());
+        isTruncated = outcome.value().getIsTruncated();
+    } while (isTruncated);
+}
+
 void ClientHelper::CleanBucketsByPrefix(const std::string &prefix) {
     auto client = GetDefaultClient();
     auto request = models::ListBucketsRequest();

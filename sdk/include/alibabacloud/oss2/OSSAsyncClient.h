@@ -179,6 +179,41 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
                                const GetBucketRefererAsyncCallback& callback,
                                const OperationOptions* options = nullptr);
 
+    // Bucket Versioning
+
+    /**
+     * @brief Configures the versioning state for a bucket.
+     *
+     * @param request The request parameter to send
+     * @param callback The callback to receive the operation result
+     * @param options Optional, operation options
+     */
+    void putBucketVersioningAsync(const models::PutBucketVersioningRequest& request,
+                                  const PutBucketVersioningAsyncCallback& callback,
+                                  const OperationOptions* options = nullptr);
+
+    /**
+     * @brief Queries the versioning state of a bucket.
+     *
+     * @param request The request parameter to send
+     * @param callback The callback to receive the operation result
+     * @param options Optional, operation options
+     */
+    void getBucketVersioningAsync(const models::GetBucketVersioningRequest& request,
+                                  const GetBucketVersioningAsyncCallback& callback,
+                                  const OperationOptions* options = nullptr);
+
+    /**
+     * @brief Lists the versions of all objects in a bucket, including delete markers.
+     *
+     * @param request The request parameter to send
+     * @param callback The callback to receive the operation result
+     * @param options Optional, operation options
+     */
+    void listObjectVersionsAsync(const models::ListObjectVersionsRequest& request,
+                                  const ListObjectVersionsAsyncCallback& callback,
+                                  const OperationOptions* options = nullptr);
+
     // Object Basic
 
     /**
@@ -604,6 +639,28 @@ struct OSSAsyncClient::OperationTraits<models::GetBucketRefererRequest> {
     using OutcomeType = GetBucketRefererOutcome;
     using CallbackType = GetBucketRefererAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::getBucketRefererAsync;
+};
+
+// Bucket Versioning
+template<>
+struct OSSAsyncClient::OperationTraits<models::PutBucketVersioningRequest> {
+    using OutcomeType = PutBucketVersioningOutcome;
+    using CallbackType = PutBucketVersioningAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::putBucketVersioningAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::GetBucketVersioningRequest> {
+    using OutcomeType = GetBucketVersioningOutcome;
+    using CallbackType = GetBucketVersioningAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::getBucketVersioningAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::ListObjectVersionsRequest> {
+    using OutcomeType = ListObjectVersionsOutcome;
+    using CallbackType = ListObjectVersionsAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::listObjectVersionsAsync;
 };
 
 // Object Basic
