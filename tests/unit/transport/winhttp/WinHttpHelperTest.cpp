@@ -2,6 +2,7 @@
 
 #include "alibabacloud/oss2/transport/winhttp/WinHttpTransportFactory.h"
 #include "alibabacloud/oss2/transport/winhttp/WinHttpTransportOptions.h"
+#include "src/transport/TransportDefaults.h"
 #include "src/transport/winhttp/WinHttpHelper.h"
 
 namespace alibabacloud::oss2::transport::winhttp {
@@ -229,7 +230,8 @@ TEST(WinHttpTransportFactoryTest, CreateAsyncHttpTransport) {
 TEST(WinHttpHelperTest, DefaultConstants) {
     EXPECT_EQ(kDefaultConnectTimeoutMs, 5000);
     EXPECT_EQ(kDefaultReadWriteTimeoutMs, 10000);
-    EXPECT_EQ(kDefaultPoolSize, 16u);
+    EXPECT_EQ(kDefaultMaxConnectionsSync, 16u);
+    EXPECT_EQ(kDefaultMaxConnectionsAsync, 100u);
     EXPECT_EQ(kWriteBufferLength, 64u * 1024u);
 }
 

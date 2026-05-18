@@ -1,4 +1,5 @@
 #include "CurlMultiTransport.h"
+#include "src/transport/TransportDefaults.h"
 #include "src/utils/LogUtils.h"
 
 #include <curl/curlver.h>
@@ -29,7 +30,7 @@ std::string CurlMultiTransport::getName() const {
 
 CurlMultiTransport::CurlMultiTransport(const HttpTransportOptions& options)
         : curlContainer_(std::make_unique<CurlContainer>(
-                  kDefaultAsyncPoolSize,
+                  kDefaultMaxConnectionsAsync,
                   options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs),
                   options.connectTimeout.value_or(kDefaultConnectTimeoutMs))),
           connOpts_(buildConnectionOptions(options)) {
@@ -43,7 +44,7 @@ CurlMultiTransport::CurlMultiTransport(const HttpTransportOptions& options)
 
 CurlMultiTransport::CurlMultiTransport(const CurlTransportOptions& options)
         : curlContainer_(std::make_unique<CurlContainer>(
-                  options.poolSize.value_or(kDefaultAsyncPoolSize),
+                  options.maxConnections.value_or(kDefaultMaxConnectionsAsync),
                   options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs),
                   options.connectTimeout.value_or(kDefaultConnectTimeoutMs))),
           connOpts_(buildConnectionOptions(options)) {

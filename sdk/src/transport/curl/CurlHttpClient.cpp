@@ -1,5 +1,6 @@
 
 #include "CurlHttpClient.h"
+#include "src/transport/TransportDefaults.h"
 #include "src/utils/LogUtils.h"
 
 #include <curl/curlver.h>
@@ -36,7 +37,7 @@ std::string CurlHttpClient::getName() const {
 
 CurlHttpClient::CurlHttpClient(const HttpTransportOptions& options)
         : curlContainer_(std::make_unique<CurlContainer>(
-                  kDefaultSyncPoolSize,
+                  kDefaultMaxConnectionsSync,
                   options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs),
                   options.connectTimeout.value_or(kDefaultConnectTimeoutMs))),
           connOpts_(buildConnectionOptions(options)) {
@@ -45,7 +46,7 @@ CurlHttpClient::CurlHttpClient(const HttpTransportOptions& options)
 
 CurlHttpClient::CurlHttpClient(const CurlTransportOptions& options)
         : curlContainer_(std::make_unique<CurlContainer>(
-                  options.poolSize.value_or(kDefaultSyncPoolSize),
+                  options.maxConnections.value_or(kDefaultMaxConnectionsSync),
                   options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs),
                   options.connectTimeout.value_or(kDefaultConnectTimeoutMs))),
           connOpts_(buildConnectionOptions(options)) {

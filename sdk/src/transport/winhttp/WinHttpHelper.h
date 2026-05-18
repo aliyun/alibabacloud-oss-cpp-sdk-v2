@@ -17,11 +17,6 @@
 
 namespace alibabacloud::oss2::transport::winhttp {
 
-constexpr long kDefaultConnectTimeoutMs = 5000;
-constexpr long kDefaultReadWriteTimeoutMs = 10000;
-constexpr unsigned int kDefaultPoolSize = 16;
-constexpr uint32_t kWriteBufferLength = 64 * 1024;
-
 struct WinHttpHandleDeleter {
     void operator()(void* handle) const {
         WinHttpCloseHandle(static_cast<HINTERNET>(handle));
