@@ -1,35 +1,12 @@
 
 #include "CurlHttpClient.h"
+#include "alibabacloud/oss2/Error.h"
 #include "src/transport/TransportDefaults.h"
 #include "src/utils/LogUtils.h"
-
-#include <curl/curlver.h>
-
-#include <sstream>
 
 namespace alibabacloud::oss2::transport::curl {
 
 static const char* TAG = "CurlHttpClient";
-
-#if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 32, 0)
-static int xferInfoCallback(void* userdata, curl_off_t, curl_off_t, curl_off_t, curl_off_t) {
-    // cppcheck-suppress constVariablePointer
-    auto* io = static_cast<TransferIO*>(userdata);
-    if (io == nullptr) {
-        return 0;
-    }
-    return 0;
-}
-#else
-static int progressCallback(void* userdata, double, double, double, double) {
-    // cppcheck-suppress constVariablePointer
-    auto* io = static_cast<TransferIO*>(userdata);
-    if (io == nullptr) {
-        return 0;
-    }
-    return 0;
-}
-#endif
 
 std::string CurlHttpClient::getName() const {
     return "curl/" + curlVersionString();
@@ -40,7 +17,7 @@ CurlHttpClient::CurlHttpClient(const HttpTransportOptions& options)
                   kDefaultMaxConnectionsSync,
                   options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs),
                   options.connectTimeout.value_or(kDefaultConnectTimeoutMs))),
-          connOpts_(buildConnectionOptions(options)) {
+          clientOpts_(buildClientOptions(options)) {
     (void)CurlGlobalInitializer::instance();
 }
 
@@ -49,7 +26,7 @@ CurlHttpClient::CurlHttpClient(const CurlTransportOptions& options)
                   options.maxConnections.value_or(kDefaultMaxConnectionsSync),
                   options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs),
                   options.connectTimeout.value_or(kDefaultConnectTimeoutMs))),
-          connOpts_(buildConnectionOptions(options)) {
+          clientOpts_(buildClientOptions(options)) {
     (void)CurlGlobalInitializer::instance();
 }
 
@@ -71,6 +48,9 @@ ResponseResult CurlHttpClient::send(std::unique_ptr<RequestMessage>& request, co
     io.request = request.get();
     io.response = response.get();
     io.ostreamFactory = &ostreamFactory;
+    if (options.cancellationToken.has_value()) {
+        io.cancellationToken = &options.cancellationToken.value();
+    }
 
     if (request->body != nullptr) {
         io.source = request->body->spanSource();
@@ -81,6 +61,8 @@ ResponseResult CurlHttpClient::send(std::unique_ptr<RequestMessage>& request, co
     curl_easy_setopt(curl, CURLOPT_URL, request->uri.c_str());
 
     applyHttpMethod(curl, request->method, request->body, contentLength);
+    applyClientOptions(curl, clientOpts_, io.request);
+    applyRequestOptions(curl, &io);
 
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
     curl_easy_setopt(curl, CURLOPT_HEADERDATA, &io);
@@ -90,43 +72,20 @@ ResponseResult CurlHttpClient::send(std::unique_ptr<RequestMessage>& request, co
     curl_easy_setopt(curl, CURLOPT_READDATA, &io);
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, sendBodyCallback);
 
-    applyConnectionOptions(curl, connOpts_, io.request);
-
     char errbuf[CURL_ERROR_SIZE];
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errbuf);
     errbuf[0] = 0;
-
-#if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 32, 0)
-    curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, xferInfoCallback);
-#else
-    curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progressCallback);
-#endif
-    curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &io);
-    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 
     CURLcode res = curl_easy_perform(curl);
     long response_code = 0;
     if (res == CURLE_OK) {
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
     } else {
-        std::stringstream ss;
-        ss << curl_easy_strerror(res) << "." << errbuf;
-        if (res == CURLE_WRITE_ERROR) {
-            if (io.sink == nullptr) {
-                ss << ". Caused by sink is null.";
-            } else if (io.sink->bad()) {
-                ss << ". Caused by sink is in bad state(Read/writing error on i/o operation).";
-            } else if (io.sink->fail()) {
-                ss << ". Caused by sink is in fail state(Logical error on i/o operation).";
-            }
-        }
-
         curlContainer_->Release(curl, true);
         curl_slist_free_all(list);
 
         OSS_LOG(LogLevel::LogDebug, TAG, "request(%p) leave Send, CURLcode:%d", request.get(), res);
-        return TransportError{make_transport_error_code(res),
-                              "CURLcode " + std::to_string(res), ss.str()};
+        return buildTransportError(res, errbuf, io);
     }
 
     response->statusCode = response_code;

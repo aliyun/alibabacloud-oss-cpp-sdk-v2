@@ -1,10 +1,9 @@
 #include "CurlMultiTransport.h"
+#include "alibabacloud/oss2/Error.h"
 #include "src/transport/TransportDefaults.h"
 #include "src/utils/LogUtils.h"
 
 #include <curl/curlver.h>
-
-#include <sstream>
 
 namespace alibabacloud::oss2::transport::curl {
 
@@ -19,6 +18,7 @@ struct AsyncTransferContext {
     std::unique_ptr<ResponseMessage> response;
 
     std::optional<OStreamFactory> ostreamFactory;
+    std::optional<CancellationToken> cancellationToken;
 
     TransferIO io;
     char errbuf[CURL_ERROR_SIZE]{};
@@ -33,7 +33,7 @@ CurlMultiTransport::CurlMultiTransport(const HttpTransportOptions& options)
                   kDefaultMaxConnectionsAsync,
                   options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs),
                   options.connectTimeout.value_or(kDefaultConnectTimeoutMs))),
-          connOpts_(buildConnectionOptions(options)) {
+          clientOpts_(buildClientOptions(options)) {
     (void)CurlGlobalInitializer::instance();
 
     multiHandle_ = curl_multi_init();
@@ -47,7 +47,7 @@ CurlMultiTransport::CurlMultiTransport(const CurlTransportOptions& options)
                   options.maxConnections.value_or(kDefaultMaxConnectionsAsync),
                   options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs),
                   options.connectTimeout.value_or(kDefaultConnectTimeoutMs))),
-          connOpts_(buildConnectionOptions(options)) {
+          clientOpts_(buildClientOptions(options)) {
     (void)CurlGlobalInitializer::instance();
 
     multiHandle_ = curl_multi_init();
@@ -89,6 +89,7 @@ void CurlMultiTransport::sendAsync(std::unique_ptr<RequestMessage> request,
     }
 
     CURL* curl = curlContainer_->Acquire();
+
     if (curl == nullptr) {
         callback(TransportError{std::make_error_code(std::errc::resource_unavailable_try_again),
                  "ClientError", "failed to acquire curl handle"},
@@ -108,11 +109,15 @@ void CurlMultiTransport::sendAsync(std::unique_ptr<RequestMessage> request,
     ctx->callback = std::move(callback);
     ctx->response = std::make_unique<ResponseMessage>();
     ctx->ostreamFactory = options.ostreamFactory;
+    ctx->cancellationToken = options.cancellationToken;
 
     ctx->io.curl = curl;
     ctx->io.request = ctx->request.get();
     ctx->io.response = ctx->response.get();
     ctx->io.ostreamFactory = &ctx->ostreamFactory;
+    if (ctx->cancellationToken.has_value()) {
+        ctx->io.cancellationToken = &ctx->cancellationToken.value();
+    }
     if (ctx->request->body != nullptr) {
         ctx->io.source = ctx->request->body->spanSource();
     }
@@ -139,6 +144,8 @@ void CurlMultiTransport::setupCurlHandle(AsyncTransferContext* ctx) {
     curl_easy_setopt(curl, CURLOPT_URL, ctx->request->uri.c_str());
 
     applyHttpMethod(curl, ctx->request->method, ctx->request->body, contentLength);
+    applyClientOptions(curl, clientOpts_, ctx->io.request);
+    applyRequestOptions(curl, &ctx->io);
 
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
     curl_easy_setopt(curl, CURLOPT_HEADERDATA, &ctx->io);
@@ -147,8 +154,6 @@ void CurlMultiTransport::setupCurlHandle(AsyncTransferContext* ctx) {
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, recvBodyCallback);
     curl_easy_setopt(curl, CURLOPT_READDATA, &ctx->io);
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, sendBodyCallback);
-
-    applyConnectionOptions(curl, connOpts_, ctx->io.request);
 
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, ctx->errbuf);
     ctx->errbuf[0] = 0;
@@ -206,24 +211,11 @@ void CurlMultiTransport::processCompleted() {
             curlContainer_->Release(curl, false);
             ctx->callback(std::move(ctx->response), std::move(ctx->request));
         } else {
-            std::stringstream ss;
-            ss << curl_easy_strerror(res) << "." << ctx->errbuf;
-            if (res == CURLE_WRITE_ERROR) {
-                if (ctx->io.sink == nullptr) {
-                    ss << ". Caused by sink is null.";
-                } else if (ctx->io.sink->bad()) {
-                    ss << ". Caused by sink is in bad state.";
-                } else if (ctx->io.sink->fail()) {
-                    ss << ". Caused by sink is in fail state.";
-                }
-            }
-
             OSS_LOG(LogLevel::LogDebug, TAG, "completed async request, CURLcode:%d", res);
 
             curlContainer_->Release(curl, true);
 
-            ctx->callback(TransportError{make_transport_error_code(res),
-                                         "CURLcode " + std::to_string(res), ss.str()},
+            ctx->callback(buildTransportError(res, ctx->errbuf, ctx->io),
                           std::move(ctx->request));
         }
     }

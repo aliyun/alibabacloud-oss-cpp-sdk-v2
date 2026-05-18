@@ -16,6 +16,6 @@ class CurlHttpClient : public HttpTransport {
 
   private:
     std::unique_ptr<CurlContainer> curlContainer_;
-    ConnectionOptions connOpts_;
+    ClientOptions clientOpts_;
 };
 } // namespace alibabacloud::oss2::transport::curl

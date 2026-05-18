@@ -35,7 +35,7 @@ struct AsyncRequestContext {
     bool checkCancelled() {
         if (options.cancellationToken.has_value() && options.cancellationToken->isCanceled()) {
             error = TransportError{make_error_code(TransportErrorCode::Canceled),
-                                   "RequestCanceled", "Request cancelled by CancellationToken"};
+                                   "RequestCanceled", "Request canceled by CancellationToken"};
             closeHandle();
             return true;
         }
@@ -342,7 +342,7 @@ void WinHttpAsyncClient::sendAsync(std::unique_ptr<RequestMessage> request,
 
     if (options.cancellationToken.has_value() && options.cancellationToken->isCanceled()) {
         callback(TransportError{make_error_code(TransportErrorCode::Canceled),
-                                "RequestCanceled", "Request cancelled by CancellationToken"},
+                                "RequestCanceled", "Request canceled by CancellationToken"},
                  std::move(request));
         return;
     }

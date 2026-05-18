@@ -50,7 +50,7 @@ bool WinHttpAction::waitForAction(std::function<bool()> initiateAction,
         waitResult = WaitForSingleObject(event_, kPollIntervalMs);
         if (waitResult == WAIT_TIMEOUT) {
             if (token.has_value() && token->isCanceled()) {
-                OSS_LOG(LogLevel::LogInfo, TAG, "Request cancelled by CancellationToken");
+                OSS_LOG(LogLevel::LogInfo, TAG, "Request canceled by CancellationToken");
                 return false;
             }
         } else if (waitResult != WAIT_OBJECT_0) {
