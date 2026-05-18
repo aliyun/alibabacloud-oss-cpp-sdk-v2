@@ -168,8 +168,8 @@ void applyHttpMethod(CURL* curl, const std::string& method,
     }
 }
 
-void applyConnectionOptions(CURL* curl, const ConnectionOptions& opts,
-                            const RequestMessage* request) {
+void applyClientOptions(CURL* curl, const ClientOptions& opts,
+                        const RequestMessage* request) {
     if (opts.verifySSL) {
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
@@ -209,8 +209,8 @@ void applyConnectionOptions(CURL* curl, const ConnectionOptions& opts,
     }
 }
 
-ConnectionOptions buildConnectionOptions(const HttpTransportOptions& options) {
-    ConnectionOptions opts;
+ClientOptions buildClientOptions(const HttpTransportOptions& options) {
+    ClientOptions opts;
     opts.verifySSL = !options.insecureSkipVerify.value_or(false);
     opts.enabledRedirect = options.enabledRedirect.value_or(false);
     if (options.proxyHost.has_value() && !options.proxyHost.value().empty()) {
@@ -219,8 +219,8 @@ ConnectionOptions buildConnectionOptions(const HttpTransportOptions& options) {
     return opts;
 }
 
-ConnectionOptions buildConnectionOptions(const CurlTransportOptions& options) {
-    ConnectionOptions opts = buildConnectionOptions(static_cast<const HttpTransportOptions&>(options));
+ClientOptions buildClientOptions(const CurlTransportOptions& options) {
+    ClientOptions opts = buildClientOptions(static_cast<const HttpTransportOptions&>(options));
     if (options.proxyPort.has_value()) {
         opts.proxyPort = options.proxyPort.value();
     }
@@ -277,6 +277,67 @@ static TransportErrorCode curlCodeToTransportError(int curlCode) {
 
 std::error_code make_transport_error_code(int curlCode) {
     return make_error_code(curlCodeToTransportError(curlCode));
+}
+
+#if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 32, 0)
+static int xferInfoCallback(void* userdata, curl_off_t, curl_off_t, curl_off_t, curl_off_t) {
+    auto* io = static_cast<TransferIO*>(userdata);
+    if (io == nullptr) {
+        return 0;
+    }
+    if (io->cancellationToken != nullptr && io->cancellationToken->isCanceled()) {
+        return 1;
+    }
+    return 0;
+}
+#else
+static int progressCallback(void* userdata, double, double, double, double) {
+    auto* io = static_cast<TransferIO*>(userdata);
+    if (io == nullptr) {
+        return 0;
+    }
+    if (io->cancellationToken != nullptr && io->cancellationToken->isCanceled()) {
+        return 1;
+    }
+    return 0;
+}
+#endif
+
+TransportError buildTransportError(CURLcode res, const char* errbuf,
+                                    const TransferIO& io) {
+    if (res == CURLE_ABORTED_BY_CALLBACK &&
+        io.cancellationToken != nullptr && io.cancellationToken->isCanceled()) {
+        return TransportError{make_error_code(TransportErrorCode::Canceled),
+                              "RequestCanceled", "Request canceled by CancellationToken"};
+    }
+
+    std::stringstream ss;
+    ss << curl_easy_strerror(res) << "." << errbuf;
+    if (res == CURLE_WRITE_ERROR) {
+        if (io.sink == nullptr) {
+            ss << ". Caused by sink is null.";
+        } else if (io.sink->bad()) {
+            ss << ". Caused by sink is in bad state(Read/writing error on i/o operation).";
+        } else if (io.sink->fail()) {
+            ss << ". Caused by sink is in fail state(Logical error on i/o operation).";
+        }
+    }
+
+    return TransportError{make_transport_error_code(res),
+                          "CURLcode " + std::to_string(res),
+                          ss.str()};
+}
+
+void applyRequestOptions(CURL* curl, TransferIO* io) {
+    if (io->cancellationToken != nullptr) {
+#if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 32, 0)
+        curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, xferInfoCallback);
+#else
+        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progressCallback);
+#endif
+        curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, io);
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+    }
 }
 
 } // namespace alibabacloud::oss2::transport::curl

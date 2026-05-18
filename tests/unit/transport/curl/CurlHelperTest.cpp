@@ -36,11 +36,11 @@ TEST(CurlHelperTest, HeaderNameEquals_Empty) {
     EXPECT_FALSE(headerNameEquals("Host", ""));
 }
 
-// ---------- buildConnectionOptions(HttpTransportOptions) ----------
+// ---------- buildClientOptions(HttpTransportOptions) ----------
 
 TEST(CurlHelperTest, BuildConnOpts_HttpTransportOptions_Defaults) {
     HttpTransportOptions opts;
-    auto conn = buildConnectionOptions(opts);
+    auto conn = buildClientOptions(opts);
     EXPECT_TRUE(conn.verifySSL);
     EXPECT_FALSE(conn.enabledRedirect);
     EXPECT_TRUE(conn.proxyHost.empty());
@@ -55,32 +55,32 @@ TEST(CurlHelperTest, BuildConnOpts_HttpTransportOptions_Defaults) {
 TEST(CurlHelperTest, BuildConnOpts_HttpTransportOptions_EnabledRedirect) {
     HttpTransportOptions opts;
     opts.enabledRedirect = true;
-    auto conn = buildConnectionOptions(opts);
+    auto conn = buildClientOptions(opts);
     EXPECT_TRUE(conn.enabledRedirect);
 }
 
 TEST(CurlHelperTest, BuildConnOpts_HttpTransportOptions_InsecureSkipVerify) {
     HttpTransportOptions opts;
     opts.insecureSkipVerify = true;
-    auto conn = buildConnectionOptions(opts);
+    auto conn = buildClientOptions(opts);
     EXPECT_FALSE(conn.verifySSL);
 }
 
 TEST(CurlHelperTest, BuildConnOpts_HttpTransportOptions_ProxyHost) {
     HttpTransportOptions opts;
     opts.proxyHost = "http://proxy.example.com";
-    auto conn = buildConnectionOptions(opts);
+    auto conn = buildClientOptions(opts);
     EXPECT_EQ(conn.proxyHost, "http://proxy.example.com");
 }
 
 TEST(CurlHelperTest, BuildConnOpts_HttpTransportOptions_EmptyProxyHost) {
     HttpTransportOptions opts;
     opts.proxyHost = "";
-    auto conn = buildConnectionOptions(opts);
+    auto conn = buildClientOptions(opts);
     EXPECT_TRUE(conn.proxyHost.empty());
 }
 
-// ---------- buildConnectionOptions(CurlTransportOptions) ----------
+// ---------- buildClientOptions(CurlTransportOptions) ----------
 
 TEST(CurlHelperTest, BuildConnOpts_CurlTransportOptions_AllFields) {
     CurlTransportOptions opts;
@@ -98,7 +98,7 @@ TEST(CurlHelperTest, BuildConnOpts_CurlTransportOptions_AllFields) {
         interceptorCalled = true;
     };
 
-    auto conn = buildConnectionOptions(opts);
+    auto conn = buildClientOptions(opts);
     EXPECT_TRUE(conn.verifySSL);
     EXPECT_EQ(conn.proxyHost, "http://proxy.local");
     EXPECT_EQ(conn.proxyPort, 8080u);
@@ -118,7 +118,7 @@ TEST(CurlHelperTest, BuildConnOpts_CurlTransportOptions_InheritsBase) {
     opts.insecureSkipVerify = true;
     opts.proxyHost = "http://base-proxy";
 
-    auto conn = buildConnectionOptions(opts);
+    auto conn = buildClientOptions(opts);
     EXPECT_FALSE(conn.verifySSL);
     EXPECT_EQ(conn.proxyHost, "http://base-proxy");
 }
@@ -127,7 +127,7 @@ TEST(CurlHelperTest, BuildConnOpts_CurlTransportOptions_PartialFields) {
     CurlTransportOptions opts;
     opts.caFile = "/my/ca.pem";
 
-    auto conn = buildConnectionOptions(opts);
+    auto conn = buildClientOptions(opts);
     EXPECT_TRUE(conn.verifySSL);
     EXPECT_TRUE(conn.proxyHost.empty());
     EXPECT_TRUE(conn.caPath.empty());

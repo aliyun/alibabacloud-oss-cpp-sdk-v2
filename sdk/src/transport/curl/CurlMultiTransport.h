@@ -46,7 +46,7 @@ class CurlMultiTransport : public AsyncHttpTransport {
 
     std::unordered_set<AsyncTransferContext*> inflightHandles_;
 
-    ConnectionOptions connOpts_;
+    ClientOptions clientOpts_;
 };
 
 } // namespace alibabacloud::oss2::transport::curl

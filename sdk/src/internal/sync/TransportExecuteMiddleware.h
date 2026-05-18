@@ -2,6 +2,7 @@
 #pragma once
 
 #include "src/internal/ExecuteMiddleware.h"
+#include "alibabacloud/oss2/Error.h"
 #include "alibabacloud/oss2/transport/HttpTransport.h"
 
 namespace alibabacloud {
@@ -15,6 +16,14 @@ class TransportExecuteMiddleware final : public ExecuteMiddleware {
 
     std::unique_ptr<ResponseMessage> Execute(std::unique_ptr<RequestMessage>& request,
                                              ExecuteContext& context) override {
+        if (context.transportContext.cancellationToken.has_value() &&
+            context.transportContext.cancellationToken->isCanceled()) {
+            context.errorContext.error = make_error_code(TransportErrorCode::Canceled);
+            context.errorContext.errorFields.emplace("Code", "RequestCanceled");
+            context.errorContext.errorFields.emplace("Message", "Request canceled by CancellationToken");
+            return nullptr;
+        }
+
         auto result = httpTransport_->send(request, context.transportContext);
         if (std::holds_alternative<TransportError>(result)) {
             auto& te = std::get<TransportError>(result);

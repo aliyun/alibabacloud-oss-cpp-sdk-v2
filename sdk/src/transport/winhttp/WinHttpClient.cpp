@@ -86,7 +86,7 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
             options.cancellationToken)) {
         if (options.cancellationToken.has_value() && options.cancellationToken->isCanceled()) {
             return TransportError{make_error_code(TransportErrorCode::Canceled),
-                                  "RequestCanceled", "Request cancelled by CancellationToken"};
+                                  "RequestCanceled", "Request canceled by CancellationToken"};
         }
         DWORD winErr = action.getError();
         if (winErr == ERROR_WINHTTP_TIMEOUT) {
@@ -119,7 +119,7 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
                         options.cancellationToken)) {
                     if (options.cancellationToken.has_value() && options.cancellationToken->isCanceled()) {
                         return TransportError{make_error_code(TransportErrorCode::Canceled),
-                                              "RequestCanceled", "Request cancelled by CancellationToken"};
+                                              "RequestCanceled", "Request canceled by CancellationToken"};
                     }
                     return makeWinHttpError(TransportErrorCode::SendRecvError, action.getError());
                 }
@@ -135,7 +135,7 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
             options.cancellationToken)) {
         if (options.cancellationToken.has_value() && options.cancellationToken->isCanceled()) {
             return TransportError{make_error_code(TransportErrorCode::Canceled),
-                                  "RequestCanceled", "Request cancelled by CancellationToken"};
+                                  "RequestCanceled", "Request canceled by CancellationToken"};
         }
         DWORD winErr = action.getError();
         if (winErr == ERROR_WINHTTP_TIMEOUT) {
@@ -161,7 +161,7 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
                     options.cancellationToken)) {
                 if (options.cancellationToken.has_value() && options.cancellationToken->isCanceled()) {
                     return TransportError{make_error_code(TransportErrorCode::Canceled),
-                                          "RequestCanceled", "Request cancelled by CancellationToken"};
+                                          "RequestCanceled", "Request canceled by CancellationToken"};
                 }
                 break;
             }
@@ -179,7 +179,7 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
                         options.cancellationToken)) {
                     if (options.cancellationToken.has_value() && options.cancellationToken->isCanceled()) {
                         return TransportError{make_error_code(TransportErrorCode::Canceled),
-                                              "RequestCanceled", "Request cancelled by CancellationToken"};
+                                              "RequestCanceled", "Request canceled by CancellationToken"};
                     }
                     available = 0;
                     break;

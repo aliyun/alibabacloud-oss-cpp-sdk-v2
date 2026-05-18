@@ -235,7 +235,7 @@ void ClientImplBase::applyOperationOptions(ExecuteContext& context, const Operat
         context.transportContext.ostreamFactory = innerOpts->ostreamFactory;
     }
 
-    if (opts->cancellationToken.has_value()) {
+    if (opts->cancellationToken.has_value() && opts->cancellationToken->canBeCanceled()) {
         context.transportContext.cancellationToken = opts->cancellationToken;
     }
 }

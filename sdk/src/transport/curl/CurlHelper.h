@@ -48,6 +48,8 @@ struct TransferIO {
     std::shared_ptr<std::stringstream> defaultSink{};
     bool recvFirstData{};
     int64_t recvDataLength{};
+
+    const CancellationToken* cancellationToken{};
 };
 
 size_t sendBodyCallback(char* ptr, size_t size, size_t nmemb, void* userdata);
@@ -62,7 +64,7 @@ void applyHttpMethod(CURL* curl, const std::string& method,
                      const std::shared_ptr<ByteContent>& body,
                      int64_t contentLength);
 
-struct ConnectionOptions {
+struct ClientOptions {
     bool verifySSL{true};
     std::string caPath;
     std::string caFile;
@@ -76,16 +78,21 @@ struct ConnectionOptions {
     std::function<void(void*, const RequestMessage*)> requestInterceptor;
 };
 
-void applyConnectionOptions(CURL* curl, const ConnectionOptions& opts,
-                            const RequestMessage* request);
+void applyClientOptions(CURL* curl, const ClientOptions& opts,
+                        const RequestMessage* request);
 
-ConnectionOptions buildConnectionOptions(const HttpTransportOptions& options);
-ConnectionOptions buildConnectionOptions(const CurlTransportOptions& options);
+ClientOptions buildClientOptions(const HttpTransportOptions& options);
+ClientOptions buildClientOptions(const CurlTransportOptions& options);
 
 bool headerNameEquals(const std::string& header, const std::string& expect);
+
+void applyRequestOptions(CURL* curl, TransferIO* io);
 
 std::string curlVersionString();
 
 std::error_code make_transport_error_code(int curlCode);
+
+TransportError buildTransportError(CURLcode res, const char* errbuf,
+                                    const TransferIO& io);
 
 } // namespace alibabacloud::oss2::transport::curl
