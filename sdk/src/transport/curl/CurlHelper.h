@@ -16,12 +16,6 @@
 
 namespace alibabacloud::oss2::transport::curl {
 
-// Transport defaults, aligned with alibabacloud-oss-go-sdk-v2
-constexpr long kDefaultConnectTimeoutMs = 5000;        // 5s
-constexpr long kDefaultReadWriteTimeoutMs = 10000;     // 10s
-constexpr unsigned int kDefaultSyncPoolSize = 16;
-constexpr unsigned int kDefaultAsyncPoolSize = 100;
-
 class CurlGlobalInitializer {
   public:
     static CurlGlobalInitializer& instance() {

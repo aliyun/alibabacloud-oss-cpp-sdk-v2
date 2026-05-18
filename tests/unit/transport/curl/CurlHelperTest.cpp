@@ -2,6 +2,7 @@
 
 #include "alibabacloud/oss2/transport/curl/CurlTransportFactory.h"
 #include "alibabacloud/oss2/transport/curl/CurlTransportOptions.h"
+#include "src/transport/TransportDefaults.h"
 #include "src/transport/curl/CurlHelper.h"
 
 #include <curl/curl.h>
@@ -249,8 +250,8 @@ TEST(CurlTransportFactoryTest, CreateAsyncHttpTransport) {
 TEST(CurlHelperTest, DefaultConstants) {
     EXPECT_EQ(kDefaultConnectTimeoutMs, 5000);
     EXPECT_EQ(kDefaultReadWriteTimeoutMs, 10000);
-    EXPECT_EQ(kDefaultSyncPoolSize, 16u);
-    EXPECT_EQ(kDefaultAsyncPoolSize, 100u);
+    EXPECT_EQ(kDefaultMaxConnectionsSync, 16u);
+    EXPECT_EQ(kDefaultMaxConnectionsAsync, 100u);
 }
 
 // ========== sendBodyCallback ==========

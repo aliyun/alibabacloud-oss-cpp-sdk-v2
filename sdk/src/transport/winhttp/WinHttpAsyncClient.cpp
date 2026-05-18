@@ -1,5 +1,6 @@
 #include "WinHttpAsyncClient.h"
 #include "alibabacloud/oss2/Error.h"
+#include "src/transport/TransportDefaults.h"
 #include "src/utils/LogUtils.h"
 
 namespace alibabacloud::oss2::transport::winhttp {
@@ -299,15 +300,15 @@ WinHttpAsyncClient::WinHttpAsyncClient(const HttpTransportOptions& options) {
     connOpts_ = buildConnectionOptions(options);
     long connectTimeout = options.connectTimeout.value_or(kDefaultConnectTimeoutMs);
     long requestTimeout = options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs);
-    hSession_ = openSession(connOpts_, kDefaultPoolSize, connectTimeout, requestTimeout);
+    hSession_ = openSession(connOpts_, kDefaultMaxConnectionsSync, connectTimeout, requestTimeout);
 }
 
 WinHttpAsyncClient::WinHttpAsyncClient(const WinHttpTransportOptions& options) {
     connOpts_ = buildConnectionOptions(options);
     long connectTimeout = options.connectTimeout.value_or(kDefaultConnectTimeoutMs);
     long requestTimeout = options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs);
-    unsigned int poolSize = options.poolSize.value_or(kDefaultPoolSize);
-    hSession_ = openSession(connOpts_, poolSize, connectTimeout, requestTimeout);
+    unsigned int maxConns = options.maxConnections.value_or(kDefaultMaxConnectionsSync);
+    hSession_ = openSession(connOpts_, maxConns, connectTimeout, requestTimeout);
 }
 
 WinHttpAsyncClient::~WinHttpAsyncClient() {

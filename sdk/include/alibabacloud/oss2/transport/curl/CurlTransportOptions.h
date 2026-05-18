@@ -10,8 +10,8 @@ namespace alibabacloud {
 namespace oss2 {
 
 struct ALIBABACLOUD_OSS_API CurlTransportOptions : HttpTransportOptions {
-    // Connection pool size, default: sync 16 (kDefaultSyncPoolSize), async 100 (kDefaultAsyncPoolSize)
-    std::optional<unsigned int> poolSize;
+    // Max concurrent connections per host, default: sync 16, async 100
+    std::optional<unsigned int> maxConnections;
     // CA certificate directory path (CURLOPT_CAPATH)
     std::optional<std::string> caPath;
     // CA certificate bundle file path (CURLOPT_CAINFO)

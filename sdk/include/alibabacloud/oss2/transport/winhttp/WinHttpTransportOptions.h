@@ -9,8 +9,8 @@ namespace alibabacloud {
 namespace oss2 {
 
 struct ALIBABACLOUD_OSS_API WinHttpTransportOptions : HttpTransportOptions {
-    // Connection pool size per host, default 16
-    std::optional<unsigned int> poolSize;
+    // Max concurrent connections per host, default: sync 16, async 100
+    std::optional<unsigned int> maxConnections;
     // Proxy server port
     std::optional<unsigned int> proxyPort;
     // Proxy authentication username
