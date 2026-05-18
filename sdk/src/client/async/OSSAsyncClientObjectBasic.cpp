@@ -1,5 +1,6 @@
 
 #include "alibabacloud/oss2/OSSAsyncClient.h"
+#include "src/internal/ByteStreamUtils.h"
 #include "src/internal/async/AsyncClientImpl.h"
 #include "src/transform/SerdeObjectBasic.h"
 #include "src/utils/Utils.h"
@@ -21,13 +22,25 @@ void OSSAsyncClient::putObjectAsync(const models::PutObjectRequest& request,
             input.headers.emplace("Content-Type", utils::LookupMimeType(request.getKey()));
         }
     }
+
+    internal::OperationInnerOptions innerOpts;
+    if (request.getProgressCallback().has_value()) {
+        int64_t total = 0;
+        if (request.getBody()) {
+            auto len = request.getBody()->length();
+            total = len.has_value() ? static_cast<int64_t>(len.value()) : -1;
+        }
+        innerOpts.uploadObserver.push_back(
+                std::make_shared<internal::ProgressObserver>(request.getProgressCallback().value(), total));
+    }
+
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
             callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
         callback(transform::toPutObject(std::move(std::get<OperationOutput>(result))));
-    }, options);
+    }, options, &innerOpts);
 }
 
 void OSSAsyncClient::copyObjectAsync(const models::CopyObjectRequest& request,

@@ -1,5 +1,6 @@
 
 #include "alibabacloud/oss2/OSSClient.h"
+#include "src/internal/ByteStreamUtils.h"
 #include "src/internal/sync/ClientImpl.h"
 #include "src/transform/SerdeObjectMultipart.h"
 #include "src/utils/Utils.h"
@@ -33,7 +34,19 @@ UploadPartOutcome OSSClient::uploadPart(const models::UploadPartRequest& request
     requiredField(UploadId);
 
     auto input = transform::fromUploadPart(request);
-    auto result = client_->Execute(input, options);
+
+    internal::OperationInnerOptions innerOpts;
+    if (request.getProgressCallback().has_value()) {
+        int64_t total = 0;
+        if (request.getBody()) {
+            auto len = request.getBody()->length();
+            total = len.has_value() ? static_cast<int64_t>(len.value()) : -1;
+        }
+        innerOpts.uploadObserver.push_back(
+                std::make_shared<internal::ProgressObserver>(request.getProgressCallback().value(), total));
+    }
+
+    auto result = client_->Execute(input, options, &innerOpts);
     if (std::holds_alternative<OperationError>(result)) {
         return makeUnexpected(std::get<OperationError>(result));
     }
