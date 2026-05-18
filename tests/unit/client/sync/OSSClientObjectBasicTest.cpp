@@ -1886,4 +1886,44 @@ TEST(OSSClientObjectBasicTest, DeleteMultipleObjects_RequiredField) {
     EXPECT_TRUE(outcome.has_value());
 }
 
+TEST(OSSClientObjectBasicTest, PutObject_Progress) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(
+            std::make_unique<ResponseMessage>(ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1234"}}, nullptr}));
+
+    std::string data(1024, 'A');
+    std::size_t totalIncrement = 0;
+    std::size_t lastTransferred = 0;
+    int callCount = 0;
+
+    ProgressCallback progress;
+    progress.callback = [&](std::size_t increment, std::size_t transferred, std::int64_t total, std::uintptr_t) {
+        totalIncrement += increment;
+        lastTransferred = transferred;
+        callCount++;
+        EXPECT_EQ(static_cast<std::int64_t>(data.size()), total);
+    };
+
+    auto request = models::PutObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setBody(std::make_shared<StringContent>(data));
+    request.setProgressCallback(progress);
+
+    auto outcome = client.putObject(request);
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_GT(callCount, 0);
+    EXPECT_EQ(data.size(), lastTransferred);
+    EXPECT_EQ(data.size(), totalIncrement);
+}
+
 } // namespace alibabacloud::oss2

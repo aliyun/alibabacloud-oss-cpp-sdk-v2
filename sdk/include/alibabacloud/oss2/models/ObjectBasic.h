@@ -295,11 +295,21 @@ class ALIBABACLOUD_OSS_API PutObjectRequest final : public RequestModel {
         return *this;
     }
 
+    inline const std::optional<ProgressCallback>& getProgressCallback() const {
+        return progressCallback_;
+    }
+    template <typename ValueT = ProgressCallback>
+    PutObjectRequest& setProgressCallback(ValueT&& value) {
+        progressCallback_ = std::forward<ValueT>(value);
+        return *this;
+    }
+
   private:
     std::string bucket_;
     std::string key_;
     HeaderCollection metadata_;
     std::shared_ptr<ByteContent> body_;
+    std::optional<ProgressCallback> progressCallback_;
 };
 
 /// The result for the PutObject operation.
