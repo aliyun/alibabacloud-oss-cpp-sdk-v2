@@ -13,6 +13,7 @@ class ClientHelper {
     static std::shared_ptr<OSSClient> GetDefaultClient();
     static std::shared_ptr<OSSClient> GetInvalidClient();
     static void CleanBucket(const std::string& bucketName);
+    static void CleanVersioningBucket(const std::string& bucketName);
     static void CleanBucketsByPrefix(const std::string& prefix);
 };
 

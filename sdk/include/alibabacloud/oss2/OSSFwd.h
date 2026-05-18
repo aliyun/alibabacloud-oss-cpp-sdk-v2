@@ -8,6 +8,7 @@
 #include "alibabacloud/oss2/models/BucketAcl.h"
 #include "alibabacloud/oss2/models/BucketBasic.h"
 #include "alibabacloud/oss2/models/BucketReferer.h"
+#include "alibabacloud/oss2/models/BucketVersioning.h"
 #include "alibabacloud/oss2/models/ObjectAcl.h"
 #include "alibabacloud/oss2/models/ObjectBasic.h"
 #include "alibabacloud/oss2/models/ObjectMultipart.h"
@@ -45,6 +46,12 @@ using GetBucketAclOutcome = Outcome<models::GetBucketAclResult, OperationError>;
 using PutBucketRefererOutcome = Outcome<models::PutBucketRefererResult, OperationError>;
 
 using GetBucketRefererOutcome = Outcome<models::GetBucketRefererResult, OperationError>;
+
+using PutBucketVersioningOutcome = Outcome<models::PutBucketVersioningResult, OperationError>;
+
+using GetBucketVersioningOutcome = Outcome<models::GetBucketVersioningResult, OperationError>;
+
+using ListObjectVersionsOutcome = Outcome<models::ListObjectVersionsResult, OperationError>;
 
 using PutObjectOutcome = Outcome<models::PutObjectResult, OperationError>;
 
@@ -112,6 +119,9 @@ using PutBucketAclAsyncCallback = std::function<void(PutBucketAclOutcome)>;
 using GetBucketAclAsyncCallback = std::function<void(GetBucketAclOutcome)>;
 using PutBucketRefererAsyncCallback = std::function<void(PutBucketRefererOutcome)>;
 using GetBucketRefererAsyncCallback = std::function<void(GetBucketRefererOutcome)>;
+using PutBucketVersioningAsyncCallback = std::function<void(PutBucketVersioningOutcome)>;
+using GetBucketVersioningAsyncCallback = std::function<void(GetBucketVersioningOutcome)>;
+using ListObjectVersionsAsyncCallback = std::function<void(ListObjectVersionsOutcome)>;
 using PutObjectAsyncCallback = std::function<void(PutObjectOutcome)>;
 using CopyObjectAsyncCallback = std::function<void(CopyObjectOutcome)>;
 using GetObjectAsyncCallback = std::function<void(GetObjectOutcome)>;
