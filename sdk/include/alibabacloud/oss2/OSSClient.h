@@ -536,7 +536,7 @@ class ALIBABACLOUD_OSS_API OSSClient final {
     asyncCall(RequestT&& request, const OperationOptions* options = nullptr) {
         using Traits = OperationTraits<std::decay_t<RequestT>>;
         using OutcomeT = typename Traits::OutcomeType;
-        if (!executor_) {
+        if (!hasExecutor()) {
             std::promise<OutcomeT> p;
             p.set_value(OutcomeT(makeUnexpected(OperationError(ClientErrorCode::ArgumentInvalid,
                 {{"Code", "NoExecutor"}, {"Message", "No executor configured for async operations"}}))));
@@ -578,7 +578,7 @@ class ALIBABACLOUD_OSS_API OSSClient final {
                        const OperationOptions* options = nullptr) {
         using Traits = OperationTraits<std::decay_t<RequestT>>;
         using OutcomeT = typename Traits::OutcomeType;
-        if (!executor_) {
+        if (!hasExecutor()) {
             handler(this, request, OutcomeT(makeUnexpected(OperationError(ClientErrorCode::ArgumentInvalid,
                 {{"Code", "NoExecutor"}, {"Message", "No executor configured for async operations"}}))));
             return;
@@ -592,9 +592,9 @@ class ALIBABACLOUD_OSS_API OSSClient final {
     }
 
   private:
+    bool hasExecutor() const;
     void executeTask(std::function<void()> task);
     std::shared_ptr<internal::ClientImpl> client_;
-    std::shared_ptr<Executor> executor_;
 };
 
 // OperationTraits specializations

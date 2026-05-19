@@ -6,6 +6,7 @@
 #include "SignerExecuteMiddleware.h"
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
 #include "alibabacloud/oss2/Error.h"
+#include "alibabacloud/oss2/utils/Executor.h"
 #include "src/transport/HttpTransportFactory.h"
 #include "src/utils/Utils.h"
 
@@ -16,7 +17,8 @@ namespace alibabacloud {
 namespace oss2 {
 namespace internal {
 
-ClientImpl::ClientImpl(const struct ClientConfiguration& config, const ClientOptionsFns& fns) {
+ClientImpl::ClientImpl(const struct ClientConfiguration& config, const ClientOptionsFns& fns)
+        : executor_(config.executor) {
     ClientOptionsFns allFns;
     allFns.reserve(fns.size() + 1);
     allFns.push_back([&config](ClientOptions& opts) {
@@ -166,6 +168,14 @@ PresignInnerResult ClientImpl::Presign(const OperationInput& input, const Operat
     }
     return PresignInnerOutput{std::move(request->uri), request->method, context.signingContext.expirationInEpoch,
                                 std::move(signedHeaders)};
+}
+
+bool ClientImpl::hasExecutor() const {
+    return executor_ != nullptr;
+}
+
+void ClientImpl::executeTask(std::function<void()> task) {
+    executor_->execute(std::move(task));
 }
 
 } // namespace internal
