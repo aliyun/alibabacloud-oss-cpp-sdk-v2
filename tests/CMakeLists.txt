@@ -4,3 +4,7 @@ set(TEST_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 
 add_subdirectory(unit)
 add_subdirectory(integration)
+
+if(BUILD_PERF_TESTS)
+    add_subdirectory(perf)
+endif()

@@ -31,7 +31,6 @@ message(STATUS "C++ CMake Options")
 message(STATUS "=======================================================")
 sdk_option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 sdk_option(BUILD_TESTS "Build unit tests" OFF)
-
 sdk_option(BUILD_SAMPLES "Build samples" OFF)
 
 sdk_option(ENABLE_RTTI "Flag to enable/disable building code with RTTI information" ON)
@@ -49,6 +48,8 @@ sdk_option(ENABLE_COVERAGE "Set to ON to generate coverage reports." OFF)
 sdk_option(ENABLE_CPPCHECK "Set to ON to enable Cppcheck static analysis." OFF)
 sdk_option(ENABLE_SANITIZER "Set to ON to enable sanitizers." OFF)
 message(STATUS "=======================================================")
+
+option(BUILD_PERF_TESTS "Build performance tests" OFF)
 
 #Platform
 
