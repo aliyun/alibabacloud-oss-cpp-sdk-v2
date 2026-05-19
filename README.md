@@ -252,23 +252,48 @@ More example projects can be found in the `samples` folder.
 
 ### Running Examples
 
-> - Go to the sample code folder `samples`.
-> - Configure credentials from environment variables:
->   ```bash
->   export OSS_ACCESS_KEY_ID="your_access_key_id"
->   export OSS_ACCESS_KEY_SECRET="your_access_key_secret"
->   export OSS_REGION="cn-hangzhou"
->   ```
-> - Build the examples from the project root directory:
->   ```bash
->   mkdir build && cd build
->   cmake .. -DBUILD_SAMPLES=ON
->   cmake --build .
->   ```
-> - Run an example:
->   ```bash
->   ./samples/sample_ListBuckets --region cn-hangzhou
->   ```
+Configure credentials from environment variables:
+
+```bash
+export OSS_ACCESS_KEY_ID="your_access_key_id"
+export OSS_ACCESS_KEY_SECRET="your_access_key_secret"
+```
+
+#### API & Paginator Samples
+
+Build from the project root with `BUILD_SAMPLES=ON`:
+
+```bash
+cmake -B build -DBUILD_SAMPLES=ON
+cmake --build build --config Release
+```
+
+Run a sample (all samples require `--region`; most require `--bucket` and `--key`):
+
+```bash
+./build/samples/sample_api_sync_PutObject --region cn-hangzhou --bucket my-bucket --key my-key
+./build/samples/sample_api_async_PutObject --region cn-hangzhou --bucket my-bucket --key my-key
+./build/samples/sample_paginator_ListObjectsV2Paginator --region cn-hangzhou --bucket my-bucket
+```
+
+You can also build a subset using `SAMPLE_FILTER`:
+
+```bash
+cmake -B build -DBUILD_SAMPLES=ON -DSAMPLE_FILTER=api/sync
+cmake -B build -DBUILD_SAMPLES=ON -DSAMPLE_FILTER=paginator
+```
+
+#### Scenario Samples
+
+Scenario samples under `samples/scenario/` are **independent projects** with their own `CMakeLists.txt`. They are NOT built by `BUILD_SAMPLES=ON`. Install the SDK first, then build them separately:
+
+```bash
+cd samples/scenario/progress
+cmake -B build -DCMAKE_PREFIX_PATH=<sdk-install-prefix>
+cmake --build build
+```
+
+Available scenarios: upload progress, curl/WinHTTP transport customization, custom retry strategies, RequestBody variants, request cancellation, endpoint configuration, async-on-sync-client, and credential providers. See [`samples/INDEX.md`](samples/INDEX.md) for the full list.
 
 ## Error Handling
 

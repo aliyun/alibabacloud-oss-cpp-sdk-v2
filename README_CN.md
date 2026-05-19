@@ -252,23 +252,48 @@ int main() {
 
 ### 运行示例
 
-> - 进入示例代码目录 `samples`。
-> - 通过环境变量配置访问凭证：
->   ```bash
->   export OSS_ACCESS_KEY_ID="your_access_key_id"
->   export OSS_ACCESS_KEY_SECRET="your_access_key_secret"
->   export OSS_REGION="cn-hangzhou"
->   ```
-> - 在项目根目录下构建示例代码：
->   ```bash
->   mkdir build && cd build
->   cmake .. -DBUILD_SAMPLES=ON
->   cmake --build .
->   ```
-> - 运行示例：
->   ```bash
->   ./samples/sample_ListBuckets --region cn-hangzhou
->   ```
+通过环境变量配置访问凭证：
+
+```bash
+export OSS_ACCESS_KEY_ID="your_access_key_id"
+export OSS_ACCESS_KEY_SECRET="your_access_key_secret"
+```
+
+#### API 和 Paginator 示例
+
+在项目根目录下使用 `BUILD_SAMPLES=ON` 构建：
+
+```bash
+cmake -B build -DBUILD_SAMPLES=ON
+cmake --build build --config Release
+```
+
+运行示例（所有示例需要 `--region` 参数；大多数还需要 `--bucket` 和 `--key`）：
+
+```bash
+./build/samples/sample_api_sync_PutObject --region cn-hangzhou --bucket my-bucket --key my-key
+./build/samples/sample_api_async_PutObject --region cn-hangzhou --bucket my-bucket --key my-key
+./build/samples/sample_paginator_ListObjectsV2Paginator --region cn-hangzhou --bucket my-bucket
+```
+
+也可以使用 `SAMPLE_FILTER` 只构建部分示例：
+
+```bash
+cmake -B build -DBUILD_SAMPLES=ON -DSAMPLE_FILTER=api/sync
+cmake -B build -DBUILD_SAMPLES=ON -DSAMPLE_FILTER=paginator
+```
+
+#### 场景示例
+
+`samples/scenario/` 下的场景示例是**独立项目**，各自拥有独立的 `CMakeLists.txt`，不会被 `BUILD_SAMPLES=ON` 构建。需要先安装 SDK，然后单独构建：
+
+```bash
+cd samples/scenario/progress
+cmake -B build -DCMAKE_PREFIX_PATH=<sdk-install-prefix>
+cmake --build build
+```
+
+可用场景包括：上传进度回调、Curl/WinHTTP 传输层定制、自定义重试策略、RequestBody 构造方式、请求取消、Endpoint 配置、同步客户端异步调用、凭证提供者等。完整列表请参阅 [`samples/INDEX.md`](samples/INDEX.md)。
 
 ## 错误处理
 
