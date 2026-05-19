@@ -1042,19 +1042,19 @@ class ALIBABACLOUD_OSS_API ListMultipartUploadsResult final : public ResultModel
     }
 
     // The object name marker in the response for the next request to return the remaining results.
-    inline const std::string& getNextKeyMarker() {
+    inline const std::string& getNextKeyMarker() const {
         return body_.nextKeyMarker;
     }
 
     // The maximum number of multipart upload tasks returned by OSS.
     // -1 means the value is unkonwn.
-    inline std::int64_t getMaxUploads() {
+    inline std::int64_t getMaxUploads() const {
         return body_.maxUploads.value_or(-1);
     }
 
     // Indicates whether the list of multipart upload tasks returned in the response is truncated. Default value: false.
     // Valid values:- true: Only part of the results are returned this time.- false: All results are returned.
-    inline bool getIsTruncated() {
+    inline bool getIsTruncated() const {
         return body_.isTruncated.value_or(false);
     }
 
