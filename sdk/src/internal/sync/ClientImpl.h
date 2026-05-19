@@ -4,6 +4,7 @@
 #include "src/internal/ClientImplBase.h"
 #include "ExecuteStack.h"
 
+#include <functional>
 #include <memory>
 
 namespace alibabacloud {
@@ -29,8 +30,12 @@ class ClientImpl : public ClientImplBase {
 
     PresignInnerResult Presign(const OperationInput& input, const OperationOptions* opts = nullptr);
 
+    bool hasExecutor() const;
+    void executeTask(std::function<void()> task);
+
   private:
     std::shared_ptr<ExecuteStack> executeStack_;
+    std::shared_ptr<Executor> executor_;
 };
 
 } // namespace internal
