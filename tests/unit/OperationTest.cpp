@@ -2,7 +2,7 @@
 
 #include "TestUtils.h"
 #include "alibabacloud/oss2/Operation.h"
-
+#include "alibabacloud/oss2/Error.h"
 
 #include <fstream>
 
@@ -324,4 +324,110 @@ TEST(OperationTest, OperationMetadata) {
 
     EXPECT_FALSE(input.opMetadata.find("not-exist") != input.opMetadata.end());
 }
+
+TEST(OperationTest, ToString_ServerError) {
+    std::map<std::string, std::string> fields{
+        {"Code", "NoSuchKey"},
+        {"Message", "The specified key does not exist."},
+        {"RequestId", "5C3D8D2A0ACA54D87B43****"},
+        {"EC", "0026-00000001"},
+    };
+    auto ec = make_server_error_code(404);
+    OperationError err("GetObject", "GET", "https://bucket.oss-cn-hangzhou.aliyuncs.com/key", ec, fields);
+
+    HeaderCollection headers;
+    headers["Date"] = "Mon, 19 May 2026 12:00:00 GMT";
+    headers["x-oss-request-id"] = "5C3D8D2A0ACA54D87B43****";
+    err.setResponseResult(404, std::move(headers), "");
+
+    auto str = err.toString();
+    EXPECT_NE(std::string::npos, str.find("Error returned by Service."));
+    EXPECT_NE(std::string::npos, str.find("Http Status Code: 404"));
+    EXPECT_NE(std::string::npos, str.find("Error Code: NoSuchKey"));
+    EXPECT_NE(std::string::npos, str.find("Request Id: 5C3D8D2A0ACA54D87B43****"));
+    EXPECT_NE(std::string::npos, str.find("Message: The specified key does not exist."));
+    EXPECT_NE(std::string::npos, str.find("EC: 0026-00000001"));
+    EXPECT_NE(std::string::npos, str.find("Mon, 19 May 2026 12:00:00 GMT"));
+    EXPECT_NE(std::string::npos, str.find("Request Endpoint: https://bucket.oss-cn-hangzhou.aliyuncs.com/key"));
+    EXPECT_EQ(std::string::npos, str.find("Error Category:"));
+}
+
+TEST(OperationTest, ToString_ServerError_RetryableCode) {
+    std::map<std::string, std::string> fields{
+        {"Code", "InternalError"},
+        {"Message", "Please try again."},
+    };
+    auto ec = make_retryable_server_error_code(503);
+    OperationError err("PutObject", "PUT", "https://bucket.oss-cn-hangzhou.aliyuncs.com/key", ec, fields);
+    err.setResponseResult(503, {}, "");
+
+    auto str = err.toString();
+    EXPECT_NE(std::string::npos, str.find("Error returned by Service."));
+    EXPECT_NE(std::string::npos, str.find("Http Status Code: 503"));
+    EXPECT_NE(std::string::npos, str.find("Error Code: InternalError"));
+}
+
+TEST(OperationTest, ToString_ClientError) {
+    std::map<std::string, std::string> fields{
+        {"Code", "ArgumentInvalid"},
+        {"Message", "bucket name is invalid"},
+    };
+    auto ec = make_error_code(ClientErrorCode::BucketNameInvalid);
+    OperationError err("PutObject", "PUT", "", ec, fields);
+
+    auto str = err.toString();
+    EXPECT_NE(std::string::npos, str.find("Error returned by Client."));
+    EXPECT_NE(std::string::npos, str.find("Error Category: oss2.client"));
+    EXPECT_NE(std::string::npos, str.find("Error Code: ArgumentInvalid"));
+    EXPECT_NE(std::string::npos, str.find("Message: bucket name is invalid"));
+    EXPECT_NE(std::string::npos, str.find("Error Description:"));
+    EXPECT_EQ(std::string::npos, str.find("Error returned by Service."));
+    EXPECT_EQ(std::string::npos, str.find("Http Status Code:"));
+}
+
+TEST(OperationTest, ToString_TransportError) {
+    std::map<std::string, std::string> fields{
+        {"Code", "ConnectionFailed"},
+        {"Message", "could not resolve host"},
+    };
+    auto ec = make_error_code(TransportErrorCode::DnsError);
+    OperationError err("GetObject", "GET", "https://bucket.oss-cn-hangzhou.aliyuncs.com/key", ec, fields);
+
+    auto str = err.toString();
+    EXPECT_NE(std::string::npos, str.find("Error returned by Client."));
+    EXPECT_NE(std::string::npos, str.find("Error Category: oss2.transport"));
+    EXPECT_NE(std::string::npos, str.find("Error Code: ConnectionFailed"));
+    EXPECT_NE(std::string::npos, str.find("Message: could not resolve host"));
+    EXPECT_EQ(std::string::npos, str.find("Error returned by Service."));
+}
+
+TEST(OperationTest, ToString_CredentialsError) {
+    std::map<std::string, std::string> fields{
+        {"Code", "CredentialsEmpty"},
+        {"Message", "credentials provider returned empty credentials"},
+    };
+    auto ec = make_error_code(CredentialsErrorCode::Empty);
+    OperationError err("PutObject", "PUT", "", ec, fields);
+
+    auto str = err.toString();
+    EXPECT_NE(std::string::npos, str.find("Error returned by Client."));
+    EXPECT_NE(std::string::npos, str.find("Error Category: oss2.credentials"));
+    EXPECT_NE(std::string::npos, str.find("Error Code: CredentialsEmpty"));
+    EXPECT_EQ(std::string::npos, str.find("Error returned by Service."));
+}
+
+TEST(OperationTest, ToString_SignerError) {
+    std::map<std::string, std::string> fields{
+        {"Code", "SignFailed"},
+        {"Message", "signing failed"},
+    };
+    auto ec = make_error_code(SignerErrorCode::SignFailed);
+    OperationError err("PutObject", "PUT", "", ec, fields);
+
+    auto str = err.toString();
+    EXPECT_NE(std::string::npos, str.find("Error returned by Client."));
+    EXPECT_NE(std::string::npos, str.find("Error Category: oss2.signer"));
+    EXPECT_EQ(std::string::npos, str.find("Error returned by Service."));
+}
+
 } // namespace alibabacloud::oss2

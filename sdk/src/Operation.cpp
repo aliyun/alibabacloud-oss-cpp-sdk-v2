@@ -47,10 +47,11 @@ const std::string& OperationError::getRequestId() const {
 std::string OperationError::toString() const {
     std::stringstream ss;
     ss << "Operation " << opName_ << " fail. Caused by ";
-    int ev = errorCode_.value();
 
-    // Service Error
-    if (ev >= 400 && ev <= 599) {
+    const auto& cat = errorCode_.category();
+    bool isServerError = std::string(cat.name()) == "oss2.server";
+
+    if (isServerError) {
         ss << "Error returned by Service." << std::endl;
         ss << "Http Status Code: " << statusCode_ << std::endl;
         ss << "Error Code: " << getCode() << std::endl;
@@ -59,12 +60,14 @@ std::string OperationError::toString() const {
         ss << "EC: " << getEC() << std::endl;
         ss << "Timestamp: ";
         if (headers_.find("Date") != headers_.end()) {
-            ss << headers_.at("Date") << std::endl;
+            ss << headers_.at("Date");
         }
-        ss << "Request Endpoint:" << requestTarget_ << std::endl;
+        ss << std::endl;
+        ss << "Request Endpoint: " << requestTarget_ << std::endl;
     } else {
-        // Client Error
         ss << "Error returned by Client." << std::endl;
+        ss << "Error Category: " << cat.name() << std::endl;
+        ss << "Error Description: " << errorCode_.message() << std::endl;
         ss << "Error Code: " << getCode() << std::endl;
         ss << "Message: " << getMessage() << std::endl;
     }
