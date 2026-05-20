@@ -4,7 +4,7 @@
 #include "src/internal/ExecuteMiddleware.h"
 #include "alibabacloud/oss2/Error.h"
 #include "alibabacloud/oss2/retry/Retryer.h"
-
+#include "alibabacloud/oss2/utils/Cancellation.h"
 
 #include <atomic>
 #include <condition_variable>
@@ -58,8 +58,7 @@ class RetryerExecuteMiddleware final : public ExecuteMiddleware {
 
             // delay
             auto delay = retryer_->calcDelayTime(context.errorContext.error, retries + 1);
-            if (waitForRetry(delay)) {
-                // cancel, and break
+            if (waitForRetry(delay, context.transportContext.cancellationToken)) {
                 context.errorContext.error = make_error_code(ClientErrorCode::OperationCanceled);
                 break;
             }
@@ -77,7 +76,6 @@ class RetryerExecuteMiddleware final : public ExecuteMiddleware {
         return response;
     }
 
-
   public:
     void disable() {
         disable_ = true;
@@ -88,12 +86,19 @@ class RetryerExecuteMiddleware final : public ExecuteMiddleware {
         disable_ = false;
     }
 
-    bool waitForRetry(std::chrono::milliseconds milliseconds) {
-        if (milliseconds.count() == 0) {
-            return false;
+  private:
+    static constexpr auto kNotifyThreshold = std::chrono::milliseconds(200);
+
+    bool waitForRetry(std::chrono::milliseconds delay, const std::optional<CancellationToken>& token) {
+        if (delay.count() == 0) return false;
+
+        if (delay < kNotifyThreshold || !token.has_value() || !token->canBeCanceled()) {
+            std::unique_lock<std::mutex> lck(requestLock_);
+            requestSignal_.wait_for(lck, delay, [this]() { return disable_.load(); });
+            return disable_.load() || (token.has_value() && token->isCanceled());
         }
-        std::unique_lock<std::mutex> lck(requestLock_);
-        return requestSignal_.wait_for(lck, milliseconds, [this]() -> bool { return disable_.load() == true; });
+
+        return token->waitFor(delay);
     }
 
   private:
@@ -103,7 +108,7 @@ class RetryerExecuteMiddleware final : public ExecuteMiddleware {
     std::mutex requestLock_;
     std::condition_variable requestSignal_;
 };
-} // namespace internal
 
+} // namespace internal
 } // namespace oss2
 } // namespace alibabacloud
