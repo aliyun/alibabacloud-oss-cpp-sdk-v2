@@ -13,6 +13,19 @@ alibabacloud-oss-cpp-sdk-v2 是 OSS 在 C++ 编程语言下的第二版 SDK
 > - OSS 适合存放任意文件类型，适合各种网站、开发企业及开发者使用。
 > - 使用此 SDK，用户可以方便地在任何应用、任何时间、任何地点上传、下载和管理数据。
 
+## 特性
+
+- **同步与异步** -- `OSSClient` 同步调用；`OSSAsyncClient` 全异步操作；`OSSClient::asyncCall()` 在执行器上异步运行同步操作
+- **自动重试** -- 可配置的指数退避重试策略，应对瞬时故障
+- **分页器** -- `makePaginator()` 自动翻页迭代列举操作
+- **预签名 URL** -- 为 PutObject、GetObject、HeadObject、UploadPart 生成预签名 URL
+- **请求取消** -- `CancellationToken` 取消进行中的请求；`disableRequest()` 客户端级别批量取消
+- **进度回调** -- 跟踪上传/下载进度
+- **灵活的请求体** -- 从 String、File、Stream、Memory buffer 构造
+- **多种凭证提供者** -- 环境变量、静态凭证、STS、ECS RAM Role、自定义提供者
+- **可定制传输层** -- 自定义 Curl 或 WinHTTP 配置
+- **`std::expected` 支持** -- 可选的 C++23 模式，支持一元错误处理
+
 ## 运行环境
 
 > - C++17 及以上版本（`std::expected` 模式需要 C++23）
@@ -85,129 +98,9 @@ target_link_libraries(your_target PRIVATE alibabacloud::oss2)
 ```bash
 export OSS_ACCESS_KEY_ID="your_access_key_id"
 export OSS_ACCESS_KEY_SECRET="your_access_key_secret"
-export OSS_ENDPOINT="oss-cn-hangzhou.aliyuncs.com"
-export OSS_REGION="cn-hangzhou"
 ```
 
-#### 获取存储空间列表（List Buckets）
-
-```cpp
-#include "alibabacloud/oss2/ClientConfiguration.h"
-#include "alibabacloud/oss2/OSSClient.h"
-#include "alibabacloud/oss2/credentials/CredentialsProvider.h"
-#include <iostream>
-
-using namespace alibabacloud::oss2;
-
-int main() {
-    // 初始化客户端配置
-    auto conf = ClientConfiguration::loadDefault();
-    conf.region = "cn-hangzhou";
-    conf.credentialsProvider = std::make_shared<EnvironmentVariableCredentialsProvider>();
-
-    // 创建 OSS 客户端
-    OSSClient client(conf);
-
-    // 列举存储空间
-    auto outcome = client.listBuckets(models::ListBucketsRequest());
-    if (!outcome.has_value()) {
-        auto& e = outcome.error();
-        std::cerr << "ListBuckets fail, code: " << e.getCode()
-                  << ", message: " << e.getMessage()
-                  << ", requestId: " << e.getRequestId() << std::endl;
-        return 1;
-    }
-
-    auto& result = outcome.value();
-    for (const auto& bucket : result.getBuckets()) {
-        std::cout << "存储空间: " << bucket.name
-                  << ", 地域: " << bucket.location
-                  << ", 存储类型: " << bucket.storageClass << std::endl;
-    }
-    return 0;
-}
-```
-
-#### 获取文件列表（List Objects）
-
-```cpp
-#include "alibabacloud/oss2/ClientConfiguration.h"
-#include "alibabacloud/oss2/OSSClient.h"
-#include "alibabacloud/oss2/credentials/CredentialsProvider.h"
-#include <iostream>
-
-using namespace alibabacloud::oss2;
-
-int main() {
-    auto conf = ClientConfiguration::loadDefault();
-    conf.region = "cn-hangzhou";
-    conf.credentialsProvider = std::make_shared<EnvironmentVariableCredentialsProvider>();
-    OSSClient client(conf);
-
-    auto outcome = client.listObjectsV2(
-        models::ListObjectsV2Request()
-            .setBucket("your-bucket-name")
-    );
-    if (!outcome.has_value()) {
-        auto& e = outcome.error();
-        std::cerr << "ListObjectsV2 fail, code: " << e.getCode()
-                  << ", message: " << e.getMessage()
-                  << ", requestId: " << e.getRequestId() << std::endl;
-        return 1;
-    }
-
-    auto& result = outcome.value();
-    for (const auto& object : result.getContents()) {
-        std::cout << "文件: " << object.key
-                  << ", 大小: " << object.size
-                  << ", 最后修改时间: " << object.lastModified << std::endl;
-    }
-    return 0;
-}
-```
-
-#### 上传文件（Put Object）
-
-```cpp
-#include "alibabacloud/oss2/ClientConfiguration.h"
-#include "alibabacloud/oss2/OSSClient.h"
-#include "alibabacloud/oss2/credentials/CredentialsProvider.h"
-#include "alibabacloud/oss2/io/ByteStream.h"
-#include <iostream>
-
-using namespace alibabacloud::oss2;
-
-int main() {
-    auto conf = ClientConfiguration::loadDefault();
-    conf.region = "cn-hangzhou";
-    conf.credentialsProvider = std::make_shared<EnvironmentVariableCredentialsProvider>();
-    OSSClient client(conf);
-
-    std::string content = "Hello, OSS!";
-    auto body = RequestBody::FromString(content);
-
-    auto outcome = client.putObject(
-        models::PutObjectRequest()
-            .setBucket("your-bucket-name")
-            .setKey("your-object-key")
-            .setBody(body)
-    );
-    if (!outcome.has_value()) {
-        auto& e = outcome.error();
-        std::cerr << "PutObject fail, code: " << e.getCode()
-                  << ", message: " << e.getMessage()
-                  << ", requestId: " << e.getRequestId() << std::endl;
-        return 1;
-    }
-
-    auto& result = outcome.value();
-    std::cout << "上传成功! statusCode: " << result.getStatusCode()
-              << ", requestId: " << result.getRequestId() << std::endl;
-    return 0;
-}
-```
-
-#### 下载文件（Get Object）
+### 快速开始
 
 ```cpp
 #include "alibabacloud/oss2/ClientConfiguration.h"
@@ -216,84 +109,48 @@ int main() {
 #include <iostream>
 #include <sstream>
 
-using namespace alibabacloud::oss2;
+namespace oss = alibabacloud::oss2;
 
 int main() {
-    auto conf = ClientConfiguration::loadDefault();
+    auto conf = oss::ClientConfiguration::loadDefault();
     conf.region = "cn-hangzhou";
-    conf.credentialsProvider = std::make_shared<EnvironmentVariableCredentialsProvider>();
-    OSSClient client(conf);
+    conf.credentialsProvider = std::make_shared<oss::EnvironmentVariableCredentialsProvider>();
+    oss::OSSClient client(conf);
 
-    auto outcome = client.getObject(
-        models::GetObjectRequest()
+    // 上传
+    auto putOutcome = client.putObject(
+        oss::models::PutObjectRequest()
             .setBucket("your-bucket-name")
             .setKey("your-object-key")
-    );
-    if (!outcome.has_value()) {
-        auto& e = outcome.error();
-        std::cerr << "GetObject fail, code: " << e.getCode()
-                  << ", message: " << e.getMessage()
-                  << ", requestId: " << e.getRequestId() << std::endl;
+            .setBody(oss::RequestBody::FromString("Hello, OSS!")));
+    if (!putOutcome.has_value()) {
+        std::cerr << "PutObject fail, code: " << putOutcome.error().getCode()
+                  << ", message: " << putOutcome.error().getMessage() << std::endl;
         return 1;
     }
+    std::cout << "Upload successful, ETag: " << putOutcome.value().getETag() << std::endl;
 
-    auto& result = outcome.value();
+    // 下载
+    auto getOutcome = client.getObject(
+        oss::models::GetObjectRequest()
+            .setBucket("your-bucket-name")
+            .setKey("your-object-key"));
+    if (!getOutcome.has_value()) {
+        std::cerr << "GetObject fail, code: " << getOutcome.error().getCode()
+                  << ", message: " << getOutcome.error().getMessage() << std::endl;
+        return 1;
+    }
     std::stringstream buffer;
-    buffer << result.getBody()->rdbuf();
+    buffer << getOutcome.value().getBody()->rdbuf();
+    std::cout << "Download successful, content: " << buffer.str() << std::endl;
 
-    std::cout << "下载成功! 内容: " << buffer.str() << std::endl;
     return 0;
 }
 ```
 
 ## 更多示例
 
-请参看 `samples` 目录获取更多示例项目。
-
-### 运行示例
-
-通过环境变量配置访问凭证：
-
-```bash
-export OSS_ACCESS_KEY_ID="your_access_key_id"
-export OSS_ACCESS_KEY_SECRET="your_access_key_secret"
-```
-
-#### API 和 Paginator 示例
-
-在项目根目录下使用 `BUILD_SAMPLES=ON` 构建：
-
-```bash
-cmake -B build -DBUILD_SAMPLES=ON
-cmake --build build --config Release
-```
-
-运行示例（所有示例需要 `--region` 参数；大多数还需要 `--bucket` 和 `--key`）：
-
-```bash
-./build/samples/sample_api_sync_PutObject --region cn-hangzhou --bucket my-bucket --key my-key
-./build/samples/sample_api_async_PutObject --region cn-hangzhou --bucket my-bucket --key my-key
-./build/samples/sample_paginator_ListObjectsV2Paginator --region cn-hangzhou --bucket my-bucket
-```
-
-也可以使用 `SAMPLE_FILTER` 只构建部分示例：
-
-```bash
-cmake -B build -DBUILD_SAMPLES=ON -DSAMPLE_FILTER=api/sync
-cmake -B build -DBUILD_SAMPLES=ON -DSAMPLE_FILTER=paginator
-```
-
-#### 场景示例
-
-`samples/scenario/` 下的场景示例是**独立项目**，各自拥有独立的 `CMakeLists.txt`，不会被 `BUILD_SAMPLES=ON` 构建。需要先安装 SDK，然后单独构建：
-
-```bash
-cd samples/scenario/progress
-cmake -B build -DCMAKE_PREFIX_PATH=<sdk-install-prefix>
-cmake --build build
-```
-
-可用场景包括：上传进度回调、Curl/WinHTTP 传输层定制、自定义重试策略、RequestBody 构造方式、请求取消、Endpoint 配置、同步客户端异步调用、凭证提供者等。完整列表请参阅 [`samples/INDEX.md`](samples/INDEX.md)。
+更多示例请参阅 [`samples`](samples/INDEX.md) 目录，包括同步/异步 API 用法、分页器，以及场景示例（进度回调、传输层定制、重试策略、请求取消、凭证提供者等）。
 
 ## 错误处理
 
