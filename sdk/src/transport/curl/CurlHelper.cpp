@@ -216,6 +216,9 @@ ClientOptions buildClientOptions(const HttpTransportOptions& options) {
     if (options.proxyHost.has_value() && !options.proxyHost.value().empty()) {
         opts.proxyHost = options.proxyHost.value();
     }
+    if (options.isRequestDisabled) {
+        opts.isRequestDisabled = options.isRequestDisabled;
+    }
     return opts;
 }
 
@@ -279,13 +282,23 @@ std::error_code make_transport_error_code(int curlCode) {
     return make_error_code(curlCodeToTransportError(curlCode));
 }
 
+static bool shouldAbortTransfer(const TransferIO* io) {
+    if (io->cancellationToken != nullptr && io->cancellationToken->isCanceled()) {
+        return true;
+    }
+    if (io->isRequestDisabled != nullptr && (*io->isRequestDisabled)()) {
+        return true;
+    }
+    return false;
+}
+
 #if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 32, 0)
 static int xferInfoCallback(void* userdata, curl_off_t, curl_off_t, curl_off_t, curl_off_t) {
     auto* io = static_cast<TransferIO*>(userdata);
     if (io == nullptr) {
         return 0;
     }
-    if (io->cancellationToken != nullptr && io->cancellationToken->isCanceled()) {
+    if (shouldAbortTransfer(io)) {
         return 1;
     }
     return 0;
@@ -296,7 +309,7 @@ static int progressCallback(void* userdata, double, double, double, double) {
     if (io == nullptr) {
         return 0;
     }
-    if (io->cancellationToken != nullptr && io->cancellationToken->isCanceled()) {
+    if (shouldAbortTransfer(io)) {
         return 1;
     }
     return 0;
@@ -305,8 +318,7 @@ static int progressCallback(void* userdata, double, double, double, double) {
 
 TransportError buildTransportError(CURLcode res, const char* errbuf,
                                     const TransferIO& io) {
-    if (res == CURLE_ABORTED_BY_CALLBACK &&
-        io.cancellationToken != nullptr && io.cancellationToken->isCanceled()) {
+    if (res == CURLE_ABORTED_BY_CALLBACK && shouldAbortTransfer(&io)) {
         return TransportError{make_error_code(TransportErrorCode::Canceled),
                               "RequestCanceled", "Request canceled by CancellationToken"};
     }
@@ -329,7 +341,7 @@ TransportError buildTransportError(CURLcode res, const char* errbuf,
 }
 
 void applyRequestOptions(CURL* curl, TransferIO* io) {
-    if (io->cancellationToken != nullptr) {
+    if (io->cancellationToken != nullptr || io->isRequestDisabled != nullptr) {
 #if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 32, 0)
         curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, xferInfoCallback);
 #else

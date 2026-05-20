@@ -56,6 +56,8 @@ struct ALIBABACLOUD_OSS_API HttpTransportOptions {
     std::optional<bool> enabledRedirect;
     // Proxy host URL, e.g. "http://proxy.example.com"
     std::optional<std::string> proxyHost;
+    // Client-level check: returns true when request processing is disabled
+    std::function<bool()> isRequestDisabled;
 };
 
 } // namespace oss2

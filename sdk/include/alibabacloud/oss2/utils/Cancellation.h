@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "alibabacloud/oss2/OSS_EXPORTS.h"
@@ -32,7 +31,7 @@ class ALIBABACLOUD_OSS_API CancellationToken {
         return deadline_ != nullptr ? deadline_->load() <= std::chrono::steady_clock::now() : false;
     }
 
-    /// Blocks up to @p timeout or until canceled, whichever comes first.
+    /// Blocks up to timeout or until canceled, whichever comes first.
     /// If cancelAfter() was set before this call, the wait is shortened to min(timeout, timeToDeadline).
     /// If cancel() is called during the wait, the thread is woken immediately.
     /// Returns true if canceled, false if timed out.
@@ -52,14 +51,14 @@ class ALIBABACLOUD_OSS_API CancellationToken {
 /// Producer-side control for requesting cancellation. Thread-safe.
 ///
 /// @code
-///   // Immediate cancellation — abort an in-flight request from another thread:
+///   // Immediate cancellation -- abort an in-flight request from another thread:
 ///   auto cts = CancellationTokenSource::create();
 ///   OperationOptions opts;
 ///   opts.cancellationToken = cts->getToken();
 ///   // ... launch request with opts ...
 ///   cts->cancel();   // wakes any waitFor() immediately
 ///
-///   // Deadline-based cancellation — set a total request timeout:
+///   // Deadline-based cancellation -- set a total request timeout:
 ///   auto cts = CancellationTokenSource::create();
 ///   cts->cancelAfter(std::chrono::seconds(30));   // request-level deadline
 ///   OperationOptions opts;

@@ -27,5 +27,13 @@ void OSSClient::executeTask(std::function<void()> task) {
     client_->executeTask(std::move(task));
 }
 
+void OSSClient::disableRequest() {
+    client_->disableRequest();
+}
+
+void OSSClient::enableRequest() {
+    client_->enableRequest();
+}
+
 } // namespace oss2
 } // namespace alibabacloud

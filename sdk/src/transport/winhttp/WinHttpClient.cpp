@@ -23,14 +23,16 @@ struct AsyncHandleGuard {
 
 static const char* TAG = "WinHttpClient";
 
-WinHttpClient::WinHttpClient(const HttpTransportOptions& options) {
+WinHttpClient::WinHttpClient(const HttpTransportOptions& options)
+    : isRequestDisabled_(options.isRequestDisabled) {
     connOpts_ = buildConnectionOptions(options);
     long connectTimeout = options.connectTimeout.value_or(kDefaultConnectTimeoutMs);
     long requestTimeout = options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs);
     hSession_ = openSession(connOpts_, kDefaultMaxConnectionsSync, connectTimeout, requestTimeout);
 }
 
-WinHttpClient::WinHttpClient(const WinHttpTransportOptions& options) {
+WinHttpClient::WinHttpClient(const WinHttpTransportOptions& options)
+    : isRequestDisabled_(options.isRequestDisabled) {
     connOpts_ = buildConnectionOptions(options);
     long connectTimeout = options.connectTimeout.value_or(kDefaultConnectTimeoutMs);
     long requestTimeout = options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs);
@@ -62,12 +64,18 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
     }
     AsyncHandleGuard requestGuard{handles.hRequest, action};
 
-    auto isCanceled = [&]() {
-        return options.cancellationToken.has_value() && options.cancellationToken->isCanceled();
+    auto isAborted = [&]() {
+        if (options.cancellationToken.has_value() && options.cancellationToken->isCanceled()) {
+            return true;
+        }
+        if (isRequestDisabled_ && isRequestDisabled_()) {
+            return true;
+        }
+        return false;
     };
 
     auto makeWaitError = [&]() -> TransportError {
-        if (isCanceled()) {
+        if (isAborted()) {
             return TransportError{make_error_code(TransportErrorCode::Canceled),
                                   "RequestCanceled", "Request canceled by CancellationToken"};
         }
@@ -99,7 +107,8 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
                     totalLength, actionPtr) != 0;
             },
             WINHTTP_CALLBACK_STATUS_SENDREQUEST_COMPLETE,
-            options.cancellationToken)) {
+            options.cancellationToken,
+            isRequestDisabled_)) {
         return makeWaitError();
     }
 
@@ -124,7 +133,8 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
                                 static_cast<DWORD>(got), nullptr) != 0;
                         },
                         WINHTTP_CALLBACK_STATUS_WRITE_COMPLETE,
-                        options.cancellationToken)) {
+                        options.cancellationToken,
+                        isRequestDisabled_)) {
                     return makeWaitError();
                 }
             }
@@ -136,7 +146,8 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
                 return WinHttpReceiveResponse(handles.hRequest.get(), nullptr) != 0;
             },
             WINHTTP_CALLBACK_STATUS_HEADERS_AVAILABLE,
-            options.cancellationToken)) {
+            options.cancellationToken,
+            isRequestDisabled_)) {
         return makeWaitError();
     }
 
@@ -154,8 +165,9 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
                         return WinHttpQueryDataAvailable(handles.hRequest.get(), nullptr) != 0;
                     },
                     WINHTTP_CALLBACK_STATUS_DATA_AVAILABLE,
-                    options.cancellationToken)) {
-                if (isCanceled()) return makeWaitError();
+                    options.cancellationToken,
+                    isRequestDisabled_)) {
+                if (isAborted()) return makeWaitError();
                 break;
             }
 
@@ -169,8 +181,9 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
                             return WinHttpReadData(handles.hRequest.get(), readBuf, toRead, nullptr) != 0;
                         },
                         WINHTTP_CALLBACK_STATUS_READ_COMPLETE,
-                        options.cancellationToken)) {
-                    if (isCanceled()) return makeWaitError();
+                        options.cancellationToken,
+                        isRequestDisabled_)) {
+                    if (isAborted()) return makeWaitError();
                     available = 0;
                     break;
                 }

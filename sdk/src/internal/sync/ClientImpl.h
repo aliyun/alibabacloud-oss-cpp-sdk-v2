@@ -4,12 +4,21 @@
 #include "src/internal/ClientImplBase.h"
 #include "ExecuteStack.h"
 
+#include <atomic>
+#include <condition_variable>
 #include <functional>
 #include <memory>
+#include <mutex>
 
 namespace alibabacloud {
 namespace oss2 {
 namespace internal {
+
+struct DisableState {
+    std::atomic<bool> flag{false};
+    std::mutex mu;
+    std::condition_variable cv;
+};
 
 struct PresignInnerOutput {
     std::string url;
@@ -33,7 +42,11 @@ class ClientImpl : public ClientImplBase {
     bool hasExecutor() const;
     void executeTask(std::function<void()> task);
 
+    void disableRequest();
+    void enableRequest();
+
   private:
+    std::shared_ptr<DisableState> disableState_;
     std::shared_ptr<ExecuteStack> executeStack_;
     std::shared_ptr<Executor> executor_;
 };

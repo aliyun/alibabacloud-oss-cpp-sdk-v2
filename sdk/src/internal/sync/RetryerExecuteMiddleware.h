@@ -6,18 +6,22 @@
 #include "alibabacloud/oss2/retry/Retryer.h"
 #include "alibabacloud/oss2/utils/Cancellation.h"
 
-#include <atomic>
-#include <condition_variable>
-#include <mutex>
+#include <functional>
 
 namespace alibabacloud {
 namespace oss2 {
 namespace internal {
 
+using ClientWaitForFn = std::function<bool(std::chrono::milliseconds)>;
+
 class RetryerExecuteMiddleware final : public ExecuteMiddleware {
   public:
-    RetryerExecuteMiddleware(std::unique_ptr<ExecuteMiddleware> nextHandler, std::shared_ptr<Retryer> retryer)
-            : nextHandler_(std::move(nextHandler)), retryer_(std::move(retryer)), disable_(false) {}
+    RetryerExecuteMiddleware(std::unique_ptr<ExecuteMiddleware> nextHandler,
+                             std::shared_ptr<Retryer> retryer,
+                             ClientWaitForFn clientWaitFor)
+            : nextHandler_(std::move(nextHandler)),
+              retryer_(std::move(retryer)),
+              clientWaitFor_(std::move(clientWaitFor)) {}
 
     std::unique_ptr<ResponseMessage> Execute(std::unique_ptr<RequestMessage>& request,
                                              ExecuteContext& context) override {
@@ -76,16 +80,6 @@ class RetryerExecuteMiddleware final : public ExecuteMiddleware {
         return response;
     }
 
-  public:
-    void disable() {
-        disable_ = true;
-        requestSignal_.notify_all();
-    }
-
-    void enable() {
-        disable_ = false;
-    }
-
   private:
     static constexpr auto kNotifyThreshold = std::chrono::milliseconds(200);
 
@@ -93,9 +87,7 @@ class RetryerExecuteMiddleware final : public ExecuteMiddleware {
         if (delay.count() == 0) return false;
 
         if (delay < kNotifyThreshold || !token.has_value() || !token->canBeCanceled()) {
-            std::unique_lock<std::mutex> lck(requestLock_);
-            requestSignal_.wait_for(lck, delay, [this]() { return disable_.load(); });
-            return disable_.load() || (token.has_value() && token->isCanceled());
+            return clientWaitFor_(delay) || (token.has_value() && token->isCanceled());
         }
 
         return token->waitFor(delay);
@@ -104,9 +96,7 @@ class RetryerExecuteMiddleware final : public ExecuteMiddleware {
   private:
     std::unique_ptr<ExecuteMiddleware> nextHandler_;
     std::shared_ptr<Retryer> retryer_;
-    std::atomic<bool> disable_;
-    std::mutex requestLock_;
-    std::condition_variable requestSignal_;
+    ClientWaitForFn clientWaitFor_;
 };
 
 } // namespace internal

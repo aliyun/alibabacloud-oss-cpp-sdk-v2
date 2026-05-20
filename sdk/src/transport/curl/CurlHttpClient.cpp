@@ -51,6 +51,9 @@ ResponseResult CurlHttpClient::send(std::unique_ptr<RequestMessage>& request, co
     if (options.cancellationToken.has_value()) {
         io.cancellationToken = &options.cancellationToken.value();
     }
+    if (clientOpts_.isRequestDisabled) {
+        io.isRequestDisabled = &clientOpts_.isRequestDisabled;
+    }
 
     if (request->body != nullptr) {
         io.source = request->body->spanSource();

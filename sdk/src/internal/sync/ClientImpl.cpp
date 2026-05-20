@@ -18,10 +18,10 @@ namespace oss2 {
 namespace internal {
 
 ClientImpl::ClientImpl(const struct ClientConfiguration& config, const ClientOptionsFns& fns)
-        : executor_(config.executor) {
+        : disableState_(std::make_shared<DisableState>()), executor_(config.executor) {
     ClientOptionsFns allFns;
     allFns.reserve(fns.size() + 1);
-    allFns.push_back([&config](ClientOptions& opts) {
+    allFns.push_back([&config, s = disableState_](ClientOptions& opts) {
         if (config.httpTransport != nullptr) {
             opts.httpTransport = config.httpTransport;
         } else {
@@ -31,20 +31,28 @@ ClientImpl::ClientImpl(const struct ClientConfiguration& config, const ClientOpt
             httpConfig.insecureSkipVerify = config.insecureSkipVerify;
             httpConfig.enabledRedirect = config.enabledRedirect;
             httpConfig.proxyHost = config.proxyHost;
+            httpConfig.isRequestDisabled = [s]() { return s->flag.load(); };
             opts.httpTransport = transport::HttpTransportFactory::create(httpConfig);
         }
     });
     allFns.insert(allFns.end(), fns.begin(), fns.end());
     init(config, allFns);
+
+    auto clientWaitFor = [s = disableState_](std::chrono::milliseconds delay) -> bool {
+        std::unique_lock<std::mutex> lk(s->mu);
+        s->cv.wait_for(lk, delay, [&s]() { return s->flag.load(); });
+        return s->flag.load();
+    };
+
     executeStack_ = std::make_unique<ExecuteStack>(
             [transport = options_.httpTransport]() -> std::unique_ptr<ExecuteMiddleware> {
                 return std::make_unique<TransportExecuteMiddleware>(transport);
             });
 
     executeStack_->Push(
-            [retryer = options_.retryer](
+            [retryer = options_.retryer, clientWaitFor = std::move(clientWaitFor)](
                     std::unique_ptr<ExecuteMiddleware> handle) -> std::unique_ptr<ExecuteMiddleware> {
-                return std::make_unique<RetryerExecuteMiddleware>(std::move(handle), retryer);
+                return std::make_unique<RetryerExecuteMiddleware>(std::move(handle), retryer, clientWaitFor);
             },
             "Retryer");
 
@@ -67,6 +75,11 @@ ClientImpl::ClientImpl(const struct ClientConfiguration& config, const ClientOpt
 OperationResult ClientImpl::Execute(const OperationInput& input, const OperationOptions* opts,
                                     const OperationInnerOptions* innerOpts) {
     ExecuteContext context;
+
+    if (disableState_->flag.load()) {
+        return OperationError(make_error_code(ClientErrorCode::OperationCanceled),
+                              {{"Code", "RequestDisabled"}, {"Message", "Request disabled by client"}});
+    }
 
     verifyOperation(input, context);
     if (context.errorContext.error) {
@@ -176,6 +189,15 @@ bool ClientImpl::hasExecutor() const {
 
 void ClientImpl::executeTask(std::function<void()> task) {
     executor_->execute(std::move(task));
+}
+
+void ClientImpl::disableRequest() {
+    disableState_->flag.store(true);
+    disableState_->cv.notify_all();
+}
+
+void ClientImpl::enableRequest() {
+    disableState_->flag.store(false);
 }
 
 } // namespace internal
