@@ -31,6 +31,11 @@ class MockTransportEx : public HttpTransport {
                                   "RequestCanceled", "Request canceled by CancellationToken"};
         }
 
+        if (isAborted && isAborted()) {
+            return TransportError{make_error_code(TransportErrorCode::Canceled),
+                                  "RequestCanceled", "Request canceled by CancellationToken"};
+        }
+
         if (!responses.empty()) {
             auto res = std::move(responses.front());
             responses.erase(responses.begin());
@@ -43,6 +48,7 @@ class MockTransportEx : public HttpTransport {
     std::vector<ResponseResult> responses;
     std::vector<std::unique_ptr<RequestMessage>> requests;
     std::chrono::milliseconds delay{0};
+    std::function<bool()> isAborted;
 };
 
 TEST(OSSClientMiscTest, TransportCanceled_NoRetry) {
@@ -201,6 +207,156 @@ TEST(OSSClientMiscTest, CancelToken_CancelAfterTimeout) {
     EXPECT_FALSE(outcome.has_value());
     EXPECT_EQ("RequestCanceled", outcome.error().getCode());
     EXPECT_EQ(outcome.error().getErrorCode(), ErrorCondition::Canceled);
+}
+
+TEST(OSSClientMiscTest, DisableRequestProcessing_BeforeRequest) {
+    auto mock = std::make_shared<MockTransportEx>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mock;
+
+    auto client = OSSClient(config);
+
+    mock->responses.emplace_back(
+            std::make_unique<ResponseMessage>(ResponseMessage{200, "OK", {}, nullptr}));
+
+    client.disableRequest();
+
+    auto outcome = client.putObject(
+            models::PutObjectRequest()
+                    .setBucket("bucket")
+                    .setKey("key")
+                    .setBody(RequestBody::FromString("data")));
+
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("RequestDisabled", outcome.error().getCode());
+    EXPECT_EQ("Request disabled by client", outcome.error().getMessage());
+    EXPECT_EQ(outcome.error().getErrorCode(), ErrorCondition::Canceled);
+    EXPECT_TRUE(mock->requests.empty());
+}
+
+TEST(OSSClientMiscTest, DisableRequestProcessing_EnableThenRequest) {
+    auto mock = std::make_shared<MockTransportEx>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mock;
+
+    auto client = OSSClient(config);
+
+    client.disableRequest();
+    client.enableRequest();
+
+    mock->responses.emplace_back(
+            std::make_unique<ResponseMessage>(ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1234"}}, nullptr}));
+
+    auto outcome = client.putObject(
+            models::PutObjectRequest()
+                    .setBucket("bucket")
+                    .setKey("key")
+                    .setBody(RequestBody::FromString("data")));
+
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientMiscTest, DisableRequestProcessing_DuringRequest) {
+    auto mock = std::make_shared<MockTransportEx>();
+    mock->delay = std::chrono::milliseconds(200);
+
+    auto disableFlag = std::make_shared<std::atomic<bool>>(false);
+    mock->isAborted = [disableFlag]() { return disableFlag->load(); };
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mock;
+
+    auto client = OSSClient(config);
+
+    mock->responses.emplace_back(
+            std::make_unique<ResponseMessage>(ResponseMessage{200, "OK", {}, nullptr}));
+
+    std::thread disabler([&client, &disableFlag]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        disableFlag->store(true);
+        client.disableRequest();
+    });
+
+    auto outcome = client.putObject(
+            models::PutObjectRequest()
+                    .setBucket("bucket")
+                    .setKey("key")
+                    .setBody(RequestBody::FromString("data")));
+    disabler.join();
+
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ(outcome.error().getErrorCode(), ErrorCondition::Canceled);
+
+    client.enableRequest();
+}
+
+TEST(OSSClientMiscTest, DisableRequestProcessing_DuringRetryWait) {
+    auto mock = std::make_shared<MockTransportEx>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mock;
+
+    auto client = OSSClient(config);
+
+    for (int i = 0; i < 3; i++) {
+        mock->responses.emplace_back(TransportError{
+                make_error_code(TransportErrorCode::ConnectionFailed),
+                "ConnectError", "Connection failed"});
+    }
+
+    std::thread disabler([&client]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        client.disableRequest();
+    });
+
+    auto outcome = client.putObject(
+            models::PutObjectRequest()
+                    .setBucket("bucket")
+                    .setKey("key")
+                    .setBody(RequestBody::FromString("data")));
+    disabler.join();
+
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ(outcome.error().getErrorCode(), ErrorCondition::Canceled);
+
+    client.enableRequest();
+}
+
+TEST(OSSClientMiscTest, DisableRequestProcessing_RepeatedDisableEnable) {
+    auto mock = std::make_shared<MockTransportEx>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mock;
+
+    auto client = OSSClient(config);
+
+    client.disableRequest();
+    client.enableRequest();
+    client.disableRequest();
+    client.enableRequest();
+
+    mock->responses.emplace_back(
+            std::make_unique<ResponseMessage>(ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1234"}}, nullptr}));
+
+    auto outcome = client.putObject(
+            models::PutObjectRequest()
+                    .setBucket("bucket")
+                    .setKey("key")
+                    .setBody(RequestBody::FromString("data")));
+
+    EXPECT_TRUE(outcome.has_value());
 }
 
 } // namespace alibabacloud::oss2

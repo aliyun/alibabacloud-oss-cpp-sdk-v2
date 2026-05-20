@@ -50,6 +50,7 @@ struct TransferIO {
     int64_t recvDataLength{};
 
     const CancellationToken* cancellationToken{};
+    const std::function<bool()>* isRequestDisabled{};
 };
 
 size_t sendBodyCallback(char* ptr, size_t size, size_t nmemb, void* userdata);
@@ -76,6 +77,7 @@ struct ClientOptions {
     bool enabledRedirect{false};
     bool enableVerbose{false};
     std::function<void(void*, const RequestMessage*)> requestInterceptor;
+    std::function<bool()> isRequestDisabled;
 };
 
 void applyClientOptions(CURL* curl, const ClientOptions& opts,

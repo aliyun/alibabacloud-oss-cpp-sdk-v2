@@ -27,7 +27,8 @@ class WinHttpAction {
 
     bool waitForAction(std::function<bool()> initiateAction,
                        DWORD expectedStatus,
-                       const std::optional<CancellationToken>& token);
+                       const std::optional<CancellationToken>& token,
+                       const std::function<bool()>& isDisabled = {});
 
     DWORD getError() const;
     DWORD getBytesAvailable() const;

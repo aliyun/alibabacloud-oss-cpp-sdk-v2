@@ -19,6 +19,7 @@ class WinHttpClient : public HttpTransport {
   private:
     WinHttpHandle hSession_;
     ConnectionOptions connOpts_;
+    std::function<bool()> isRequestDisabled_;
 };
 
 } // namespace alibabacloud::oss2::transport::winhttp

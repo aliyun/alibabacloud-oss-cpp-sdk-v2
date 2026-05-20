@@ -31,7 +31,8 @@ bool WinHttpAction::registerCallback(HINTERNET hRequest) {
 
 bool WinHttpAction::waitForAction(std::function<bool()> initiateAction,
                                   DWORD expectedStatus,
-                                  const std::optional<CancellationToken>& token) {
+                                  const std::optional<CancellationToken>& token,
+                                  const std::function<bool()>& isDisabled) {
     ResetEvent(event_);
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -51,6 +52,10 @@ bool WinHttpAction::waitForAction(std::function<bool()> initiateAction,
         if (waitResult == WAIT_TIMEOUT) {
             if (token.has_value() && token->isCanceled()) {
                 OSS_LOG(LogLevel::LogInfo, TAG, "Request canceled by CancellationToken");
+                return false;
+            }
+            if (isDisabled && isDisabled()) {
+                OSS_LOG(LogLevel::LogInfo, TAG, "Request processing disabled");
                 return false;
             }
         } else if (waitResult != WAIT_OBJECT_0) {

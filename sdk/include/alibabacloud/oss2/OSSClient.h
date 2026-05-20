@@ -506,6 +506,17 @@ class ALIBABACLOUD_OSS_API OSSClient final {
     PresignOutcome presign(const models::UploadPartRequest& request,
                            const models::PresignOptions* options = nullptr);
 
+    /**
+     * @brief Disables request processing for this client. All in-flight requests will be
+     * canceled and new requests will fail immediately until enableRequest() is called.
+     */
+    void disableRequest();
+
+    /**
+     * @brief Re-enables request processing after a prior disableRequest() call.
+     */
+    void enableRequest();
+
     template<typename RequestT>
     struct OperationTraits;
 
