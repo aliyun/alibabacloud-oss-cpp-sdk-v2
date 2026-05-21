@@ -63,3 +63,22 @@ jobs:
         working-directory: build
         shell: bash
         run: ctest -C Release -V --output-on-failure -R cpp-sdk-unittest
+
+      # Shared library build (compile-only, winhttp-only)
+      - name: Configure CMake (shared, winhttp)
+        if: matrix.transport == 'winhttp-only'
+        shell: bash
+        run: |
+          cmake -B build-shared \
+            -A x64 \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_SAMPLES=OFF \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=ON \
+            -DUSE_CURL_TRANSPORT=OFF \
+            -DUSE_WINHTTP_TRANSPORT=ON
+
+      - name: Build (shared, winhttp)
+        if: matrix.transport == 'winhttp-only'
+        shell: bash
+        run: cmake --build build-shared --config Release
