@@ -13,8 +13,16 @@ alibabacloud-oss-cpp-sdk-v2 is the developer preview for the v2 of the OSS SDK f
 > - The OSS can store any type of files and therefore applies to various websites, development enterprises and developers.
 > - With this SDK, you can upload, download and manage data on any app anytime and anywhere conveniently.
 
+## Requirements
+
+> - C++17 or later (C++23 required for `std::expected` mode)
+> - CMake 3.15 or later
+> - Supported platforms: Linux, macOS, Windows, Android
+
 ## Features
 
+- **Typed API Coverage** -- object, multipart upload, bucket management, etc.
+- **Generic API** -- `invokeOperation()` for calling any OSS API without typed request/response models
 - **Sync & Async** -- `OSSClient` for synchronous calls; `OSSAsyncClient` for fully asynchronous operations; `OSSClient::asyncCall()` for running sync operations on an executor
 - **Automatic Retry** -- configurable retry with exponential backoff for transient failures
 - **Paginator** -- `makePaginator()` for automatic page iteration over list operations
@@ -25,12 +33,6 @@ alibabacloud-oss-cpp-sdk-v2 is the developer preview for the v2 of the OSS SDK f
 - **Multiple Credential Providers** -- environment variables, static credentials, STS, ECS RAM role, custom providers
 - **Customizable Transport** -- plug in custom Curl or WinHTTP configurations
 - **`std::expected` Support** -- optional C++23 mode with monadic error handling
-
-## Running Environment
-
-> - C++17 or later (C++23 required for `std::expected` mode)
-> - CMake 3.15 or later
-> - Supported platforms: Linux, macOS, Windows, Android
 
 ## Installing
 
@@ -63,11 +65,13 @@ sudo cmake --install .
 | `BUILD_SHARED_LIBS` | `OFF` | Build shared libraries instead of static |
 | `BUILD_TESTS` | `OFF` | Build unit tests |
 | `BUILD_SAMPLES` | `OFF` | Build sample programs |
-| `ENABLE_RTTI` | `ON` | Enable/disable building code with RTTI information |
+| `USE_CURL_TRANSPORT` | `ON` | Enable libcurl HTTP transport |
+| `USE_WINHTTP_TRANSPORT` | `OFF` | Enable WinHTTP transport (Windows only) |
 | `USE_SYSTEM_CURL` | `OFF` | Use system-installed libcurl |
 | `USE_SYSTEM_OPENSSL` | `OFF` | Use system-installed OpenSSL |
 | `USE_SYSTEM_MBEDTLS` | `OFF` | Use system-installed mbedTLS |
 | `USE_STD_EXPECTED` | `OFF` | Use `std::expected` instead of custom `Outcome` (requires C++23) |
+| `ENABLE_RTTI` | `OFF` | Enable/disable building code with RTTI information |
 | `ENABLE_COVERAGE` | `OFF` | Generate coverage reports |
 | `ENABLE_CPPCHECK` | `OFF` | Enable Cppcheck static analysis |
 | `ENABLE_SANITIZER` | `OFF` | Enable sanitizers |
@@ -85,7 +89,7 @@ cmake --build build
 vcpkg install alibabacloud-oss-cpp-sdk-v2
 ```
 
-Available features: `curl` (default), `winhttp`, `openssl`, `mbedtls`.
+Available features: `curl` (default), `winhttp`, `openssl`, `mbedtls`, `rtti`.
 
 ### Using CMake in your project
 
@@ -97,18 +101,14 @@ find_package(alibabacloud_oss_v2 REQUIRED)
 target_link_libraries(your_target PRIVATE alibabacloud_oss_v2::oss)
 ```
 
-## Getting Started
+## Quick Start
 
-### Configuration
-
-Before using the SDK, you need to configure your credentials. The recommended way is to use environment variables:
+Set your credentials via environment variables before running:
 
 ```bash
 export OSS_ACCESS_KEY_ID="your_access_key_id"
 export OSS_ACCESS_KEY_SECRET="your_access_key_secret"
 ```
-
-### Quick Start
 
 ```cpp
 #include "alibabacloud/oss2/ClientConfiguration.h"
@@ -132,8 +132,12 @@ int main() {
             .setKey("your-object-key")
             .setBody(oss::RequestBody::FromString("Hello, OSS!")));
     if (!putOutcome.has_value()) {
-        std::cerr << "PutObject fail, code: " << putOutcome.error().getCode()
-                  << ", message: " << putOutcome.error().getMessage() << std::endl;
+        auto& err = putOutcome.error();
+        std::cerr << "Error Code: " << err.getCode() << std::endl;
+        std::cerr << "Error Message: " << err.getMessage() << std::endl;
+        std::cerr << "EC: " << err.getEC() << std::endl;
+        std::cerr << "Request ID: " << err.getRequestId() << std::endl;
+        std::cerr << "Request Target: " << err.getRequestTarget() << std::endl;
         return 1;
     }
     std::cout << "Upload successful, ETag: " << putOutcome.value().getETag() << std::endl;
@@ -144,8 +148,12 @@ int main() {
             .setBucket("your-bucket-name")
             .setKey("your-object-key"));
     if (!getOutcome.has_value()) {
-        std::cerr << "GetObject fail, code: " << getOutcome.error().getCode()
-                  << ", message: " << getOutcome.error().getMessage() << std::endl;
+        auto& err = getOutcome.error();
+        std::cerr << "Error Code: " << err.getCode() << std::endl;
+        std::cerr << "Error Message: " << err.getMessage() << std::endl;
+        std::cerr << "EC: " << err.getEC() << std::endl;
+        std::cerr << "Request ID: " << err.getRequestId() << std::endl;
+        std::cerr << "Request Target: " << err.getRequestTarget() << std::endl;
         return 1;
     }
     std::stringstream buffer;
@@ -155,10 +163,6 @@ int main() {
     return 0;
 }
 ```
-
-## Complete Examples
-
-More examples can be found in the [`samples`](samples/INDEX.md) directory, including sync/async API usage, paginators, and scenario samples (progress callback, transport customization, retry strategies, request cancellation, credential providers, etc.).
 
 ## Error Handling
 
@@ -171,9 +175,9 @@ if (!outcome.has_value()) {
     auto& err = outcome.error();
     std::cerr << "Error Code: " << err.getCode() << std::endl;
     std::cerr << "Error Message: " << err.getMessage() << std::endl;
+    std::cerr << "EC: " << err.getEC() << std::endl;
     std::cerr << "Request ID: " << err.getRequestId() << std::endl;
-    std::cerr << "Operation: " << err.getOpName() << std::endl;
-    std::cerr << "Method: " << err.getMethod() << std::endl;
+    std::cerr << "Request Target: " << err.getRequestTarget() << std::endl;
 }
 ```
 
@@ -195,7 +199,11 @@ auto& result = outcome.getResult();
 
 ## Thread Safety
 
-The `OSSClient` instance is thread-safe and can be shared across multiple threads. However, request and result objects are not thread-safe and should not be shared between threads.
+Both `OSSClient` and `OSSAsyncClient` instances are thread-safe and can be shared across multiple threads. However, request and result objects are not thread-safe and should not be shared between threads.
+
+## Complete Examples
+
+More examples can be found in the [`samples`](samples/INDEX.md) directory, including sync/async API usage, paginators, and scenario samples (progress callback, transport customization, retry strategies, request cancellation, credential providers, etc.).
 
 ## License
 
