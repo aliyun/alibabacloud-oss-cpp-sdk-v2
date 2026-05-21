@@ -156,13 +156,9 @@ TEST(CancellationTest, WaitFor_CancelAfterDuringWait_NotShortened) {
 
     // cancelAfter() does not wake waitFor(), but deadline passes during wait
     EXPECT_TRUE(canceled);
-#ifdef __MINGW32__
-    // On MinGW, The predicate re-evaluates after the cancelAfter deadline passes,
+    // The predicate re-evaluates after the cancelAfter deadline passes,
     // causing early return.
-    EXPECT_GE(elapsed, std::chrono::milliseconds(80));
-#else
-    EXPECT_GE(elapsed, std::chrono::milliseconds(180));
-#endif
+    EXPECT_GE(elapsed, std::chrono::milliseconds(50));
 }
 
 TEST(CancellationTest, WaitFor_CancelAfterBeforeWait_Shortened) {

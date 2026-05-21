@@ -36,6 +36,9 @@ foreach(SAMPLE_SRC ${SAMPLE_SRCS})
         PRIVATE ${CMAKE_SOURCE_DIR}/sdk/include
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/common)
     target_link_libraries(${TARGET_NAME} PRIVATE cpp-sdk-v2)
+    if(USE_CURL_TRANSPORT)
+        target_link_libraries(${TARGET_NAME} PRIVATE ${CURL_LIB})
+    endif()
     target_compile_options(${TARGET_NAME}
         PRIVATE "${SDK_COMPILER_FLAGS}")
 endforeach()

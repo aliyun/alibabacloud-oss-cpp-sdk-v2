@@ -129,8 +129,6 @@ if(USE_CURL_TRANSPORT)
         )
 
         # Common curl options
-        #set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build curl as shared library" FORCE)
-        set(CURL_STATICLIB ON CACHE BOOL "Build curl as static library" FORCE)
         set(BUILD_CURL_EXE OFF CACHE BOOL "Disable curl CLI" FORCE)
         set(BUILD_EXAMPLES OFF CACHE BOOL "Build curl examples" FORCE)
         set(BUILD_TESTING OFF CACHE BOOL "Disable curl tests" FORCE)

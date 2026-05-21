@@ -126,7 +126,12 @@ if(USE_CURL_TRANSPORT)
     if(USE_SYSTEM_CURL)
         target_link_libraries(${PROJECT_NAME} PRIVATE ${CURL_LIB})
     else()
-        target_link_libraries(${PROJECT_NAME} PRIVATE $<BUILD_INTERFACE:${CURL_LIB}>)
+        target_link_libraries(${PROJECT_NAME} PRIVATE $<TARGET_LINKER_FILE:${CURL_LIB}>)
+        target_include_directories(${PROJECT_NAME} PRIVATE
+            $<TARGET_PROPERTY:${CURL_LIB},INTERFACE_INCLUDE_DIRECTORIES>)
+        target_compile_definitions(${PROJECT_NAME} PRIVATE
+            $<TARGET_PROPERTY:${CURL_LIB},INTERFACE_COMPILE_DEFINITIONS>)
+        add_dependencies(${PROJECT_NAME} ${CURL_LIB})
     endif()
 endif()
 

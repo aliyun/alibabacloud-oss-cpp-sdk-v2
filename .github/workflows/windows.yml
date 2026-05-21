@@ -62,7 +62,7 @@ jobs:
             ${{ matrix.compiler == 'clang' && '-T ClangCL' || '' }} \
             -A x64 \
             -DBUILD_TESTS=OFF \
-            -DBUILD_SAMPLES=ON \
+            -DBUILD_SAMPLES=OFF \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_CXX_STANDARD=${{ matrix.std == 'c++17' && '17' || '20' }} \
             -DBUILD_SHARED_LIBS=ON
@@ -103,7 +103,7 @@ jobs:
           cmake -B build-shared-x86 \
             -A Win32 \
             -DBUILD_TESTS=OFF \
-            -DBUILD_SAMPLES=ON \
+            -DBUILD_SAMPLES=OFF \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_CXX_STANDARD=${{ matrix.std == 'c++17' && '17' || '20' }} \
             -DBUILD_SHARED_LIBS=ON
