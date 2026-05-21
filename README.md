@@ -84,9 +84,9 @@ cmake --build build
 Add the following to your `CMakeLists.txt`:
 
 ```cmake
-find_package(alibabacloud-oss-v2 REQUIRED)
+find_package(alibabacloud_oss_v2 REQUIRED)
 
-target_link_libraries(your_target PRIVATE alibabacloud::oss2)
+target_link_libraries(your_target PRIVATE alibabacloud_oss_v2::oss)
 ```
 
 ## Getting Started

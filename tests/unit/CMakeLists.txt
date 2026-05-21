@@ -40,11 +40,10 @@ add_executable(${PROJECT_NAME}
 )
 
 target_include_directories(${PROJECT_NAME}
-	PRIVATE ${CMAKE_SOURCE_DIR}/sdk/include
 	PRIVATE ${CMAKE_SOURCE_DIR}/sdk/
 	PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
 	PRIVATE ${TEST_ROOT}/external/googletest/include
-    PRIVATE ${TEST_ROOT}/external/googletest/)
+	PRIVATE ${TEST_ROOT}/external/googletest/)
 
 target_link_libraries(${PROJECT_NAME} cpp-sdk-v2)
 if(USE_CURL_TRANSPORT)

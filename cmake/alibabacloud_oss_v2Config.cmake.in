@@ -1,0 +1,19 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+if(@USE_SYSTEM_CURL@)
+    find_dependency(CURL)
+endif()
+
+if(@USE_SYSTEM_OPENSSL@)
+    find_dependency(OpenSSL)
+endif()
+
+if(@USE_SYSTEM_MBEDTLS@)
+    find_dependency(MbedTLS)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/alibabacloud_oss_v2Targets.cmake")
+
+check_required_components(alibabacloud_oss_v2)
