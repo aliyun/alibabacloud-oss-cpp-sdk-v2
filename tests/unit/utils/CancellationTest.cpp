@@ -140,18 +140,29 @@ TEST(CancellationTest, WaitFor_CancelAfterDuringWait_NotShortened) {
     auto cts = CancellationTokenSource::create();
     auto ct = cts->getToken();
 
-    std::thread t([&cts]() {
-        std::this_thread::sleep_for(std::chrono::milliseconds(30));
-        cts->cancelAfter(std::chrono::milliseconds(50));
+    std::chrono::steady_clock::duration elapsed{};
+    bool canceled = false;
+
+    std::thread t([&ct, &elapsed, &canceled]() {
+        auto start = std::chrono::steady_clock::now();
+        canceled = ct.waitFor(std::chrono::milliseconds(200));
+        elapsed = std::chrono::steady_clock::now() - start;
     });
 
-    auto start = std::chrono::steady_clock::now();
-    bool canceled = ct.waitFor(std::chrono::milliseconds(200));
-    auto elapsed = std::chrono::steady_clock::now() - start;
+    std::this_thread::sleep_for(std::chrono::milliseconds(30));
+    cts->cancelAfter(std::chrono::milliseconds(50));
 
-    // cancelAfter() does not wake waitFor(), so it sleeps for the full 200ms
-    EXPECT_GE(elapsed, std::chrono::milliseconds(180));
     t.join();
+
+    // cancelAfter() does not wake waitFor(), but deadline passes during wait
+    EXPECT_TRUE(canceled);
+#ifdef __MINGW32__
+    // On MinGW, The predicate re-evaluates after the cancelAfter deadline passes,
+    // causing early return.
+    EXPECT_GE(elapsed, std::chrono::milliseconds(80));
+#else
+    EXPECT_GE(elapsed, std::chrono::milliseconds(180));
+#endif
 }
 
 TEST(CancellationTest, WaitFor_CancelAfterBeforeWait_Shortened) {

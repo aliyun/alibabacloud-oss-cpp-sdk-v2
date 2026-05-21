@@ -5,6 +5,8 @@
 #include "alibabacloud/oss2/OSSClient.h"
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
 #include "alibabacloud/oss2/models/ObjectBasic.h"
+#include "alibabacloud/oss2/retry/BackoffDelayer.h"
+#include "alibabacloud/oss2/retry/StandardRetryer.h"
 #include "alibabacloud/oss2/transport/HttpTransport.h"
 #include "alibabacloud/oss2/utils/Cancellation.h"
 
@@ -305,6 +307,8 @@ TEST(OSSClientMiscTest, DisableRequestProcessing_DuringRetryWait) {
     config.region = "cn-hangzhou";
     config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
     config.httpTransport = mock;
+    config.retryer = std::make_shared<StandardRetryer>(
+            3, std::make_unique<FixedDelayBackoff>(std::chrono::milliseconds(500)));
 
     auto client = OSSClient(config);
 

@@ -12,11 +12,10 @@ bool CancellationToken::waitFor(std::chrono::milliseconds timeout) const {
     if (isCanceled()) return true;
 
     auto now = std::chrono::steady_clock::now();
-    auto timeToDeadline = std::chrono::duration_cast<std::chrono::milliseconds>(deadline_->load() - now);
-    auto waitDuration = (std::min)(timeout, timeToDeadline);
+    auto wakeTime = (std::min)(now + timeout, deadline_->load());
 
-    if (waitDuration.count() > 0) {
-        src->cv_.wait_for(lk, waitDuration, [this] { return isCanceled(); });
+    if (wakeTime > now) {
+        src->cv_.wait_until(lk, wakeTime, [this] { return isCanceled(); });
     }
     return isCanceled();
 }
