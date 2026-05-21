@@ -294,7 +294,7 @@ static bool shouldAbortTransfer(const TransferIO* io) {
 
 #if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 32, 0)
 static int xferInfoCallback(void* userdata, curl_off_t, curl_off_t, curl_off_t, curl_off_t) {
-    auto* io = static_cast<TransferIO*>(userdata);
+    const auto* io = static_cast<const TransferIO*>(userdata);
     if (io == nullptr) {
         return 0;
     }
@@ -305,7 +305,7 @@ static int xferInfoCallback(void* userdata, curl_off_t, curl_off_t, curl_off_t, 
 }
 #else
 static int progressCallback(void* userdata, double, double, double, double) {
-    auto* io = static_cast<TransferIO*>(userdata);
+    const auto* io = static_cast<const TransferIO*>(userdata);
     if (io == nullptr) {
         return 0;
     }
