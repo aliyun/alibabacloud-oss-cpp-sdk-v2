@@ -13,8 +13,16 @@ alibabacloud-oss-cpp-sdk-v2 是 OSS 在 C++ 编程语言下的第二版 SDK
 > - OSS 适合存放任意文件类型，适合各种网站、开发企业及开发者使用。
 > - 使用此 SDK，用户可以方便地在任何应用、任何时间、任何地点上传、下载和管理数据。
 
+## 环境要求
+
+> - C++17 及以上版本（`std::expected` 模式需要 C++23）
+> - CMake 3.15 及以上版本
+> - 支持平台：Linux、macOS、Windows、Android
+
 ## 特性
 
+- **类型化 API 覆盖** -- 对象、分片上传、Bucket 管理等
+- **泛化接口** -- `invokeOperation()` 无需类型化模型即可调用任意 OSS API
 - **同步与异步** -- `OSSClient` 同步调用；`OSSAsyncClient` 全异步操作；`OSSClient::asyncCall()` 在执行器上异步运行同步操作
 - **自动重试** -- 可配置的指数退避重试策略，应对瞬时故障
 - **分页器** -- `makePaginator()` 自动翻页迭代列举操作
@@ -25,12 +33,6 @@ alibabacloud-oss-cpp-sdk-v2 是 OSS 在 C++ 编程语言下的第二版 SDK
 - **多种凭证提供者** -- 环境变量、静态凭证、STS、ECS RAM Role、自定义提供者
 - **可定制传输层** -- 自定义 Curl 或 WinHTTP 配置
 - **`std::expected` 支持** -- 可选的 C++23 模式，支持一元错误处理
-
-## 运行环境
-
-> - C++17 及以上版本（`std::expected` 模式需要 C++23）
-> - CMake 3.15 及以上版本
-> - 支持平台：Linux、macOS、Windows、Android
 
 ## 安装方法
 
@@ -63,11 +65,13 @@ sudo cmake --install .
 | `BUILD_SHARED_LIBS` | `OFF` | 构建动态库而非静态库 |
 | `BUILD_TESTS` | `OFF` | 构建单元测试 |
 | `BUILD_SAMPLES` | `OFF` | 构建示例程序 |
-| `ENABLE_RTTI` | `ON` | 启用/禁用 RTTI 信息 |
+| `USE_CURL_TRANSPORT` | `ON` | 启用 libcurl HTTP 传输 |
+| `USE_WINHTTP_TRANSPORT` | `OFF` | 启用 WinHTTP 传输（仅 Windows） |
 | `USE_SYSTEM_CURL` | `OFF` | 使用系统已安装的 libcurl |
 | `USE_SYSTEM_OPENSSL` | `OFF` | 使用系统已安装的 OpenSSL |
 | `USE_SYSTEM_MBEDTLS` | `OFF` | 使用系统已安装的 mbedTLS |
 | `USE_STD_EXPECTED` | `OFF` | 使用 `std::expected` 替代自定义 `Outcome`（需要 C++23） |
+| `ENABLE_RTTI` | `OFF` | 启用/禁用 RTTI 信息 |
 | `ENABLE_COVERAGE` | `OFF` | 生成代码覆盖率报告 |
 | `ENABLE_CPPCHECK` | `OFF` | 启用 Cppcheck 静态分析 |
 | `ENABLE_SANITIZER` | `OFF` | 启用 Sanitizer 检测 |
@@ -85,7 +89,7 @@ cmake --build build
 vcpkg install alibabacloud-oss-cpp-sdk-v2
 ```
 
-可用 features: `curl` (默认), `winhttp`, `openssl`, `mbedtls`.
+可用 features: `curl` (默认), `winhttp`, `openssl`, `mbedtls`, `rtti`.
 
 ### 在您的项目中使用 CMake
 
@@ -97,18 +101,14 @@ find_package(alibabacloud_oss_v2 REQUIRED)
 target_link_libraries(your_target PRIVATE alibabacloud_oss_v2::oss)
 ```
 
-## 快速使用
+## 快速开始
 
-### 配置凭证
-
-在使用 SDK 之前，您需要配置访问凭证。推荐使用环境变量方式：
+使用前通过环境变量设置访问凭证：
 
 ```bash
 export OSS_ACCESS_KEY_ID="your_access_key_id"
 export OSS_ACCESS_KEY_SECRET="your_access_key_secret"
 ```
-
-### 快速开始
 
 ```cpp
 #include "alibabacloud/oss2/ClientConfiguration.h"
@@ -132,8 +132,12 @@ int main() {
             .setKey("your-object-key")
             .setBody(oss::RequestBody::FromString("Hello, OSS!")));
     if (!putOutcome.has_value()) {
-        std::cerr << "PutObject fail, code: " << putOutcome.error().getCode()
-                  << ", message: " << putOutcome.error().getMessage() << std::endl;
+        auto& err = putOutcome.error();
+        std::cerr << "Error Code: " << err.getCode() << std::endl;
+        std::cerr << "Error Message: " << err.getMessage() << std::endl;
+        std::cerr << "EC: " << err.getEC() << std::endl;
+        std::cerr << "Request ID: " << err.getRequestId() << std::endl;
+        std::cerr << "Request Target: " << err.getRequestTarget() << std::endl;
         return 1;
     }
     std::cout << "Upload successful, ETag: " << putOutcome.value().getETag() << std::endl;
@@ -144,8 +148,12 @@ int main() {
             .setBucket("your-bucket-name")
             .setKey("your-object-key"));
     if (!getOutcome.has_value()) {
-        std::cerr << "GetObject fail, code: " << getOutcome.error().getCode()
-                  << ", message: " << getOutcome.error().getMessage() << std::endl;
+        auto& err = getOutcome.error();
+        std::cerr << "Error Code: " << err.getCode() << std::endl;
+        std::cerr << "Error Message: " << err.getMessage() << std::endl;
+        std::cerr << "EC: " << err.getEC() << std::endl;
+        std::cerr << "Request ID: " << err.getRequestId() << std::endl;
+        std::cerr << "Request Target: " << err.getRequestTarget() << std::endl;
         return 1;
     }
     std::stringstream buffer;
@@ -155,10 +163,6 @@ int main() {
     return 0;
 }
 ```
-
-## 更多示例
-
-更多示例请参阅 [`samples`](samples/INDEX.md) 目录，包括同步/异步 API 用法、分页器，以及场景示例（进度回调、传输层定制、重试策略、请求取消、凭证提供者等）。
 
 ## 错误处理
 
@@ -171,9 +175,9 @@ if (!outcome.has_value()) {
     auto& err = outcome.error();
     std::cerr << "错误码: " << err.getCode() << std::endl;
     std::cerr << "错误信息: " << err.getMessage() << std::endl;
+    std::cerr << "EC: " << err.getEC() << std::endl;
     std::cerr << "请求 ID: " << err.getRequestId() << std::endl;
-    std::cerr << "操作名称: " << err.getOpName() << std::endl;
-    std::cerr << "请求方法: " << err.getMethod() << std::endl;
+    std::cerr << "请求地址: " << err.getRequestTarget() << std::endl;
 }
 ```
 
@@ -195,7 +199,11 @@ auto& result = outcome.getResult();
 
 ## 线程安全
 
-`OSSClient` 实例是线程安全的，可以在多个线程之间共享。但是请求和结果对象不是线程安全的，不应在线程之间共享。
+`OSSClient` 和 `OSSAsyncClient` 实例均是线程安全的，可以在多个线程之间共享。但是请求和结果对象不是线程安全的，不应在线程之间共享。
+
+## 更多示例
+
+更多示例请参阅 [`samples`](samples/INDEX.md) 目录，包括同步/异步 API 用法、分页器，以及场景示例（进度回调、传输层定制、重试策略、请求取消、凭证提供者等）。
 
 ## 许可协议
 
