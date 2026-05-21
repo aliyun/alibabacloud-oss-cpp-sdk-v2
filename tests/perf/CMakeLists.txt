@@ -17,16 +17,17 @@ file(GLOB perf_src "*.cpp")
 add_executable(${PROJECT_NAME} ${perf_src})
 
 target_include_directories(${PROJECT_NAME}
-    PRIVATE ${CMAKE_SOURCE_DIR}/sdk/include
     PRIVATE ${CMAKE_SOURCE_DIR}/sdk/
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 target_link_libraries(${PROJECT_NAME}
     cpp-sdk-v2
-    ${CURL_LIB}
     benchmark::benchmark
 )
+if(USE_CURL_TRANSPORT)
+    target_link_libraries(${PROJECT_NAME} ${CURL_LIB})
+endif()
 
 target_compile_options(${PROJECT_NAME}
     PRIVATE "${SDK_COMPILER_FLAGS}")

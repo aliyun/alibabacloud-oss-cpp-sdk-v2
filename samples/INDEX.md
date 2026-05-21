@@ -49,6 +49,12 @@ Scenario samples under `scenario/` are **independent projects** with their own `
 They are NOT built by `BUILD_SAMPLES=ON`. Build them separately:
 
 ```bash
+# 1. Build and install the SDK
+cmake -B build -DCMAKE_INSTALL_PREFIX=<sdk-install-prefix>
+cmake --build build --config Release
+cmake --install build --config Release
+
+# 2. Build the scenario sample
 cd samples/scenario/sync-client-async
 cmake -B build -DCMAKE_PREFIX_PATH=<sdk-install-prefix>
 cmake --build build

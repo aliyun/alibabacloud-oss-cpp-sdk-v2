@@ -149,7 +149,7 @@ TEST(PaginatorTest, ErrorStopsPagination) {
     auto mock = std::make_shared<MockTransport>();
     auto client = makeClient(mock);
 
-    // No responses → transport error
+    // No responses - transport error
     auto request = models::ListObjectsV2Request().setBucket("test-bucket");
     auto paginator = makePaginator(client, request);
 

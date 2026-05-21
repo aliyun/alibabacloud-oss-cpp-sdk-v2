@@ -28,6 +28,7 @@ file(GLOB sdk_header
     ${sdk_retry_header}
     ${sdk_transport_header}
     ${sdk_utils_header}
+    ${sdk_io_header}
 )
 
 #common source
@@ -117,10 +118,16 @@ else()
         ${sdk_header}
         ${sdk_src})
 endif()
+
+add_library(alibabacloud_oss_v2::oss ALIAS ${PROJECT_NAME})
     
 
 if(USE_CURL_TRANSPORT)
-    target_link_libraries(${PROJECT_NAME} PRIVATE ${CURL_LIB})
+    if(USE_SYSTEM_CURL)
+        target_link_libraries(${PROJECT_NAME} PRIVATE ${CURL_LIB})
+    else()
+        target_link_libraries(${PROJECT_NAME} PRIVATE $<BUILD_INTERFACE:${CURL_LIB}>)
+    endif()
 endif()
 
 if(USE_WINHTTP_TRANSPORT AND WIN32)
@@ -137,18 +144,28 @@ endif()
 set_target_properties(${PROJECT_NAME}
     PROPERTIES
     OUTPUT_NAME ${TARGET_OUTPUT_NAME_PREFIX}${PROJECT_NAME}
+    EXPORT_NAME oss
 )
 
 target_include_directories(${PROJECT_NAME}
-    PRIVATE include
-    PRIVATE include/alibabacloud/oss2    
-    PRIVATE src/external/
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/alibabacloud/oss2
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/external/
 )
+
+if(USE_STD_EXPECTED)
+    target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
+else()
+    target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
+endif()
 
 #warning flags
 if(MSVC)
-    list(APPEND SDK_WARNING_FLAGS "/W4" "/D_CRT_SECURE_NO_WARNINGS")
+    list(APPEND SDK_WARNING_FLAGS "/W4" "/D_CRT_SECURE_NO_WARNINGS" "/we4819")
 else()
     list(APPEND SDK_WARNING_FLAGS "-Wall" "-Werror" "-pedantic" "-Wextra")
 endif()
@@ -158,15 +175,45 @@ target_compile_options(${PROJECT_NAME}
     PRIVATE "${SDK_WARNING_FLAGS}"
 )
 if(BUILD_SHARED_LIBS)
-    target_compile_options(${PROJECT_NAME}
-        PRIVATE -DALIBABACLOUD_OSS_SHARED -DALIBABACLOUD_OSS_EXPORTS)
+    target_compile_definitions(${PROJECT_NAME}
+        PRIVATE ALIBABACLOUD_OSS_SHARED ALIBABACLOUD_OSS_EXPORTS)
 endif()
 
 include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
+set(INSTALL_CMAKEDIR ${CMAKE_INSTALL_LIBDIR}/cmake/alibabacloud_oss_v2)
 
 install(TARGETS ${PROJECT_NAME}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    EXPORT alibabacloud_oss_v2Targets
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
+
+install(EXPORT alibabacloud_oss_v2Targets
+    NAMESPACE alibabacloud_oss_v2::
+    DESTINATION ${INSTALL_CMAKEDIR}
+)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/alibabacloud_oss_v2ConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+configure_package_config_file(
+    "${CMAKE_SOURCE_DIR}/cmake/alibabacloud_oss_v2Config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/alibabacloud_oss_v2Config.cmake"
+    INSTALL_DESTINATION ${INSTALL_CMAKEDIR}
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/alibabacloud_oss_v2Config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/alibabacloud_oss_v2ConfigVersion.cmake"
+    DESTINATION ${INSTALL_CMAKEDIR}
+)
+
 install(DIRECTORY "include/alibabacloud" DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
