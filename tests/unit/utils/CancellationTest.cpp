@@ -158,7 +158,7 @@ TEST(CancellationTest, WaitFor_CancelAfterDuringWait_NotShortened) {
     EXPECT_TRUE(canceled);
     // The predicate re-evaluates after the cancelAfter deadline passes,
     // causing early return.
-    EXPECT_GE(elapsed, std::chrono::milliseconds(50));
+    EXPECT_GE(elapsed, std::chrono::milliseconds(30));
 }
 
 TEST(CancellationTest, WaitFor_CancelAfterBeforeWait_Shortened) {

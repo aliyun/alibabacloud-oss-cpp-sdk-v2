@@ -7,6 +7,8 @@ set(SAMPLES
     CancelInflightRequest
     RequestTimeout
     CancelBatchRequests
+    DisableClientRequests
+    GracefulShutdown
 )
 foreach(SAMPLE ${SAMPLES})
     add_executable(${SAMPLE} ${SAMPLE}.cpp)
