@@ -48,6 +48,18 @@ export OSS_ACCESS_KEY_SECRET=<your-sk>
 Scenario samples under `scenario/` are **independent projects** with their own `CMakeLists.txt`.
 They are NOT built by `BUILD_SAMPLES=ON`. Build them separately:
 
+**Option A: Using vcpkg**
+
+```bash
+vcpkg install alibabacloud-oss-cpp-sdk-v2
+
+cd samples/scenario/sync-client-async
+cmake -B build -DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>/scripts/buildsystems/vcpkg.cmake
+cmake --build build
+```
+
+**Option B: From source**
+
 ```bash
 # 1. Build and install the SDK
 cmake -B build -DCMAKE_INSTALL_PREFIX=<sdk-install-prefix>

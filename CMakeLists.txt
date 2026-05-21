@@ -33,7 +33,7 @@ sdk_option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 sdk_option(BUILD_TESTS "Build unit tests" OFF)
 sdk_option(BUILD_SAMPLES "Build samples" OFF)
 
-sdk_option(ENABLE_RTTI "Flag to enable/disable building code with RTTI information" ON)
+sdk_option(ENABLE_RTTI "Flag to enable/disable building code with RTTI information" OFF)
 
 sdk_option(USE_SYSTEM_CURL "If enabled we will use the curl lib already installed on this system." OFF)
 sdk_option(USE_SYSTEM_OPENSSL "If enabled we will use the openssl lib already installed on this system." OFF)

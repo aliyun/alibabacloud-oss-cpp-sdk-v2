@@ -79,6 +79,14 @@ cmake -B build -DCMAKE_CXX_STANDARD=23 -DUSE_STD_EXPECTED=ON
 cmake --build build
 ```
 
+### Install via vcpkg
+
+```bash
+vcpkg install alibabacloud-oss-cpp-sdk-v2
+```
+
+Available features: `curl` (default), `winhttp`, `openssl`, `mbedtls`.
+
 ### Using CMake in your project
 
 Add the following to your `CMakeLists.txt`:

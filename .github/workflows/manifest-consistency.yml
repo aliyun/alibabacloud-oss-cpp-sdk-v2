@@ -1,0 +1,82 @@
+name: Manifest Consistency Check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'VERSION'
+      - 'vcpkg.json'
+      - 'vcpkg/vcpkg.json'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'VERSION'
+      - 'vcpkg.json'
+      - 'vcpkg/vcpkg.json'
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify version consistency
+        run: |
+          VERSION=$(cat VERSION | tr -d '[:space:]')
+          VCPKG_ROOT_VERSION=$(jq -r '."version-semver"' vcpkg.json)
+          VCPKG_PORT_VERSION=$(jq -r '."version-semver"' vcpkg/vcpkg.json)
+
+          echo "VERSION file:       $VERSION"
+          echo "vcpkg.json:         $VCPKG_ROOT_VERSION"
+          echo "vcpkg/vcpkg.json:   $VCPKG_PORT_VERSION"
+
+          FAILED=0
+          if [ "$VERSION" != "$VCPKG_ROOT_VERSION" ]; then
+            echo "::error::vcpkg.json version ($VCPKG_ROOT_VERSION) does not match VERSION file ($VERSION)"
+            FAILED=1
+          fi
+          if [ "$VERSION" != "$VCPKG_PORT_VERSION" ]; then
+            echo "::error::vcpkg/vcpkg.json version ($VCPKG_PORT_VERSION) does not match VERSION file ($VERSION)"
+            FAILED=1
+          fi
+
+          if [ $FAILED -ne 0 ]; then
+            exit 1
+          fi
+          echo "All versions are consistent."
+
+      - name: Verify vcpkg manifest consistency
+        run: |
+          FAILED=0
+
+          for field in name license homepage; do
+            ROOT_VAL=$(jq -r ".$field" vcpkg.json)
+            PORT_VAL=$(jq -r ".$field" vcpkg/vcpkg.json)
+            if [ "$ROOT_VAL" != "$PORT_VAL" ]; then
+              echo "::error::$field mismatch: vcpkg.json='$ROOT_VAL' vs vcpkg/vcpkg.json='$PORT_VAL'"
+              FAILED=1
+            fi
+          done
+
+          ROOT_KEYS=$(jq -r '.features | keys | sort | .[]' vcpkg.json)
+          PORT_KEYS=$(jq -r '.features | keys | sort | .[]' vcpkg/vcpkg.json)
+          if [ "$ROOT_KEYS" != "$PORT_KEYS" ]; then
+            echo "::error::Feature keys differ"
+            echo "  vcpkg.json:      $ROOT_KEYS"
+            echo "  vcpkg/vcpkg.json: $PORT_KEYS"
+            FAILED=1
+          fi
+
+          for key in $(jq -r '.features | keys | .[]' vcpkg.json); do
+            ROOT_DESC=$(jq -r ".features.\"$key\".description" vcpkg.json)
+            PORT_DESC=$(jq -r ".features.\"$key\".description" vcpkg/vcpkg.json)
+            if [ "$ROOT_DESC" != "$PORT_DESC" ]; then
+              echo "::error::Feature '$key' description mismatch: '$ROOT_DESC' vs '$PORT_DESC'"
+              FAILED=1
+            fi
+          done
+
+          if [ $FAILED -ne 0 ]; then
+            exit 1
+          fi
+          echo "All manifest fields are consistent."
