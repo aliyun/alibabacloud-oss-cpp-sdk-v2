@@ -154,7 +154,7 @@ bool ParseRangeHeader(const std::string& s,
         return ec == std::errc{} && ptr == sv.data() + sv.size() && out >= 0;
     };
 
-    std::string_view body(s.data() + kPrefix.size(), s.size() - kPrefix.size());
+    std::string_view body = std::string_view(s).substr(kPrefix.size());
     while (!body.empty()) {
         auto comma = body.find(',');
         auto item  = trim(comma == std::string_view::npos ? body : body.substr(0, comma));

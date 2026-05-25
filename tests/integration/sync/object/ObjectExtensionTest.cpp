@@ -23,6 +23,7 @@ class ObjectExtensionTest : public ::testing::Test {
 
     static void TearDownTestCase() {
         ClientHelper::CleanBucketsByPrefix(bucketName_);
+        Config::CleanTempDir();
     }
 
   public:
@@ -38,7 +39,7 @@ TEST_F(ObjectExtensionTest, PutObjectFromFile_Normal) {
     std::string key = "test-put-from-file";
     std::string content = "hello put object from file";
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = Config::GenRandomFileName();
     {
         std::ofstream f(filePath, std::ios::binary);
         f << content;
@@ -65,7 +66,7 @@ TEST_F(ObjectExtensionTest, PutObjectFromFile_LargeFile) {
     std::string key = "test-put-from-file-large";
     std::string content(512 * 1024 + 123, 'A');
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = Config::GenRandomFileName();
     {
         std::ofstream f(filePath, std::ios::binary);
         f << content;
@@ -90,7 +91,7 @@ TEST_F(ObjectExtensionTest, GetObjectToFile_Normal) {
             models::PutObjectRequest().setBucket(bucketName_).setKey(key)
                     .setBody(RequestBody::FromString(content)));
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = Config::GenRandomFileName();
 
     auto outcome = client->getObjectToFile(
             models::GetObjectRequest().setBucket(bucketName_).setKey(key),
@@ -113,7 +114,7 @@ TEST_F(ObjectExtensionTest, GetObjectToFile_LargeObject) {
             models::PutObjectRequest().setBucket(bucketName_).setKey(key)
                     .setBody(RequestBody::FromString(content)));
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = Config::GenRandomFileName();
 
     auto outcome = client->getObjectToFile(
             models::GetObjectRequest().setBucket(bucketName_).setKey(key),
@@ -130,7 +131,7 @@ TEST_F(ObjectExtensionTest, GetObjectToFile_LargeObject) {
 TEST_F(ObjectExtensionTest, GetObjectToFile_NotExist) {
     auto client = ClientHelper::GetDefaultClient();
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = Config::GenRandomFileName();
 
     auto outcome = client->getObjectToFile(
             models::GetObjectRequest().setBucket(bucketName_).setKey("no-such-key-ext-test"),
@@ -148,7 +149,7 @@ TEST_F(ObjectExtensionTest, GetObjectToFile_TruncatesExisting) {
             models::PutObjectRequest().setBucket(bucketName_).setKey(key)
                     .setBody(RequestBody::FromString(content)));
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = Config::GenRandomFileName();
     {
         std::ofstream f(filePath, std::ios::binary);
         f << std::string(4096, 'Z');
@@ -175,7 +176,7 @@ TEST_F(ObjectExtensionTest, GetObjectToFile_WithRange) {
             models::PutObjectRequest().setBucket(bucketName_).setKey(key)
                     .setBody(RequestBody::FromString(content)));
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = Config::GenRandomFileName();
 
     auto outcome = client->getObjectToFile(
             models::GetObjectRequest().setBucket(bucketName_).setKey(key).setRange("bytes=5-14"),
@@ -198,7 +199,7 @@ TEST_F(ObjectExtensionTest, GetObjectToFile_WithOpenEndRange) {
             models::PutObjectRequest().setBucket(bucketName_).setKey(key)
                     .setBody(RequestBody::FromString(content)));
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = Config::GenRandomFileName();
 
     auto outcome = client->getObjectToFile(
             models::GetObjectRequest().setBucket(bucketName_).setKey(key).setRange("bytes=10-"),
@@ -215,7 +216,7 @@ TEST_F(ObjectExtensionTest, GetObjectToFile_WithOpenEndRange) {
 TEST_F(ObjectExtensionTest, GetObjectToFile_InvalidRange) {
     auto client = ClientHelper::GetDefaultClient();
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = Config::GenRandomFileName();
 
     auto outcome = client->getObjectToFile(
             models::GetObjectRequest().setBucket(bucketName_).setKey("any-key").setRange("invalid-range"),
@@ -228,7 +229,7 @@ TEST_F(ObjectExtensionTest, GetObjectToFile_InvalidRange) {
 TEST_F(ObjectExtensionTest, GetObjectToFile_MultiRangeRejected) {
     auto client = ClientHelper::GetDefaultClient();
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = Config::GenRandomFileName();
 
     auto outcome = client->getObjectToFile(
             models::GetObjectRequest().setBucket(bucketName_).setKey("any-key").setRange("bytes=0-10,20-30"),

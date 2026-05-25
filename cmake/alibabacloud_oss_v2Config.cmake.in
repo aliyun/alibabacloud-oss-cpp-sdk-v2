@@ -2,6 +2,8 @@
 
 include(CMakeFindDependencyMacro)
 
+find_dependency(Threads)
+
 if(@USE_CURL_TRANSPORT@)
     if(@USE_SYSTEM_CURL@ OR @BUILD_SHARED_LIBS@)
         find_dependency(CURL)

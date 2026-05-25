@@ -36,10 +36,7 @@ endif()
 target_compile_options(${PROJECT_NAME}
     PRIVATE "${SDK_COMPILER_FLAGS}"
 )
-
-if(CMAKE_HOST_UNIX)
-	target_link_libraries(${PROJECT_NAME} pthread)
-endif()
+target_compile_definitions(${PROJECT_NAME} PRIVATE CPPHTTPLIB_NO_EXCEPTIONS)
 
 add_test(NAME cpp-sdk-itegtest COMMAND ${PROJECT_NAME})
 

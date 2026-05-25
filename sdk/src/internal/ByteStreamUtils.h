@@ -89,6 +89,7 @@ class CRC64Observer : public StreamObserver {
 };
 
 struct CRC64ResponseChecker {
+    // cppcheck-suppress constParameterReference
     bool operator()(std::unique_ptr<ResponseMessage>& response, ExecuteContext& context) {
         if (!checker) return true;
         auto it = response->headers.find("x-oss-hash-crc64ecma");

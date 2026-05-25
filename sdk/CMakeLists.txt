@@ -145,6 +145,8 @@ elseif(USE_SYSTEM_MBEDTLS)
     target_link_libraries(${PROJECT_NAME} PRIVATE MbedTLS::mbedcrypto)
 endif()
 
+find_package(Threads REQUIRED)
+target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
 
 set_target_properties(${PROJECT_NAME}
     PROPERTIES

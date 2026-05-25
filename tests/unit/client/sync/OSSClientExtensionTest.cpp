@@ -11,6 +11,8 @@
 #include "alibabacloud/oss2/transport/HttpTransport.h"
 #include "alibabacloud/oss2/utils/CRC64Utils.h"
 
+#include "TestUtils.h"
+
 #include <cstdio>
 #include <fstream>
 #include <sstream>
@@ -96,7 +98,7 @@ OSSClient makeClient(std::shared_ptr<HttpTransport> transport) {
 }
 
 std::string createTempFile(const std::string& content) {
-    auto name = std::tmpnam(nullptr);
+    auto name = TestUtils::GenRandomFileName();
     std::ofstream f(name, std::ios::binary);
     f << content;
     f.close();
@@ -309,7 +311,7 @@ TEST(OSSClientExtensionTest, GetObjectToFile_Success) {
                                      {"x-oss-hash-crc64ecma", std::to_string(crc)}},
                                content});
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     auto outcome = client.getObjectToFile(
             models::GetObjectRequest().setBucket("bucket").setKey("key"),
@@ -340,7 +342,7 @@ TEST(OSSClientExtensionTest, GetObjectToFile_CRC64Mismatch) {
                                      {"x-oss-hash-crc64ecma", "99999"}},
                                content});
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     auto outcome = client.getObjectToFile(
             models::GetObjectRequest().setBucket("bucket").setKey("key"),
@@ -368,7 +370,7 @@ TEST(OSSClientExtensionTest, GetObjectToFile_CRC64Disabled) {
                                      {"x-oss-hash-crc64ecma", "99999"}},
                                content});
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     auto outcome = client.getObjectToFile(
             models::GetObjectRequest().setBucket("bucket").setKey("key"),
@@ -399,7 +401,7 @@ TEST(OSSClientExtensionTest, GetObjectToFile_CRC64SkippedForRange) {
                                      {"x-oss-hash-crc64ecma", "99999"}},
                                content});
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     auto outcome = client.getObjectToFile(
             models::GetObjectRequest().setBucket("bucket").setKey("key").setRange("bytes=0-11"),
@@ -416,7 +418,7 @@ TEST(OSSClientExtensionTest, GetObjectToFile_ErrorResponse) {
     std::string errorBody = R"(<Error><Code>NoSuchKey</Code><Message>Not found</Message><RequestId>id-err</RequestId></Error>)";
     mock->responses.push_back({404, {{"x-oss-request-id", "id-err"}}, errorBody});
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     auto outcome = client.getObjectToFile(
             models::GetObjectRequest().setBucket("bucket").setKey("no-key"),
@@ -431,7 +433,7 @@ TEST(OSSClientExtensionTest, GetObjectToFile_TruncatesExistingFile) {
     auto mock = std::make_shared<WritingMockTransport>();
     auto client = makeClient(mock);
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     {
         std::ofstream f(filePath, std::ios::binary);
@@ -472,7 +474,7 @@ TEST(OSSClientExtensionTest, GetObjectToFile_WithProgressCallback) {
                                      {"x-oss-hash-crc64ecma", std::to_string(crc)}},
                                content});
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     std::vector<std::tuple<std::size_t, std::size_t, std::int64_t>> records;
     ProgressCallback cb;
@@ -511,7 +513,7 @@ TEST(OSSClientExtensionTest, GetObjectToFile_WithProgressCallbackAndCRC) {
                                      {"x-oss-hash-crc64ecma", std::to_string(crc)}},
                                content});
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     std::size_t totalTransferred = 0;
     ProgressCallback cb;
@@ -546,7 +548,7 @@ TEST(OSSClientExtensionTest, GetObjectToFile_NoProgressCallbackStillWorks) {
                                      {"x-oss-hash-crc64ecma", std::to_string(crc)}},
                                content});
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     auto outcome = client.getObjectToFile(
             models::GetObjectRequest().setBucket("bucket").setKey("key"),
@@ -567,7 +569,7 @@ TEST(OSSClientExtensionTest, GetObjectToFile_InvalidRange) {
     auto mock = std::make_shared<WritingMockTransport>();
     auto client = makeClient(mock);
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     auto outcome = client.getObjectToFile(
             models::GetObjectRequest().setBucket("bucket").setKey("key").setRange("invalid"),
@@ -582,7 +584,7 @@ TEST(OSSClientExtensionTest, GetObjectToFile_MultiRangeRejected) {
     auto mock = std::make_shared<WritingMockTransport>();
     auto client = makeClient(mock);
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     auto outcome = client.getObjectToFile(
             models::GetObjectRequest().setBucket("bucket").setKey("key").setRange("bytes=0-99,200-299"),
@@ -602,7 +604,7 @@ TEST(OSSClientExtensionTest, GetObjectToFile_RangeStartEnd) {
                                      {"Content-Length", std::to_string(content.size())}},
                                content});
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     auto outcome = client.getObjectToFile(
             models::GetObjectRequest().setBucket("bucket").setKey("key").setRange("bytes=100-200"),
@@ -632,7 +634,7 @@ TEST(OSSClientExtensionTest, GetObjectToFile_RangeOpenEnd) {
                                      {"Content-Length", std::to_string(content.size())}},
                                content});
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     auto outcome = client.getObjectToFile(
             models::GetObjectRequest().setBucket("bucket").setKey("key").setRange("bytes=500-"),
@@ -652,7 +654,7 @@ TEST(OSSClientExtensionTest, GetObjectToFile_SuffixRangeRejected) {
     auto mock = std::make_shared<WritingMockTransport>();
     auto client = makeClient(mock);
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     auto outcome = client.getObjectToFile(
             models::GetObjectRequest().setBucket("bucket").setKey("key").setRange("bytes=-200"),
@@ -684,7 +686,7 @@ TEST(OSSClientExtensionTest, GetObjectToFile_ResumeWithRange) {
              {"Content-Length", std::to_string(part2.size())}},
             part2, 0, false});
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     auto outcome = client.getObjectToFile(
             models::GetObjectRequest().setBucket("bucket").setKey("key").setRange("bytes=100-115"),
@@ -731,7 +733,7 @@ TEST(OSSClientExtensionTest, GetObjectToFile_ResumeWithOpenEndRange) {
              {"Content-Length", std::to_string(part2.size())}},
             part2, 0, false});
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     auto outcome = client.getObjectToFile(
             models::GetObjectRequest().setBucket("bucket").setKey("key").setRange("bytes=500-"),
@@ -771,7 +773,7 @@ TEST(OSSClientExtensionTest, GetObjectToFile_ResumeNoRange) {
              {"Content-Length", std::to_string(part2.size())}},
             part2, 0, false});
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     auto outcome = client.getObjectToFile(
             models::GetObjectRequest().setBucket("bucket").setKey("key"),

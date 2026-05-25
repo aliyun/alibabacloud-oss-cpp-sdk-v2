@@ -57,7 +57,7 @@ class Outcome {
     }
 
     template <typename ET, enable_if_t<std::is_convertible<ET, E>::value, int> = 0>
-    Outcome(ET&& e) : error_(std::forward<ET>(e)), hasValue_(false) {}
+    Outcome(ET&& e) : result_{}, error_(std::forward<ET>(e)), hasValue_(false) {}
 
     Outcome& operator=(const Outcome& o) {
         if (this != &o) {

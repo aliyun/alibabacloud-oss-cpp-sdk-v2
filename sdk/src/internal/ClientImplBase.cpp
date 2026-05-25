@@ -91,6 +91,7 @@ static bool onPostServiceError([[maybe_unused]] std::unique_ptr<ResponseMessage>
     return !context.errorContext.error;
 }
 
+// cppcheck-suppress constParameterReference
 static bool onClockSkewError(std::unique_ptr<ResponseMessage>& response, ExecuteContext& context,
                              int64_t& clockOffset) {
     bool isClockSkewError = false;
@@ -299,6 +300,7 @@ void ClientImplBase::applyOperationOptions(ExecuteContext& context, const Operat
     context.onResponseMessage.emplace_back(onPreServiceError);
     if (hasFlag(FeatureFlagsType::CorrectClockSkew)) {
         context.onResponseMessage.emplace_back(
+            // cppcheck-suppress constParameterReference
             [&offset = innerOptions_.clockOffset](std::unique_ptr<ResponseMessage>& response, ExecuteContext& ctx) {
                 return onClockSkewError(response, ctx, offset);
             });
