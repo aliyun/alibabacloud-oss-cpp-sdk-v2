@@ -79,9 +79,11 @@ AppendObjectOutcome OSSClient::appendObject(const models::AppendObjectRequest& r
     requiredField(Position);
 
     auto input = transform::fromAppendObject(request);
-    if (input.headers.find("Content-Type") == input.headers.end()) {
-        // cppcheck-suppress stlFindInsert
-        input.headers.emplace("Content-Type", utils::LookupMimeType(request.getKey()));
+    if (client_->hasFlag(FeatureFlagsType::AutoDetectMimeType)) {
+        if (input.headers.find("Content-Type") == input.headers.end()) {
+            // cppcheck-suppress stlFindInsert
+            input.headers.emplace("Content-Type", utils::LookupMimeType(request.getKey()));
+        }
     }
 
     auto result = client_->Execute(input, options);

@@ -350,7 +350,15 @@ TEST(OSSAsyncClientExtensionTest, GetObjectToFileAsync_CRC64Mismatch) {
 
 TEST(OSSAsyncClientExtensionTest, GetObjectToFileAsync_CRC64Disabled) {
     auto mock = std::make_shared<MockAsyncTransport>();
-    auto client = makeAsyncClient(mock);
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.asyncHttpTransport = mock;
+    ClientOptionsFns fns = {[](ClientOptions& opt) {
+        opt.featureFlags &= ~static_cast<int>(FeatureFlagsType::EnableCRC64CheckDownload);
+    }};
+    auto client = OSSAsyncClient(config, fns);
 
     std::string content = "data with wrong crc but disabled";
     mock->responses.emplace_back(
