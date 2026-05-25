@@ -141,8 +141,9 @@ PresignInnerResult ClientImpl::Presign(const OperationInput& input, const Operat
         Credentials cred = provider->getCredentials();
 
         if (!cred.hasKeys()) {
-            updateError(context, CredentialsErrorCode::Empty, "CredentialsError",
-                        "Credentials is null or empty.");
+            auto code = cred.isErrorRetryable() ? CredentialsErrorCode::FetchError : CredentialsErrorCode::Empty;
+            updateError(context, code, "CredentialsError",
+                        cred.getError().value_or("Credentials is null or empty."));
             break;
         }
 

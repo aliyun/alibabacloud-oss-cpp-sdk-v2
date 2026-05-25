@@ -35,8 +35,9 @@ class SignerExecuteMiddleware final : public ExecuteMiddleware {
         auto cred = provider_->getCredentials();
 
         if (!cred.hasKeys()) {
-            updateError(context, CredentialsErrorCode::Empty, "CredentialsError",
-                        "Credentials is null or empty.");
+            auto code = cred.isErrorRetryable() ? CredentialsErrorCode::FetchError : CredentialsErrorCode::Empty;
+            updateError(context, code, "CredentialsError",
+                        cred.getError().value_or("Credentials is null or empty."));
             return nullptr;
         }
 

@@ -35,8 +35,9 @@ class SignerAsyncMiddleware final : public AsyncExecuteMiddleware {
 
         auto cred = provider_->getCredentials();
         if (!cred.hasKeys()) {
-            updateError(state->context, CredentialsErrorCode::Empty,
-                        "CredentialsError", "Credentials is null or empty.");
+            auto code = cred.isErrorRetryable() ? CredentialsErrorCode::FetchError : CredentialsErrorCode::Empty;
+            updateError(state->context, code,
+                        "CredentialsError", cred.getError().value_or("Credentials is null or empty."));
             prev_->handleResponse(state);
             return;
         }
