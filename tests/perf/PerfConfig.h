@@ -4,8 +4,14 @@
 #include "alibabacloud/oss2/OSSAsyncClient.h"
 #include "alibabacloud/oss2/ClientConfiguration.h"
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
+#include "alibabacloud/oss2/Config.h"
+#if defined(ALIBABACLOUD_OSS_HAS_CURL)
 #include "alibabacloud/oss2/transport/curl/CurlTransportFactory.h"
 #include "alibabacloud/oss2/transport/curl/CurlTransportOptions.h"
+#elif defined(ALIBABACLOUD_OSS_HAS_WINHTTP)
+#include "alibabacloud/oss2/transport/winhttp/WinHttpTransportFactory.h"
+#include "alibabacloud/oss2/transport/winhttp/WinHttpTransportOptions.h"
+#endif
 
 #include <cstdlib>
 #include <memory>
@@ -83,10 +89,17 @@ inline std::shared_ptr<alibabacloud::oss2::OSSClient> GetSyncClient() {
         config.credentialsProvider = provider;
 
         if (cfg.maxConnsSync > 0) {
+#if defined(ALIBABACLOUD_OSS_HAS_CURL)
             alibabacloud::oss2::CurlTransportOptions transportOpts;
             transportOpts.maxConnections = cfg.maxConnsSync;
             config.httpTransport =
                 alibabacloud::oss2::CurlTransportFactory::createHttpTransport(transportOpts);
+#elif defined(ALIBABACLOUD_OSS_HAS_WINHTTP)
+            alibabacloud::oss2::WinHttpTransportOptions transportOpts;
+            transportOpts.maxConnections = cfg.maxConnsSync;
+            config.httpTransport =
+                alibabacloud::oss2::WinHttpTransportFactory::createHttpTransport(transportOpts);
+#endif
         }
 
         client = std::make_shared<alibabacloud::oss2::OSSClient>(config);
@@ -106,10 +119,17 @@ inline std::shared_ptr<alibabacloud::oss2::OSSAsyncClient> GetAsyncClient() {
         config.credentialsProvider = provider;
 
         if (cfg.maxConnsAsync > 0) {
+#if defined(ALIBABACLOUD_OSS_HAS_CURL)
             alibabacloud::oss2::CurlTransportOptions transportOpts;
             transportOpts.maxConnections = cfg.maxConnsAsync;
             config.asyncHttpTransport =
                 alibabacloud::oss2::CurlTransportFactory::createAsyncHttpTransport(transportOpts);
+#elif defined(ALIBABACLOUD_OSS_HAS_WINHTTP)
+            alibabacloud::oss2::WinHttpTransportOptions transportOpts;
+            transportOpts.maxConnections = cfg.maxConnsAsync;
+            config.asyncHttpTransport =
+                alibabacloud::oss2::WinHttpTransportFactory::createAsyncHttpTransport(transportOpts);
+#endif
         }
 
         client = std::make_shared<alibabacloud::oss2::OSSAsyncClient>(config);
