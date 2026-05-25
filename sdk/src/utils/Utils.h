@@ -21,6 +21,7 @@ std::string UrlEncodePath(const std::string& src);
 
 std::string ToQueryString(const ParameterCollection& parameters);
 ParameterCollection ToEncodedParameters(const std::string& url);
+bool ParseRangeHeader(const std::string &s, std::vector<std::pair<std::int64_t, std::int64_t>> &ranges);
 
 // basd64 utils
 std::string Base64Encode(const std::string& src);

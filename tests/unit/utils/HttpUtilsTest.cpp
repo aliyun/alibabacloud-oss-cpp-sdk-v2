@@ -162,6 +162,106 @@ TEST(HttpUtilsTest, UrlDecodeSpecialChars) {
     EXPECT_STREQ(result.c_str(), "!@#$%");
 }
 
+// --- ParseRangeHeader ---
+
+TEST(HttpUtilsTest, ParseRangeHeader_SimpleRange) {
+    std::vector<std::pair<std::int64_t, std::int64_t>> ranges;
+    EXPECT_TRUE(ParseRangeHeader("bytes=0-499", ranges));
+    ASSERT_EQ(1u, ranges.size());
+    EXPECT_EQ(0, ranges[0].first);
+    EXPECT_EQ(499, ranges[0].second);
+}
+
+TEST(HttpUtilsTest, ParseRangeHeader_OpenEnd) {
+    std::vector<std::pair<std::int64_t, std::int64_t>> ranges;
+    EXPECT_TRUE(ParseRangeHeader("bytes=500-", ranges));
+    ASSERT_EQ(1u, ranges.size());
+    EXPECT_EQ(500, ranges[0].first);
+    EXPECT_EQ(-1, ranges[0].second);
+}
+
+TEST(HttpUtilsTest, ParseRangeHeader_SuffixRange) {
+    std::vector<std::pair<std::int64_t, std::int64_t>> ranges;
+    EXPECT_TRUE(ParseRangeHeader("bytes=-500", ranges));
+    ASSERT_EQ(1u, ranges.size());
+    EXPECT_EQ(-1, ranges[0].first);
+    EXPECT_EQ(500, ranges[0].second);
+}
+
+TEST(HttpUtilsTest, ParseRangeHeader_MultipleRanges) {
+    std::vector<std::pair<std::int64_t, std::int64_t>> ranges;
+    EXPECT_TRUE(ParseRangeHeader("bytes=0-99,200-299,400-", ranges));
+    ASSERT_EQ(3u, ranges.size());
+    EXPECT_EQ(0, ranges[0].first);
+    EXPECT_EQ(99, ranges[0].second);
+    EXPECT_EQ(200, ranges[1].first);
+    EXPECT_EQ(299, ranges[1].second);
+    EXPECT_EQ(400, ranges[2].first);
+    EXPECT_EQ(-1, ranges[2].second);
+}
+
+TEST(HttpUtilsTest, ParseRangeHeader_InvalidNoPrefix) {
+    std::vector<std::pair<std::int64_t, std::int64_t>> ranges;
+    EXPECT_FALSE(ParseRangeHeader("0-499", ranges));
+    EXPECT_TRUE(ranges.empty());
+}
+
+TEST(HttpUtilsTest, ParseRangeHeader_InvalidEmpty) {
+    std::vector<std::pair<std::int64_t, std::int64_t>> ranges;
+    EXPECT_FALSE(ParseRangeHeader("", ranges));
+    EXPECT_TRUE(ranges.empty());
+}
+
+TEST(HttpUtilsTest, ParseRangeHeader_InvalidBothEmpty) {
+    std::vector<std::pair<std::int64_t, std::int64_t>> ranges;
+    EXPECT_FALSE(ParseRangeHeader("bytes=-", ranges));
+    EXPECT_TRUE(ranges.empty());
+}
+
+TEST(HttpUtilsTest, ParseRangeHeader_InvalidStartGreaterThanEnd) {
+    std::vector<std::pair<std::int64_t, std::int64_t>> ranges;
+    EXPECT_FALSE(ParseRangeHeader("bytes=500-100", ranges));
+    EXPECT_TRUE(ranges.empty());
+}
+
+TEST(HttpUtilsTest, ParseRangeHeader_InvalidNonDigit) {
+    std::vector<std::pair<std::int64_t, std::int64_t>> ranges;
+    EXPECT_FALSE(ParseRangeHeader("bytes=abc-def", ranges));
+    EXPECT_TRUE(ranges.empty());
+}
+
+TEST(HttpUtilsTest, ParseRangeHeader_InvalidNoDash) {
+    std::vector<std::pair<std::int64_t, std::int64_t>> ranges;
+    EXPECT_FALSE(ParseRangeHeader("bytes=100", ranges));
+    EXPECT_TRUE(ranges.empty());
+}
+
+TEST(HttpUtilsTest, ParseRangeHeader_TooShort) {
+    std::vector<std::pair<std::int64_t, std::int64_t>> ranges;
+    EXPECT_FALSE(ParseRangeHeader("bytes=", ranges));
+    EXPECT_TRUE(ranges.empty());
+}
+
+TEST(HttpUtilsTest, ParseRangeHeader_Overflow) {
+    std::vector<std::pair<std::int64_t, std::int64_t>> ranges;
+    EXPECT_FALSE(ParseRangeHeader("bytes=99999999999999999999-", ranges));
+    EXPECT_TRUE(ranges.empty());
+}
+
+TEST(HttpUtilsTest, ParseRangeHeader_WhitespaceAroundRange) {
+    std::vector<std::pair<std::int64_t, std::int64_t>> ranges;
+    EXPECT_TRUE(ParseRangeHeader("bytes= 0-99 ", ranges));
+    ASSERT_EQ(1u, ranges.size());
+    EXPECT_EQ(0, ranges[0].first);
+    EXPECT_EQ(99, ranges[0].second);
+}
+
+TEST(HttpUtilsTest, ParseRangeHeader_NegativeNumber) {
+    std::vector<std::pair<std::int64_t, std::int64_t>> ranges;
+    EXPECT_FALSE(ParseRangeHeader("bytes=-1-2", ranges));
+    EXPECT_TRUE(ranges.empty());
+}
+
 } // namespace utils
 } // namespace oss2
 } // namespace alibabacloud
