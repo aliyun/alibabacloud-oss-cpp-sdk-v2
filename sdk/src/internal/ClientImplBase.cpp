@@ -12,6 +12,7 @@
 #include "alibabacloud/oss2/transport/HttpTransport.h"
 #include "src/utils/Utils.h"
 
+#include <cstdlib>
 #include <sstream>
 
 namespace alibabacloud {
@@ -19,7 +20,7 @@ namespace oss2 {
 namespace internal {
 
 // cppcheck-suppress constParameterCallback
-static bool onServiceError(std::unique_ptr<ResponseMessage>& response, ExecuteContext& context) {
+static bool onPreServiceError(std::unique_ptr<ResponseMessage>& response, ExecuteContext& context) {
     if (response->statusCode / 100 == 2) {
         return true;
     }
@@ -82,7 +83,64 @@ static bool onServiceError(std::unique_ptr<ResponseMessage>& response, ExecuteCo
     }
     context.errorContext.errorFields = std::move(errorFields);
 
-    return false;
+    return true;
+}
+
+// cppcheck-suppress constParameterCallback
+static bool onPostServiceError([[maybe_unused]] std::unique_ptr<ResponseMessage>& response, ExecuteContext& context) {
+    return !context.errorContext.error;
+}
+
+static bool onClockSkewError(std::unique_ptr<ResponseMessage>& response, ExecuteContext& context,
+                             int64_t& clockOffset) {
+    bool isClockSkewError = false;
+
+    if (response->statusCode == 403) {
+        auto it = context.errorContext.errorFields.find("Code");
+        if (it != context.errorContext.errorFields.end() && it->second == "RequestTimeTooSkewed") {
+            isClockSkewError = true;
+        }
+    } else if (response->statusCode == 400) {
+        auto codeIt = context.errorContext.errorFields.find("Code");
+        auto msgIt = context.errorContext.errorFields.find("Message");
+        if (codeIt != context.errorContext.errorFields.end() && codeIt->second == "InvalidArgument" &&
+            msgIt != context.errorContext.errorFields.end() &&
+            msgIt->second == "Invalid signing date in Authorization header.") {
+            isClockSkewError = true;
+        }
+    }
+
+    if (!isClockSkewError) return true;
+
+    std::time_t serverTime = -1;
+    auto dateIt = response->headers.find("Date");
+    if (dateIt != response->headers.end()) {
+        serverTime = utils::GmtToUnixTime(dateIt->second);
+    }
+
+    if (serverTime == -1) {
+        auto stIt = context.errorContext.errorFields.find("ServerTime");
+        if (stIt != context.errorContext.errorFields.end()) {
+            serverTime = utils::UtcToUnixTime(stIt->second);
+        }
+    }
+
+    if (serverTime == -1) return true;
+
+    auto localTime = std::time(nullptr);
+    auto newOffset = static_cast<int64_t>(serverTime - localTime);
+
+    if (response->statusCode == 400 && std::abs(newOffset) < 900) {
+        return true;
+    }
+
+    if (std::abs(newOffset - clockOffset) > 60) {
+        clockOffset = newOffset;
+    }
+    context.signingContext.clockOffset = std::chrono::seconds(newOffset);
+
+    context.errorContext.error = make_retryable_server_error_code(response->statusCode);
+    return true;
 }
 
 void ClientImplBase::init(const struct ClientConfiguration& config, const ClientOptionsFns& fns) {
@@ -183,8 +241,7 @@ std::string ClientImplBase::resolveUserAgent(const struct ClientConfiguration& c
     return ss.str();
 }
 
-int ClientImplBase::resolveFeatureFlags(const struct ClientConfiguration& config) {
-    ((void) (config));
+int ClientImplBase::resolveFeatureFlags([[maybe_unused]] const struct ClientConfiguration& config) {
     return defaults::FEATURE_FLAGS;
 }
 
@@ -222,7 +279,14 @@ void ClientImplBase::applyOperationOptions(ExecuteContext& context, const Operat
 
     context.retryMaxAttempts = opts->retryMaxAttempts.value_or(options_.retryer->getMaxAttempts());
 
-    context.onResponseMessage.emplace_back(onServiceError);
+    context.onResponseMessage.emplace_back(onPreServiceError);
+    if (hasFlag(FeatureFlagsType::CorrectClockSkew)) {
+        context.onResponseMessage.emplace_back(
+            [&offset = innerOptions_.clockOffset](std::unique_ptr<ResponseMessage>& response, ExecuteContext& ctx) {
+                return onClockSkewError(response, ctx, offset);
+            });
+    }
+    context.onResponseMessage.emplace_back(onPostServiceError);
     for (const auto& fn : innerOpts->onResponseMessage) {
         context.onResponseMessage.emplace_back(fn);
     }
@@ -261,7 +325,11 @@ std::unique_ptr<RequestMessage> ClientImplBase::applyOperationInput(ExecuteConte
     auto headers = input.headers;
     headers.insert_or_assign("User-Agent", innerOptions_.userAgent);
 
-    context.signingContext.clockOffset = std::chrono::seconds(0);
+    if (innerOptions_.clockOffset != 0) {
+        context.signingContext.clockOffset = std::chrono::seconds(innerOptions_.clockOffset);
+    } else {
+        context.signingContext.clockOffset = std::chrono::seconds(0);
+    }
     context.signingContext.signTimeInEpoch = 0;
 
     context.signingContext.expirationInEpoch = 0;
@@ -281,9 +349,8 @@ std::unique_ptr<RequestMessage> ClientImplBase::applyOperationInput(ExecuteConte
 }
 
 // cppcheck-suppress constParameterReference
-void ClientImplBase::applyOther(ExecuteContext& context, std::unique_ptr<RequestMessage>& request,
+void ClientImplBase::applyOther([[maybe_unused]] ExecuteContext& context, std::unique_ptr<RequestMessage>& request,
                                 const OperationInnerOptions* innerOpts) {
-    ((void) (context));
     if (innerOpts == nullptr) {
         return;
     }

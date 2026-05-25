@@ -228,6 +228,27 @@ TEST(DateUtilsTest, ToUnixTimeTest) {
     EXPECT_EQ(t, -1);
 }
 
+TEST(DateUtilsTest, GmtToUnixTimeTest) {
+    EXPECT_EQ(GmtToUnixTime("Thu, 01 Jan 1970 00:00:00 GMT"), 0);
+    EXPECT_EQ(GmtToUnixTime("Wed, 07 Mar 2018 08:35:19 GMT"), 1520411719);
+    EXPECT_EQ(GmtToUnixTime("Mon, 08 Apr 2019 06:02:27 GMT"), 1554703347);
+    EXPECT_EQ(GmtToUnixTime("Mon, 08 Apr 2019 16:02:27 GMT"), 1554739347);
+
+    EXPECT_EQ(GmtToUnixTime(""), -1);
+    EXPECT_EQ(GmtToUnixTime("garbage"), -1);
+    EXPECT_EQ(GmtToUnixTime("2018-03-07T08:35:19.000Z"), -1);
+}
+
+TEST(DateUtilsTest, GmtToUnixTimeWithSetlocaleTest) {
+    SET_LOCALE_ENV();
+
+    EXPECT_EQ(GmtToUnixTime("Thu, 01 Jan 1970 00:00:00 GMT"), 0);
+    EXPECT_EQ(GmtToUnixTime("Wed, 07 Mar 2018 08:35:19 GMT"), 1520411719);
+    EXPECT_EQ(GmtToUnixTime("Mon, 08 Apr 2019 06:02:27 GMT"), 1554703347);
+
+    RESTORE_LOCALE();
+}
+
 } // namespace utils
 } // namespace oss2
 } // namespace alibabacloud

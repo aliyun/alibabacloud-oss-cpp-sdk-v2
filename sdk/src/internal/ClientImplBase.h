@@ -19,6 +19,7 @@ struct ClientInnerOptions {
     std::string endpointScheme;
     std::string endpointAuthority;
     std::string userAgent;
+    int64_t clockOffset{0};
 };
 
 struct OperationInnerOptions {
