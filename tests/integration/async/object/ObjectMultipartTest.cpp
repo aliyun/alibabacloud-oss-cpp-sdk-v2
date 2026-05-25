@@ -190,6 +190,39 @@ TEST_F(AsyncObjectMultipartTest, UploadPartCopy_Fail) {
     EXPECT_EQ("InvalidAccessKeyId", outcome.error().getCode());
 }
 
+// --- CRC64 Upload Check Integration Tests ---
+
+TEST_F(AsyncObjectMultipartTest, UploadPart_CRC64CheckUpload) {
+    auto client = ClientHelper::GetDefaultClient();
+    std::string key = "test-uploadpart-crc64-async";
+
+    auto initFuture = client->asyncCall(
+        models::InitiateMultipartUploadRequest()
+            .setBucket(bucketName_)
+            .setKey(key));
+    auto initOutcome = initFuture.get();
+    EXPECT_TRUE(initOutcome.has_value());
+    auto uploadId = initOutcome.value().getUploadId();
+
+    std::string partData = genRandomString(100 * 1024);
+    auto partFuture = client->asyncCall(
+        models::UploadPartRequest()
+            .setBucket(bucketName_)
+            .setKey(key)
+            .setUploadId(uploadId)
+            .setPartNumber(1)
+            .setBody(RequestBody::FromString(partData)));
+    auto partOutcome = partFuture.get();
+    EXPECT_TRUE(partOutcome.has_value());
+    EXPECT_FALSE(partOutcome.value().getHashCrc64ecma().empty());
+
+    client->asyncCall(
+        models::AbortMultipartUploadRequest()
+            .setBucket(bucketName_)
+            .setKey(key)
+            .setUploadId(uploadId)).get();
+}
+
 } // namespace async
 } // namespace oss2
 } // namespace alibabacloud

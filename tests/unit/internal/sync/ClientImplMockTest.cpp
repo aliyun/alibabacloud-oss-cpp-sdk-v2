@@ -1693,27 +1693,6 @@ TEST(ClientImplMockTest, testUploadObserverRetryable_useProgObserver) {
     EXPECT_EQ(data.size(), _total);
 }
 
-struct CRC64ResponseChecker {
-    bool operator()(std::unique_ptr<ResponseMessage>& response, ExecuteContext& context) {
-        if (checker) {
-            if (auto it = response->headers.find("x-oss-hash-crc64ecma"); it != response->headers.end()) {
-                auto ccrc = std::to_string(checker->crc());
-                if (ccrc == it->second) {
-                    return true;
-                }
-
-                context.errorContext.error = make_error_code(ClientErrorCode::CrcMismatch);
-                context.errorContext.errorFields.emplace("Code", "CRCInconsistent");
-                context.errorContext.errorFields.emplace(
-                        "Message", "crc is inconsistent, client crc:" + ccrc + ", server crc:" + it->second);
-                return false;
-            }
-        }
-
-        return true;
-    }
-    std::shared_ptr<CRC64Observer> checker;
-};
 
 
 TEST(ClientImplMockTest, testUploadDataAndCheckResponseCrc) {

@@ -52,6 +52,12 @@ void OSSAsyncClient::uploadPartAsync(const models::UploadPartRequest& request,
                 std::make_shared<internal::ProgressObserver>(request.getProgressCallback().value(), total));
     }
 
+    if (client_->hasFlag(FeatureFlagsType::EnableCRC64CheckUpload) && request.hasBody()) {
+        auto crcObserver = std::make_shared<internal::CRC64Observer>(0);
+        innerOpts.uploadObserver.push_back(crcObserver);
+        innerOpts.onResponseMessage.emplace_back(internal::CRC64ResponseChecker{crcObserver});
+    }
+
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
             callback(makeUnexpected(std::get<OperationError>(std::move(result))));

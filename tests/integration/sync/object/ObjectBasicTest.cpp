@@ -352,6 +352,64 @@ TEST_F(ObjectBasicTest, GetObjectMeta_Fail) {
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 
+// --- CRC64 Upload Check Integration Tests ---
+
+TEST_F(ObjectBasicTest, PutObject_CRC64CheckUpload) {
+    auto client = ClientHelper::GetDefaultClient();
+    std::string key = "test-put-object-crc64";
+    std::string content = "Hello, OSS CRC64 upload check!";
+    auto body = RequestBody::FromString(content);
+
+    auto outcome = client->putObject(
+        models::PutObjectRequest()
+            .setBucket(bucketName_)
+            .setKey(key)
+            .setBody(body));
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_FALSE(outcome.value().getHashCrc64ecma().empty());
+}
+
+TEST_F(ObjectBasicTest, AppendObject_CRC64CheckUpload) {
+    auto client = ClientHelper::GetDefaultClient();
+    std::string key = "test-append-object-crc64";
+    std::string content1 = "First part ";
+    std::string content2 = "Second part";
+
+    auto outcome1 = client->appendObject(
+        models::AppendObjectRequest()
+            .setBucket(bucketName_)
+            .setKey(key)
+            .setPosition(0)
+            .setInitHashCRC64(0)
+            .setBody(RequestBody::FromString(content1)));
+    EXPECT_TRUE(outcome1.has_value());
+    EXPECT_FALSE(outcome1.value().getHashCrc64ecma().empty());
+
+    auto outcome2 = client->appendObject(
+        models::AppendObjectRequest()
+            .setBucket(bucketName_)
+            .setKey(key)
+            .setPosition(outcome1.value().getNextAppendPosition())
+            .setInitHashCRC64(outcome1.value().getHashCrc64ecmaAsUint64())
+            .setBody(RequestBody::FromString(content2)));
+    EXPECT_TRUE(outcome2.has_value());
+    EXPECT_FALSE(outcome2.value().getHashCrc64ecma().empty());
+}
+
+TEST_F(ObjectBasicTest, AppendObject_CRC64CheckUpload_NoInit) {
+    auto client = ClientHelper::GetDefaultClient();
+    std::string key = "test-append-object-crc64-noinit";
+    std::string content = "Append without init CRC";
+
+    auto outcome = client->appendObject(
+        models::AppendObjectRequest()
+            .setBucket(bucketName_)
+            .setKey(key)
+            .setPosition(0)
+            .setBody(RequestBody::FromString(content)));
+    EXPECT_TRUE(outcome.has_value());
+}
+
 } // namespace sync
 } // namespace oss2
 } // namespace alibabacloud

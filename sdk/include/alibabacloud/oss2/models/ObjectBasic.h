@@ -1180,12 +1180,26 @@ class ALIBABACLOUD_OSS_API AppendObjectRequest final : public RequestModel {
         return *this;
     }
 
+    // Initial CRC64 value for upload CRC checking.
+    // For the first append (position=0), pass 0.
+    // For subsequent appends, pass the CRC from the previous AppendObjectResult.
+    // When set and EnableCRC64CheckUpload flag is enabled, the SDK verifies
+    // the server-returned CRC matches the computed value after upload.
+    inline const std::optional<uint64_t>& getInitHashCRC64() const {
+        return initHashCRC64_;
+    }
+
+    AppendObjectRequest& setInitHashCRC64(uint64_t value) {
+        initHashCRC64_ = value;
+        return *this;
+    }
 
   private:
     std::string bucket_;
     std::string key_;
     HeaderCollection metadata_;
     std::shared_ptr<ByteContent> body_;
+    std::optional<uint64_t> initHashCRC64_;
 };
 
 /// The result for the AppendObject operation.

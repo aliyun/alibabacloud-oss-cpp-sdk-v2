@@ -95,12 +95,12 @@ GetObjectOutcome OSSClient::getObjectToFile(const models::GetObjectRequest& requ
             if (crcObserver && offset == 0) {
                 const auto& serverCrc = outcome.value().getHashCrc64ecma();
                 if (!serverCrc.empty()) {
-                    uint64_t expected = outcome.value().getHashCrc64ecmaAsUint64();
-                    if (expected != crcObserver->crc()) {
+                    auto ccrc = crcObserver->crcAsString();
+                    if (ccrc != serverCrc) {
                         return makeUnexpected(OperationError(
                                 ClientErrorCode::CrcMismatch,
-                                {{"Code", "CrcMismatch"},
-                                 {"Message", "CRC-64 verification failed"}}));
+                                {{"Code", "CRCInconsistent"},
+                                 {"Message", "crc is inconsistent, client crc:" + ccrc + ", server crc:" + serverCrc}}));
                     }
                 }
             }

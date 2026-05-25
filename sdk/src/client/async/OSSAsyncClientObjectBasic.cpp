@@ -34,6 +34,12 @@ void OSSAsyncClient::putObjectAsync(const models::PutObjectRequest& request,
                 std::make_shared<internal::ProgressObserver>(request.getProgressCallback().value(), total));
     }
 
+    if (client_->hasFlag(FeatureFlagsType::EnableCRC64CheckUpload) && request.hasBody()) {
+        auto crcObserver = std::make_shared<internal::CRC64Observer>(0);
+        innerOpts.uploadObserver.push_back(crcObserver);
+        innerOpts.onResponseMessage.emplace_back(internal::CRC64ResponseChecker{crcObserver});
+    }
+
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
             callback(makeUnexpected(std::get<OperationError>(std::move(result))));
@@ -96,13 +102,36 @@ void OSSAsyncClient::appendObjectAsync(const models::AppendObjectRequest& reques
             input.headers.emplace("Content-Type", utils::LookupMimeType(request.getKey()));
         }
     }
-    client_->ExecuteAsync(input, [callback](OperationResult result) {
+
+    internal::OperationInnerOptions innerOpts;
+    std::shared_ptr<internal::CRC64Observer> crcObserver;
+    if (client_->hasFlag(FeatureFlagsType::EnableCRC64CheckUpload)
+        && request.hasBody() && request.getInitHashCRC64().has_value()) {
+        crcObserver = std::make_shared<internal::CRC64Observer>(request.getInitHashCRC64().value());
+        innerOpts.uploadObserver.push_back(crcObserver);
+    }
+
+    client_->ExecuteAsync(input, [callback, crcObserver](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
             callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
-        callback(transform::toAppendObject(std::move(std::get<OperationOutput>(result))));
-    }, options);
+        auto appendOutcome = transform::toAppendObject(std::move(std::get<OperationOutput>(result)));
+        if (crcObserver && appendOutcome.has_value()) {
+            const auto& serverCrc = appendOutcome.value().getHashCrc64ecma();
+            if (!serverCrc.empty()) {
+                auto ccrc = crcObserver->crcAsString();
+                if (ccrc != serverCrc) {
+                    callback(makeUnexpected(OperationError(
+                        ClientErrorCode::CrcMismatch,
+                        {{"Code", "CRCInconsistent"},
+                         {"Message", "crc is inconsistent, client crc:" + ccrc + ", server crc:" + serverCrc}})));
+                    return;
+                }
+            }
+        }
+        callback(std::move(appendOutcome));
+    }, options, &innerOpts);
 }
 
 void OSSAsyncClient::sealAppendObjectAsync(const models::SealAppendObjectRequest& request,

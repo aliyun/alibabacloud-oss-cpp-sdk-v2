@@ -48,6 +48,12 @@ UploadPartOutcome OSSClient::uploadPart(const models::UploadPartRequest& request
                 std::make_shared<internal::ProgressObserver>(request.getProgressCallback().value(), total));
     }
 
+    if (client_->hasFlag(FeatureFlagsType::EnableCRC64CheckUpload) && request.hasBody()) {
+        auto crcObserver = std::make_shared<internal::CRC64Observer>(0);
+        innerOpts.uploadObserver.push_back(crcObserver);
+        innerOpts.onResponseMessage.emplace_back(internal::CRC64ResponseChecker{crcObserver});
+    }
+
     auto result = client_->Execute(input, options, &innerOpts);
     if (std::holds_alternative<OperationError>(result)) {
         return makeUnexpected(std::get<OperationError>(result));

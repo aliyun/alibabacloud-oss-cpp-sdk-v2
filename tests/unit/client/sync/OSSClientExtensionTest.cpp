@@ -165,7 +165,7 @@ TEST(OSSClientExtensionTest, PutObjectFromFile_Success) {
 
     mock->responses.emplace_back(
             std::make_unique<ResponseMessage>(ResponseMessage{200, "OK",
-                    {{"x-oss-request-id", "id-123"}, {"x-oss-hash-crc64ecma", "12345"}}, nullptr}));
+                    {{"x-oss-request-id", "id-123"}}, nullptr}));
 
     auto outcome = client.putObjectFromFile(
             models::PutObjectRequest().setBucket("bucket").setKey("key"),
@@ -350,7 +350,7 @@ TEST(OSSClientExtensionTest, GetObjectToFile_CRC64Mismatch) {
             filePath);
 
     EXPECT_FALSE(outcome.has_value());
-    EXPECT_EQ("CrcMismatch", outcome.error().getCode());
+    EXPECT_EQ("CRCInconsistent", outcome.error().getCode());
     std::remove(filePath.c_str());
 }
 

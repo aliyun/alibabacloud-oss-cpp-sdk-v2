@@ -179,6 +179,52 @@ TEST_F(AsyncObjectBasicTest, GetObjectMeta_Fail) {
     EXPECT_EQ("InvalidAccessKeyId", outcome.error().getCode());
 }
 
+// --- CRC64 Upload Check Integration Tests ---
+
+TEST_F(AsyncObjectBasicTest, PutObject_CRC64CheckUpload) {
+    auto client = ClientHelper::GetDefaultClient();
+    std::string key = "test-put-object-crc64-async";
+    std::string content = "Hello, OSS async CRC64 upload check!";
+
+    auto future = client->asyncCall(
+        models::PutObjectRequest()
+            .setBucket(bucketName_)
+            .setKey(key)
+            .setBody(RequestBody::FromString(content)));
+    auto outcome = future.get();
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_FALSE(outcome.value().getHashCrc64ecma().empty());
+}
+
+TEST_F(AsyncObjectBasicTest, AppendObject_CRC64CheckUpload) {
+    auto client = ClientHelper::GetDefaultClient();
+    std::string key = "test-append-object-crc64-async";
+    std::string content1 = "First part ";
+    std::string content2 = "Second part";
+
+    auto future1 = client->asyncCall(
+        models::AppendObjectRequest()
+            .setBucket(bucketName_)
+            .setKey(key)
+            .setPosition(0)
+            .setInitHashCRC64(0)
+            .setBody(RequestBody::FromString(content1)));
+    auto outcome1 = future1.get();
+    EXPECT_TRUE(outcome1.has_value());
+    EXPECT_FALSE(outcome1.value().getHashCrc64ecma().empty());
+
+    auto future2 = client->asyncCall(
+        models::AppendObjectRequest()
+            .setBucket(bucketName_)
+            .setKey(key)
+            .setPosition(outcome1.value().getNextAppendPosition())
+            .setInitHashCRC64(outcome1.value().getHashCrc64ecmaAsUint64())
+            .setBody(RequestBody::FromString(content2)));
+    auto outcome2 = future2.get();
+    EXPECT_TRUE(outcome2.has_value());
+    EXPECT_FALSE(outcome2.value().getHashCrc64ecma().empty());
+}
+
 } // namespace async
 } // namespace oss2
 } // namespace alibabacloud

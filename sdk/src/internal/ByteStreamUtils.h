@@ -1,7 +1,9 @@
 #pragma once
 
 #include "alibabacloud/oss2/Types.h"
+#include "alibabacloud/oss2/Error.h"
 #include "alibabacloud/oss2/io/ByteStream.h"
+#include "ExecuteMiddleware.h"
 
 #include <system_error>
 
@@ -77,13 +79,29 @@ class CRC64Observer : public StreamObserver {
         value_ = init_;
     }
 
-    uint64_t crc() {
-        return value_;
-    }
+    inline uint64_t crc() const { return value_; }
+
+    inline std::string crcAsString() const { return std::to_string(value_); }
 
   private:
     uint64_t init_;
     uint64_t value_;
+};
+
+struct CRC64ResponseChecker {
+    bool operator()(std::unique_ptr<ResponseMessage>& response, ExecuteContext& context) {
+        if (!checker) return true;
+        auto it = response->headers.find("x-oss-hash-crc64ecma");
+        if (it == response->headers.end()) return true;
+        auto ccrc = checker->crcAsString();
+        if (ccrc == it->second) return true;
+        context.errorContext.error = make_error_code(ClientErrorCode::CrcMismatch);
+        context.errorContext.errorFields.emplace("Code", "CRCInconsistent");
+        context.errorContext.errorFields.emplace(
+            "Message", "crc is inconsistent, client crc:" + ccrc + ", server crc:" + it->second);
+        return false;
+    }
+    std::shared_ptr<CRC64Observer> checker;
 };
 
 class TeeByteContent : public ByteContent {

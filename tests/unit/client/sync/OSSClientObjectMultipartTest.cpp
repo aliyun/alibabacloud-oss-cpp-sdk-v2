@@ -1,10 +1,12 @@
 #include <gtest/gtest.h>
 
 #include "alibabacloud/oss2/ClientConfiguration.h"
+#include "alibabacloud/oss2/ClientOptions.h"
 #include "alibabacloud/oss2/OSSClient.h"
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
 #include "alibabacloud/oss2/io/ByteStream.h"
 #include "alibabacloud/oss2/models/ObjectMultipart.h"
+#include "alibabacloud/oss2/utils/CRC64Utils.h"
 #include "MockTransport.h"
 
 namespace alibabacloud::oss2 {
@@ -255,7 +257,7 @@ TEST(OSSClientObjectMultipartTest, UploadPart_Success) {
 
     mockHandler->Clear();
     mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
-            ResponseMessage{200, "OK", {{"ETag", "\"test-etag\""}, {"x-oss-hash-crc64ecma", "123456789"}}, nullptr}));
+            ResponseMessage{200, "OK", {{"ETag", "\"test-etag\""}, {"x-oss-request-id", "id-1234"}}, nullptr}));
 
     auto request = models::UploadPartRequest();
     request.setBucket("test-bucket");
@@ -271,7 +273,6 @@ TEST(OSSClientObjectMultipartTest, UploadPart_Success) {
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("\"test-etag\"", result.getETag());
-    EXPECT_EQ("123456789", result.getHashCrc64ecma());
 }
 
 TEST(OSSClientObjectMultipartTest, UploadPart_ErrorResponse) {
@@ -1588,6 +1589,107 @@ TEST(OSSClientObjectMultipartTest, UploadPart_Progress) {
     EXPECT_GT(callCount, 0);
     EXPECT_EQ(data.size(), lastTransferred);
     EXPECT_EQ(data.size(), totalIncrement);
+}
+
+// --- CRC64 Upload Check Tests: UploadPart ---
+
+TEST(OSSClientObjectMultipartTest, UploadPart_CRC64Check_Success) {
+    auto mockHandler = std::make_shared<MockTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+    auto client = OSSClient(config);
+
+    std::string data = "Hello, OSS!";
+    uint64_t crc = utils::CalcCRC64(0, data.data(), data.size());
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-1"},
+             {"ETag", "\"etag-1\""},
+             {"x-oss-hash-crc64ecma", std::to_string(crc)}},
+            nullptr}));
+
+    auto request = models::UploadPartRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setPartNumber(1);
+    request.setUploadId("upload-123");
+    request.setBody(RequestBody::FromString(data));
+
+    auto outcome = client.uploadPart(request);
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(1ULL, mockHandler->requests.size());
+}
+
+TEST(OSSClientObjectMultipartTest, UploadPart_CRC64Check_Mismatch) {
+    auto mockHandler = std::make_shared<MockTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+    auto client = OSSClient(config);
+
+    std::string data = "Hello, OSS!";
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-1"}, {"ETag", "\"etag-1\""}, {"x-oss-hash-crc64ecma", "99999"}},
+            nullptr}));
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-2"}, {"ETag", "\"etag-1\""}, {"x-oss-hash-crc64ecma", "99999"}},
+            nullptr}));
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-3"}, {"ETag", "\"etag-1\""}, {"x-oss-hash-crc64ecma", "99999"}},
+            nullptr}));
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-4"}, {"ETag", "\"etag-1\""}, {"x-oss-hash-crc64ecma", "99999"}},
+            nullptr}));
+
+    auto request = models::UploadPartRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setPartNumber(1);
+    request.setUploadId("upload-123");
+    request.setBody(RequestBody::FromString(data));
+
+    auto outcome = client.uploadPart(request);
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("CRCInconsistent", outcome.error().getCode());
+}
+
+TEST(OSSClientObjectMultipartTest, UploadPart_CRC64Check_Disabled) {
+    auto mockHandler = std::make_shared<MockTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    ClientOptionsFns fns = {[](ClientOptions& opt) {
+        opt.featureFlags &= ~static_cast<int>(FeatureFlagsType::EnableCRC64CheckUpload);
+    }};
+    auto client = OSSClient(config, fns);
+
+    std::string data = "Hello, OSS!";
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-1"}, {"ETag", "\"etag-1\""}, {"x-oss-hash-crc64ecma", "99999"}},
+            nullptr}));
+
+    auto request = models::UploadPartRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setPartNumber(1);
+    request.setUploadId("upload-123");
+    request.setBody(RequestBody::FromString(data));
+
+    auto outcome = client.uploadPart(request);
+    EXPECT_TRUE(outcome.has_value());
 }
 
 } // namespace alibabacloud::oss2

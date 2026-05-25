@@ -1,11 +1,13 @@
 #include <gtest/gtest.h>
 
 #include "alibabacloud/oss2/ClientConfiguration.h"
+#include "alibabacloud/oss2/ClientOptions.h"
 #include "alibabacloud/oss2/OSSClient.h"
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
 #include "alibabacloud/oss2/io/ByteStream.h"
 #include "alibabacloud/oss2/io/ByteWriter.h"
 #include "alibabacloud/oss2/models/ObjectBasic.h"
+#include "alibabacloud/oss2/utils/CRC64Utils.h"
 #include "MockTransport.h"
 
 namespace alibabacloud::oss2 {
@@ -29,8 +31,7 @@ TEST(OSSClientObjectBasicTest, PutObject_Success) {
     mockHandler->responses.emplace_back(
             std::make_unique<ResponseMessage>(ResponseMessage{200,
                                                               "OK",
-                                                              {{"x-oss-hash-crc64ecma", "123456789"},
-                                                               {"x-oss-version-id", "version123"},
+                                                              {{"x-oss-version-id", "version123"},
                                                                {"x-oss-request-id", "id-1234"}},
                                                               nullptr}));
 
@@ -45,7 +46,6 @@ TEST(OSSClientObjectBasicTest, PutObject_Success) {
 
     EXPECT_EQ(200, result.getStatusCode());
     EXPECT_EQ("id-1234", result.getRequestId());
-    EXPECT_EQ("123456789", result.getHashCrc64ecma());
     EXPECT_EQ("version123", result.getVersionId());
 }
 
@@ -63,8 +63,7 @@ TEST(OSSClientObjectBasicTest, PutObject_WithHeaders) {
     mockHandler->responses.emplace_back(
             std::make_unique<ResponseMessage>(ResponseMessage{200,
                                                               "OK",
-                                                              {{"x-oss-hash-crc64ecma", "123456789"},
-                                                               {"x-oss-version-id", "version123"},
+                                                              {{"x-oss-version-id", "version123"},
                                                                {"x-oss-request-id", "id-1234"}},
                                                               nullptr}));
 
@@ -88,7 +87,6 @@ TEST(OSSClientObjectBasicTest, PutObject_WithHeaders) {
     auto& result = outcome.value();
 
     EXPECT_EQ(200, result.getStatusCode());
-    EXPECT_EQ("123456789", result.getHashCrc64ecma());
     EXPECT_EQ("version123", result.getVersionId());
 }
 
@@ -1925,6 +1923,265 @@ TEST(OSSClientObjectBasicTest, PutObject_Progress) {
     EXPECT_GT(callCount, 0);
     EXPECT_EQ(data.size(), lastTransferred);
     EXPECT_EQ(data.size(), totalIncrement);
+}
+
+// --- CRC64 Upload Check Tests: PutObject ---
+
+TEST(OSSClientObjectBasicTest, PutObject_CRC64Check_Success) {
+    auto mockHandler = std::make_shared<MockTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+    auto client = OSSClient(config);
+
+    std::string data = "Hello, OSS!";
+    uint64_t crc = utils::CalcCRC64(0, data.data(), data.size());
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-1"}, {"x-oss-hash-crc64ecma", std::to_string(crc)}},
+            nullptr}));
+
+    auto request = models::PutObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setBody(RequestBody::FromString(data));
+
+    auto outcome = client.putObject(request);
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(1ULL, mockHandler->requests.size());
+}
+
+TEST(OSSClientObjectBasicTest, PutObject_CRC64Check_Mismatch) {
+    auto mockHandler = std::make_shared<MockTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+    auto client = OSSClient(config);
+
+    std::string data = "Hello, OSS!";
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-1"}, {"x-oss-hash-crc64ecma", "99999"}},
+            nullptr}));
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-2"}, {"x-oss-hash-crc64ecma", "99999"}},
+            nullptr}));
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-3"}, {"x-oss-hash-crc64ecma", "99999"}},
+            nullptr}));
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-4"}, {"x-oss-hash-crc64ecma", "99999"}},
+            nullptr}));
+
+    auto request = models::PutObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setBody(RequestBody::FromString(data));
+
+    auto outcome = client.putObject(request);
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("CRCInconsistent", outcome.error().getCode());
+}
+
+TEST(OSSClientObjectBasicTest, PutObject_CRC64Check_Disabled) {
+    auto mockHandler = std::make_shared<MockTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    ClientOptionsFns fns = {[](ClientOptions& opt) {
+        opt.featureFlags &= ~static_cast<int>(FeatureFlagsType::EnableCRC64CheckUpload);
+    }};
+    auto client = OSSClient(config, fns);
+
+    std::string data = "Hello, OSS!";
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-1"}, {"x-oss-hash-crc64ecma", "99999"}},
+            nullptr}));
+
+    auto request = models::PutObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setBody(RequestBody::FromString(data));
+
+    auto outcome = client.putObject(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientObjectBasicTest, PutObject_CRC64Check_NoServerCRC) {
+    auto mockHandler = std::make_shared<MockTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+    auto client = OSSClient(config);
+
+    std::string data = "Hello, OSS!";
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-1"}},
+            nullptr}));
+
+    auto request = models::PutObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setBody(RequestBody::FromString(data));
+
+    auto outcome = client.putObject(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientObjectBasicTest, PutObject_CRC64Check_NoBody) {
+    auto mockHandler = std::make_shared<MockTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-1"}, {"x-oss-hash-crc64ecma", "99999"}},
+            nullptr}));
+
+    auto request = models::PutObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+
+    auto outcome = client.putObject(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+// --- CRC64 Upload Check Tests: AppendObject ---
+
+TEST(OSSClientObjectBasicTest, AppendObject_CRC64Check_Success) {
+    auto mockHandler = std::make_shared<MockTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+    auto client = OSSClient(config);
+
+    std::string data = "hello";
+    uint64_t crc = utils::CalcCRC64(0, data.data(), data.size());
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-1"},
+             {"x-oss-hash-crc64ecma", std::to_string(crc)},
+             {"x-oss-next-append-position", "5"}},
+            nullptr}));
+
+    auto request = models::AppendObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setPosition(0);
+    request.setInitHashCRC64(0);
+    request.setBody(RequestBody::FromString(data));
+
+    auto outcome = client.appendObject(request);
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(std::to_string(crc), outcome.value().getHashCrc64ecma());
+}
+
+TEST(OSSClientObjectBasicTest, AppendObject_CRC64Check_Mismatch) {
+    auto mockHandler = std::make_shared<MockTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+    auto client = OSSClient(config);
+
+    std::string data = "hello";
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-1"},
+             {"x-oss-hash-crc64ecma", "99999"},
+             {"x-oss-next-append-position", "5"}},
+            nullptr}));
+
+    auto request = models::AppendObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setPosition(0);
+    request.setInitHashCRC64(0);
+    request.setBody(RequestBody::FromString(data));
+
+    auto outcome = client.appendObject(request);
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("CRCInconsistent", outcome.error().getCode());
+    EXPECT_EQ(1ULL, mockHandler->requests.size());
+}
+
+TEST(OSSClientObjectBasicTest, AppendObject_CRC64Check_NoInitCRC) {
+    auto mockHandler = std::make_shared<MockTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+    auto client = OSSClient(config);
+
+    std::string data = "hello";
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-1"},
+             {"x-oss-hash-crc64ecma", "99999"},
+             {"x-oss-next-append-position", "5"}},
+            nullptr}));
+
+    auto request = models::AppendObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setPosition(0);
+    request.setBody(RequestBody::FromString(data));
+
+    auto outcome = client.appendObject(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientObjectBasicTest, AppendObject_CRC64Check_Disabled) {
+    auto mockHandler = std::make_shared<MockTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    ClientOptionsFns fns = {[](ClientOptions& opt) {
+        opt.featureFlags &= ~static_cast<int>(FeatureFlagsType::EnableCRC64CheckUpload);
+    }};
+    auto client = OSSClient(config, fns);
+
+    std::string data = "hello";
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-1"},
+             {"x-oss-hash-crc64ecma", "99999"},
+             {"x-oss-next-append-position", "5"}},
+            nullptr}));
+
+    auto request = models::AppendObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setPosition(0);
+    request.setInitHashCRC64(0);
+    request.setBody(RequestBody::FromString(data));
+
+    auto outcome = client.appendObject(request);
+    EXPECT_TRUE(outcome.has_value());
 }
 
 } // namespace alibabacloud::oss2
