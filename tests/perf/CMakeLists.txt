@@ -2,15 +2,9 @@ cmake_minimum_required(VERSION 3.15)
 
 project(cpp-sdk-perftest VERSION ${version})
 
-include(FetchContent)
-FetchContent_Declare(
-    benchmark
-    GIT_REPOSITORY https://github.com/google/benchmark.git
-    GIT_TAG        v1.9.1
-)
 set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
 set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(benchmark)
+add_subdirectory(${TEST_ROOT}/external/benchmark ${CMAKE_CURRENT_BINARY_DIR}/benchmark)
 
 file(GLOB perf_src "*.cpp")
 
@@ -27,6 +21,12 @@ target_link_libraries(${PROJECT_NAME}
 )
 if(USE_CURL_TRANSPORT)
     target_link_libraries(${PROJECT_NAME} ${CURL_LIB})
+endif()
+if(USE_WINHTTP_TRANSPORT AND WIN32)
+    target_link_libraries(${PROJECT_NAME} winhttp)
+endif()
+if(WIN32)
+    target_link_libraries(${PROJECT_NAME} ws2_32)
 endif()
 
 target_compile_options(${PROJECT_NAME}
