@@ -412,4 +412,125 @@ TEST(OSSAsyncClientExtensionTest, GetObjectToFileAsync_CRC64SkippedForRange) {
     std::remove(filePath.c_str());
 }
 
+// --- getObjectToFileAsync progress callback ---
+
+TEST(OSSAsyncClientExtensionTest, GetObjectToFileAsync_WithProgressCallback) {
+    auto mock = std::make_shared<MockAsyncTransport>();
+    auto client = makeAsyncClient(mock);
+
+    std::string content = "async progress callback test data";
+    uint64_t crc = utils::CalcCRC64(0, content.data(), content.size());
+
+    mock->responses.emplace_back(
+            std::make_unique<ResponseMessage>(ResponseMessage{200, "OK",
+                    {{"x-oss-request-id", "id-123"},
+                     {"Content-Length", std::to_string(content.size())},
+                     {"x-oss-hash-crc64ecma", std::to_string(crc)}}, nullptr}));
+    mock->bodyData = content;
+
+    auto filePath = std::string(std::tmpnam(nullptr));
+
+    auto records = std::make_shared<std::vector<std::tuple<std::size_t, std::size_t, std::int64_t>>>();
+    ProgressCallback cb;
+    cb.callback = [records](std::size_t increment, std::size_t transferred,
+                            std::int64_t total, std::uintptr_t) {
+        records->emplace_back(increment, transferred, total);
+    };
+
+    auto ar = std::make_shared<AsyncResult<GetObjectOutcome>>();
+    client.getObjectToFileAsync(
+            models::GetObjectRequest().setBucket("bucket").setKey("key").setProgressCallback(cb),
+            filePath,
+            [ar](GetObjectOutcome outcome) { ar->set(std::move(outcome)); });
+
+    auto outcome = ar->wait();
+    EXPECT_TRUE(outcome.has_value());
+    ASSERT_FALSE(records->empty());
+    auto& last = records->back();
+    EXPECT_EQ(content.size(), std::get<1>(last));
+    EXPECT_EQ(static_cast<std::int64_t>(content.size()), std::get<2>(last));
+    std::remove(filePath.c_str());
+}
+
+TEST(OSSAsyncClientExtensionTest, GetObjectToFileAsync_WithProgressCallbackAndCRC) {
+    auto mock = std::make_shared<MockAsyncTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.asyncHttpTransport = mock;
+    ClientOptionsFns fns = {[](ClientOptions& opt) {
+        opt.featureFlags |= static_cast<int>(FeatureFlagsType::EnableCRC64CheckDownload);
+    }};
+
+    auto client = OSSAsyncClient(config, fns);
+
+    std::string content = "async progress and crc together";
+    uint64_t crc = utils::CalcCRC64(0, content.data(), content.size());
+
+    mock->responses.emplace_back(
+            std::make_unique<ResponseMessage>(ResponseMessage{200, "OK",
+                    {{"x-oss-request-id", "id-123"},
+                     {"Content-Length", std::to_string(content.size())},
+                     {"x-oss-hash-crc64ecma", std::to_string(crc)}}, nullptr}));
+    mock->bodyData = content;
+
+    auto filePath = std::string(std::tmpnam(nullptr));
+
+    auto totalTransferred = std::make_shared<std::size_t>(0);
+    ProgressCallback cb;
+    cb.callback = [totalTransferred](std::size_t, std::size_t transferred,
+                                     std::int64_t, std::uintptr_t) {
+        *totalTransferred = transferred;
+    };
+
+    auto ar = std::make_shared<AsyncResult<GetObjectOutcome>>();
+    client.getObjectToFileAsync(
+            models::GetObjectRequest().setBucket("bucket").setKey("key").setProgressCallback(cb),
+            filePath,
+            [ar](GetObjectOutcome outcome) { ar->set(std::move(outcome)); });
+
+    auto outcome = ar->wait();
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(content.size(), *totalTransferred);
+
+    std::ifstream f(filePath, std::ios::binary);
+    std::string downloaded((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+    f.close();
+    EXPECT_EQ(content, downloaded);
+    std::remove(filePath.c_str());
+}
+
+TEST(OSSAsyncClientExtensionTest, GetObjectToFileAsync_NoProgressCallbackStillWorks) {
+    auto mock = std::make_shared<MockAsyncTransport>();
+    auto client = makeAsyncClient(mock);
+
+    std::string content = "no progress callback async";
+    uint64_t crc = utils::CalcCRC64(0, content.data(), content.size());
+
+    mock->responses.emplace_back(
+            std::make_unique<ResponseMessage>(ResponseMessage{200, "OK",
+                    {{"x-oss-request-id", "id-123"},
+                     {"Content-Length", std::to_string(content.size())},
+                     {"x-oss-hash-crc64ecma", std::to_string(crc)}}, nullptr}));
+    mock->bodyData = content;
+
+    auto filePath = std::string(std::tmpnam(nullptr));
+
+    auto ar = std::make_shared<AsyncResult<GetObjectOutcome>>();
+    client.getObjectToFileAsync(
+            models::GetObjectRequest().setBucket("bucket").setKey("key"),
+            filePath,
+            [ar](GetObjectOutcome outcome) { ar->set(std::move(outcome)); });
+
+    auto outcome = ar->wait();
+    EXPECT_TRUE(outcome.has_value());
+
+    std::ifstream f(filePath, std::ios::binary);
+    std::string downloaded((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+    f.close();
+    EXPECT_EQ(content, downloaded);
+    std::remove(filePath.c_str());
+}
+
 } // namespace alibabacloud::oss2

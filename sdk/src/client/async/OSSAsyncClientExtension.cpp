@@ -66,22 +66,36 @@ void OSSAsyncClient::getObjectToFileAsync(const models::GetObjectRequest& reques
                                           const std::string& filePath,
                                           const GetObjectAsyncCallback& callback,
                                           const OperationOptions* options) {
-    const bool crcEnabled = client_->hasFlag(FeatureFlagsType::EnableCRC64CheckDownload) &&
-                            request.getRange().empty();
-    auto crcObserver = crcEnabled ? std::make_shared<CRC64WriteObserver>() : nullptr;
-    auto fileStream = std::make_shared<std::shared_ptr<std::ofstream>>();
+    std::shared_ptr<CRC64WriteObserver> crcObserver = nullptr;
+    if (client_->hasFlag(FeatureFlagsType::EnableCRC64CheckDownload) && request.getRange().empty()) {
+        crcObserver = std::make_shared<CRC64WriteObserver>();
+    }
+    std::shared_ptr<ProgressWriteObserver> progressObs = nullptr;
+    if (request.getProgressCallback().has_value()) {
+        progressObs = std::make_shared<ProgressWriteObserver>(request.getProgressCallback().value(), -1);
+    }
 
     SinkFactory factory;
     factory.isOneShot = false;
-    factory.supplier = [fileStream, filePath, crcObserver](
-            std::int64_t /*contentLength*/) -> std::shared_ptr<ByteWriter> {
-        *fileStream = std::make_shared<std::ofstream>(filePath, std::ios::binary | std::ios::trunc);
-        auto writer = std::make_shared<OStreamWriter>(*fileStream);
+    factory.supplier = [filePath, crcObserver, progressObs](
+            std::int64_t contentLength) -> std::shared_ptr<ByteWriter> {
+        auto fileStream = std::make_shared<std::ofstream>(filePath, std::ios::binary | std::ios::trunc);
+        auto writer = std::make_shared<OStreamWriter>(fileStream);
+
+        if (!crcObserver && !progressObs) {
+            return writer;
+        }
+
+        auto observable = std::make_shared<ObservableWriter>(writer);
         if (crcObserver) {
             crcObserver->reset();
-            return std::make_shared<ObservableWriter>(writer, crcObserver);
+            observable->addObserver(crcObserver);
         }
-        return writer;
+        if (progressObs) {
+            progressObs->updateTotal(contentLength);
+            observable->addObserver(progressObs);
+        }
+        return observable;
     };
 
     auto req = request;
