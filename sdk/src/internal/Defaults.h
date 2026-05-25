@@ -19,8 +19,8 @@ constexpr long MAX_ATTEMPTS = 3;
 constexpr std::chrono::milliseconds BASE_DELAY = std::chrono::milliseconds(200);
 constexpr std::chrono::milliseconds MAX_BACKOFF = std::chrono::milliseconds(20000);
 
-// CorrectClockSkew + AutoDetectMimeType + EnableCRC64CheckUpload
-constexpr int FEATURE_FLAGS = 0x07;
+// CorrectClockSkew + AutoDetectMimeType + EnableCRC64CheckUpload + EnableCRC64CheckDownload
+constexpr int FEATURE_FLAGS = 0x0F;
 
 } // namespace defaults
 } // namespace internal

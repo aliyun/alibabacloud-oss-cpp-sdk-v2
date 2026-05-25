@@ -16,9 +16,11 @@ void OSSAsyncClient::initiateMultipartUploadAsync(const models::InitiateMultipar
     requiredFieldAsync(Key);
 
     auto input = transform::fromInitiateMultipartUpload(request);
-    if (input.headers.find("Content-Type") == input.headers.end()) {
-        // cppcheck-suppress stlFindInsert
-        input.headers.emplace("Content-Type", utils::LookupMimeType(request.getKey()));
+    if (client_->hasFlag(FeatureFlagsType::AutoDetectMimeType)) {
+        if (input.headers.find("Content-Type") == input.headers.end()) {
+            // cppcheck-suppress stlFindInsert
+            input.headers.emplace("Content-Type", utils::LookupMimeType(request.getKey()));
+        }
     }
     client_->ExecuteAsync(input, [callback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {

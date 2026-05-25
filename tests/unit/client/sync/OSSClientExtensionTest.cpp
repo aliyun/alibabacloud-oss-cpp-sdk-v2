@@ -356,7 +356,15 @@ TEST(OSSClientExtensionTest, GetObjectToFile_CRC64Mismatch) {
 
 TEST(OSSClientExtensionTest, GetObjectToFile_CRC64Disabled) {
     auto mock = std::make_shared<WritingMockTransport>();
-    auto client = makeClient(mock);
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mock;
+    ClientOptionsFns fns = {[](ClientOptions& opt) {
+        opt.featureFlags &= ~static_cast<int>(FeatureFlagsType::EnableCRC64CheckDownload);
+    }};
+    auto client = OSSClient(config, fns);
 
     std::string content = "data with wrong crc but disabled";
     mock->responses.push_back({200, {{"x-oss-request-id", "id-123"},
