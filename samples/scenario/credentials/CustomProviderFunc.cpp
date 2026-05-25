@@ -20,7 +20,7 @@ namespace oss = alibabacloud::oss2;
 static oss::Credentials loadCredentialsFromCustomSource() {
     // In a real application, you might read from:
     //   - A config file (e.g., ~/.ossrc)
-    //   - A secrets manager (e.g., HashiCorp Vault, AWS Secrets Manager)
+    //   - A secrets manager (e.g., HashiCorp Vault, KMS Secrets Manager)
     //   - A metadata service endpoint
     //   - A database
 
@@ -30,8 +30,13 @@ static oss::Credentials loadCredentialsFromCustomSource() {
     const char* token = std::getenv("MY_APP_SESSION_TOKEN");
 
     if (!ak || !sk) {
-        std::cerr << "MY_APP_ACCESS_KEY_ID and MY_APP_ACCESS_KEY_SECRET must be set" << std::endl;
-        exit(1);
+        // error message will be propagated to OperationError::getMessage()
+        return oss::Credentials::withError(
+            "MY_APP_ACCESS_KEY_ID and MY_APP_ACCESS_KEY_SECRET must be set");
+        // use withRetryableError for transient failures (e.g., network timeout),
+        // the SDK will retry fetching credentials automatically.
+        // return oss::Credentials::withRetryableError(
+        //     "MY_APP_ACCESS_KEY_ID and MY_APP_ACCESS_KEY_SECRET must be set");
     }
 
     return oss::Credentials(ak, sk, token ? token : "");

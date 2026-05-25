@@ -640,6 +640,63 @@ TEST(AsyncClientImplMockTest, returnsEmptyCredentials) {
     EXPECT_EQ("Credentials is null or empty.", error->getMessage());
 }
 
+TEST(AsyncClientImplMockTest, returnsCredentialsWithError) {
+    auto mockHandler = std::make_shared<MockAsyncTransportImpl>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<CredentialsProviderFunc>([]() {
+        return Credentials::withError("ECS metadata service unreachable");
+    });
+    config.asyncHttpTransport = mockHandler;
+    auto client = AsyncClientImpl(config, asyncDefaultClientFns);
+
+    auto input = OperationInput{};
+    input.opName = "PutObject";
+    input.method = "PUT";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    AsyncTestHelper helper;
+    client.ExecuteAsync(input, helper.callback());
+    helper.wait();
+
+    EXPECT_EQ(0ULL, mockHandler->requests.size());
+    auto error = std::get_if<OperationError>(&helper.result);
+
+    EXPECT_NE(nullptr, error);
+    EXPECT_EQ("CredentialsError", error->getCode());
+    EXPECT_EQ("ECS metadata service unreachable", error->getMessage());
+}
+
+
+TEST(AsyncClientImplMockTest, returnsRetryableCredentialsError) {
+    auto mockHandler = std::make_shared<MockAsyncTransportImpl>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<CredentialsProviderFunc>([]() {
+        return Credentials::withRetryableError("STS service unavailable");
+    });
+    config.asyncHttpTransport = mockHandler;
+    auto client = AsyncClientImpl(config, asyncDefaultClientFns);
+
+    auto input = OperationInput{};
+    input.opName = "PutObject";
+    input.method = "PUT";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    AsyncTestHelper helper;
+    client.ExecuteAsync(input, helper.callback());
+    helper.wait();
+
+    EXPECT_EQ(0ULL, mockHandler->requests.size());
+    auto error = std::get_if<OperationError>(&helper.result);
+
+    EXPECT_NE(nullptr, error);
+    EXPECT_EQ("CredentialsError", error->getCode());
+    EXPECT_EQ("STS service unavailable", error->getMessage());
+    EXPECT_EQ(error->getErrorCode(), make_error_condition(ErrorCondition::Retryable));
+}
 
 TEST(AsyncClientImplMockTest, transportErrorRetryable) {
     auto mockHandler = std::make_shared<MockAsyncTransportImpl>();

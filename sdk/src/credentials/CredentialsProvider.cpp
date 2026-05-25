@@ -9,7 +9,8 @@ Credentials EnvironmentVariableCredentialsProvider::getCredentials() {
     auto sk = std::getenv("OSS_ACCESS_KEY_SECRET");
 
     if (ak == nullptr || sk == nullptr) {
-        return Credentials("", "");
+        return Credentials::withError(
+            "environment variables OSS_ACCESS_KEY_ID and OSS_ACCESS_KEY_SECRET must be set");
     }
 
     auto token = std::getenv("OSS_SESSION_TOKEN");

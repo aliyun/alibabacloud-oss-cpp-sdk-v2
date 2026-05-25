@@ -719,6 +719,57 @@ TEST(ClientImplMockTest, returnsEmptyCredentials) {
 
 TEST(ClientImplMockTest, returnsNullCredentials) {}
 
+TEST(ClientImplMockTest, returnsCredentialsWithError) {
+    auto mockHandler = std::make_shared<MockTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<CredentialsProviderFunc>([]() {
+        return Credentials::withError("STS token refresh failed: connection timeout");
+    });
+    config.httpTransport = mockHandler;
+    auto client = ClientImpl(config, defaultClientFns);
+
+    auto input = OperationInput{};
+    input.opName = "PutObject";
+    input.method = "PUT";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    auto result = client.Execute(input);
+    EXPECT_EQ(0, mockHandler->requests.size());
+    auto error = std::get_if<OperationError>(&result);
+
+    EXPECT_NE(nullptr, error);
+    EXPECT_EQ("CredentialsError", error->getCode());
+    EXPECT_EQ("STS token refresh failed: connection timeout", error->getMessage());
+}
+
+
+TEST(ClientImplMockTest, returnsRetryableCredentialsError) {
+    auto mockHandler = std::make_shared<MockTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<CredentialsProviderFunc>([]() {
+        return Credentials::withRetryableError("STS service unavailable");
+    });
+    config.httpTransport = mockHandler;
+    auto client = ClientImpl(config, defaultClientFns);
+
+    auto input = OperationInput{};
+    input.opName = "PutObject";
+    input.method = "PUT";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    auto result = client.Execute(input);
+    EXPECT_EQ(0, mockHandler->requests.size());
+    auto error = std::get_if<OperationError>(&result);
+
+    EXPECT_NE(nullptr, error);
+    EXPECT_EQ("CredentialsError", error->getCode());
+    EXPECT_EQ("STS service unavailable", error->getMessage());
+    EXPECT_EQ(error->getErrorCode(), make_error_condition(ErrorCondition::Retryable));
+}
 
 TEST(ClientImplMockTest, useVirtualHostAddressingMode) {
     auto mockHandler = std::make_shared<MockTransport>();

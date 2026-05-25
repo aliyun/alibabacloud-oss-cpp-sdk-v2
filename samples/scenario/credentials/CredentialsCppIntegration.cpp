@@ -79,15 +79,19 @@ int main(int argc, char* argv[]) {
     std::cout << "Using credential type: " << credType << std::endl;
 
     // 2. Bridge to OSS SDK via oss::CredentialsProviderFunc
+    //    Use getCredential() to get a consistent snapshot of AK/SK/Token,
+    //    avoiding misalignment when credentials refresh between individual getter calls.
     auto provider = std::make_shared<oss::CredentialsProviderFunc>(
         [credClient]() -> oss::Credentials {
-            auto ak = credClient->getAccessKeyId();
-            auto sk = credClient->getAccessKeySecret();
-            auto token = credClient->getSecurityToken();
-            return oss::Credentials(
-                ak ? *ak : "",
-                sk ? *sk : "",
-                token ? *token : "");
+            auto cred = credClient->getCredential();
+            auto ak = cred.getAccessKeyId();
+            auto sk = cred.getAccessKeySecret();
+            if (ak.empty() || sk.empty()) {
+                return oss::Credentials::withRetryableError(
+                    "failed to get credentials from alibabacloud-credentials-cpp");
+            }
+            auto token = cred.getSecurityToken();
+            return oss::Credentials(std::move(ak), std::move(sk), std::move(token));
         });
 
     // 3. Create OSSClient with the bridged provider
