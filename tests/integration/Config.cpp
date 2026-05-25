@@ -1,6 +1,8 @@
 #include "Config.h"
 #include <algorithm>
 #include <chrono>
+#include <filesystem>
+#include <gtest/gtest.h>
 #include <sstream>
 #include <string.h>
 #include <string>
@@ -114,6 +116,25 @@ std::string Config::GenBucketName() {
     auto tp = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
     ss << "cpp-sdk-test-bucket-" << tp.time_since_epoch().count();
     return ss.str();
+}
+
+std::string Config::GetTempDir() {
+    auto tempDir = testing::internal::FilePath(testing::TempDir());
+    auto subDir = testing::internal::FilePath("cpp-sdk-test");
+    auto dir = testing::internal::FilePath::ConcatPaths(tempDir, subDir);
+    dir.CreateFolder();
+    return dir.string();
+}
+
+std::string Config::GenRandomFileName() {
+    auto dir = testing::internal::FilePath(GetTempDir());
+    auto baseName = testing::internal::FilePath("test-");
+    auto filepath = testing::internal::FilePath::GenerateUniqueFileName(dir, baseName, "tmp");
+    return filepath.string();
+}
+
+void Config::CleanTempDir() {
+    std::filesystem::remove_all(GetTempDir());
 }
 
 void Config::WaitForCacheExpire(int sec){

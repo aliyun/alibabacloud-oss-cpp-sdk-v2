@@ -26,5 +26,6 @@ if(WIN32)
 endif()
 
 target_compile_options(${PROJECT_NAME} PRIVATE "${SDK_COMPILER_FLAGS}")
+target_compile_definitions(${PROJECT_NAME} PRIVATE CPPHTTPLIB_NO_EXCEPTIONS)
 
 add_test(NAME cpp-sdk-e2emock COMMAND ${PROJECT_NAME})

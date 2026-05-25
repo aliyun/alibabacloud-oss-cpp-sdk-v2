@@ -7,6 +7,9 @@ class Config {
     static void LoadCfgFromEnv();
 
     static std::string GenBucketName();
+    static std::string GenRandomFileName();
+    static std::string GetTempDir();
+    static void CleanTempDir();
     static void WaitForCacheExpire(int sec);
 
   public:

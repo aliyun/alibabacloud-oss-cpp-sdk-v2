@@ -48,6 +48,7 @@ class AsyncObjectExtensionTest : public ::testing::Test {
 
     static void TearDownTestCase() {
         ClientHelper::CleanBucketsByPrefix(bucketName_);
+        Config::CleanTempDir();
     }
 
   public:
@@ -63,7 +64,7 @@ TEST_F(AsyncObjectExtensionTest, PutObjectFromFileAsync_Normal) {
     std::string key = "test-async-put-from-file";
     std::string content = "hello async put object from file";
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = Config::GenRandomFileName();
     {
         std::ofstream f(filePath, std::ios::binary);
         f << content;
@@ -95,7 +96,7 @@ TEST_F(AsyncObjectExtensionTest, PutObjectFromFileAsync_LargeFile) {
     std::string key = "test-async-put-from-file-large";
     std::string content(512 * 1024 + 123, 'A');
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = Config::GenRandomFileName();
     {
         std::ofstream f(filePath, std::ios::binary);
         f << content;
@@ -125,7 +126,7 @@ TEST_F(AsyncObjectExtensionTest, GetObjectToFileAsync_Normal) {
                     .setBody(RequestBody::FromString(content)));
     EXPECT_TRUE(putFuture.get().has_value());
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = Config::GenRandomFileName();
 
     auto ar = std::make_shared<AsyncResult<GetObjectOutcome>>();
     client->getObjectToFileAsync(
@@ -153,7 +154,7 @@ TEST_F(AsyncObjectExtensionTest, GetObjectToFileAsync_LargeObject) {
                     .setBody(RequestBody::FromString(content)));
     EXPECT_TRUE(putFuture.get().has_value());
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = Config::GenRandomFileName();
 
     auto ar = std::make_shared<AsyncResult<GetObjectOutcome>>();
     client->getObjectToFileAsync(
@@ -174,7 +175,7 @@ TEST_F(AsyncObjectExtensionTest, GetObjectToFileAsync_LargeObject) {
 TEST_F(AsyncObjectExtensionTest, GetObjectToFileAsync_NotExist) {
     auto client = ClientHelper::GetDefaultClient();
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = Config::GenRandomFileName();
 
     auto ar = std::make_shared<AsyncResult<GetObjectOutcome>>();
     client->getObjectToFileAsync(
@@ -197,7 +198,7 @@ TEST_F(AsyncObjectExtensionTest, GetObjectToFileAsync_TruncatesExisting) {
                     .setBody(RequestBody::FromString(content)));
     EXPECT_TRUE(putFuture.get().has_value());
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = Config::GenRandomFileName();
     {
         std::ofstream f(filePath, std::ios::binary);
         f << std::string(4096, 'Z');

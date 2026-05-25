@@ -9,6 +9,8 @@
 #include "alibabacloud/oss2/transport/HttpTransport.h"
 #include "alibabacloud/oss2/utils/CRC64Utils.h"
 
+#include "TestUtils.h"
+
 #include <condition_variable>
 #include <cstdio>
 #include <fstream>
@@ -139,7 +141,7 @@ TEST(OSSAsyncClientExtensionTest, PutObjectFromFileAsync_Success) {
     auto client = makeAsyncClient(mock);
 
     std::string content = "async file upload";
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
     {
         std::ofstream f(filePath, std::ios::binary);
         f << content;
@@ -254,7 +256,7 @@ TEST(OSSAsyncClientExtensionTest, GetObjectToFileAsync_Success) {
                      {"x-oss-hash-crc64ecma", std::to_string(crc)}}, nullptr}));
     mock->bodyData = content;
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     auto ar = std::make_shared<AsyncResult<GetObjectOutcome>>();
     client.getObjectToFileAsync(
@@ -291,7 +293,7 @@ TEST(OSSAsyncClientExtensionTest, GetObjectToFileAsync_CRC64ResetOnRetry) {
                              {"Content-Length", std::to_string(content.size())},
                              {"x-oss-hash-crc64ecma", std::to_string(crc)}};
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     auto ar = std::make_shared<AsyncResult<GetObjectOutcome>>();
     client.getObjectToFileAsync(
@@ -326,7 +328,7 @@ TEST(OSSAsyncClientExtensionTest, GetObjectToFileAsync_CRC64Mismatch) {
                      {"x-oss-hash-crc64ecma", "99999"}}, nullptr}));
     mock->bodyData = content;
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     auto ar = std::make_shared<AsyncResult<GetObjectOutcome>>();
     client.getObjectToFileAsync(
@@ -359,7 +361,7 @@ TEST(OSSAsyncClientExtensionTest, GetObjectToFileAsync_CRC64Disabled) {
                      {"x-oss-hash-crc64ecma", "99999"}}, nullptr}));
     mock->bodyData = content;
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     auto ar = std::make_shared<AsyncResult<GetObjectOutcome>>();
     client.getObjectToFileAsync(
@@ -394,7 +396,7 @@ TEST(OSSAsyncClientExtensionTest, GetObjectToFileAsync_CRC64SkippedForRange) {
                      {"x-oss-hash-crc64ecma", "99999"}}, nullptr}));
     mock->bodyData = content;
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     auto ar = std::make_shared<AsyncResult<GetObjectOutcome>>();
     client.getObjectToFileAsync(
@@ -423,7 +425,7 @@ TEST(OSSAsyncClientExtensionTest, GetObjectToFileAsync_WithProgressCallback) {
                      {"x-oss-hash-crc64ecma", std::to_string(crc)}}, nullptr}));
     mock->bodyData = content;
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     auto records = std::make_shared<std::vector<std::tuple<std::size_t, std::size_t, std::int64_t>>>();
     ProgressCallback cb;
@@ -466,7 +468,7 @@ TEST(OSSAsyncClientExtensionTest, GetObjectToFileAsync_WithProgressCallbackAndCR
                      {"x-oss-hash-crc64ecma", std::to_string(crc)}}, nullptr}));
     mock->bodyData = content;
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     auto totalTransferred = std::make_shared<std::size_t>(0);
     ProgressCallback cb;
@@ -506,7 +508,7 @@ TEST(OSSAsyncClientExtensionTest, GetObjectToFileAsync_NoProgressCallbackStillWo
                      {"x-oss-hash-crc64ecma", std::to_string(crc)}}, nullptr}));
     mock->bodyData = content;
 
-    auto filePath = std::string(std::tmpnam(nullptr));
+    auto filePath = TestUtils::GenRandomFileName();
 
     auto ar = std::make_shared<AsyncResult<GetObjectOutcome>>();
     client.getObjectToFileAsync(
