@@ -20,8 +20,7 @@ TEST(OSSClientObjectBasicCallAsyncTest, PutObject_Future_Success) {
 
     mockHandler->responses.emplace_back(
             std::make_unique<ResponseMessage>(ResponseMessage{200, "OK",
-                {{"x-oss-hash-crc64ecma", "123456789"},
-                 {"x-oss-version-id", "version123"},
+                {{"x-oss-version-id", "version123"},
                  {"x-oss-request-id", "id-1234"}},
                 nullptr}));
 

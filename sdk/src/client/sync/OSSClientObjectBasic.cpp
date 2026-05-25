@@ -34,6 +34,12 @@ PutObjectOutcome OSSClient::putObject(const models::PutObjectRequest& request, c
                 std::make_shared<internal::ProgressObserver>(request.getProgressCallback().value(), total));
     }
 
+    if (client_->hasFlag(FeatureFlagsType::EnableCRC64CheckUpload) && request.hasBody()) {
+        auto crcObserver = std::make_shared<internal::CRC64Observer>(0);
+        innerOpts.uploadObserver.push_back(crcObserver);
+        innerOpts.onResponseMessage.emplace_back(internal::CRC64ResponseChecker{crcObserver});
+    }
+
     auto result = client_->Execute(input, options, &innerOpts);
     if (std::holds_alternative<OperationError>(result)) {
         return makeUnexpected(std::get<OperationError>(result));
@@ -86,11 +92,35 @@ AppendObjectOutcome OSSClient::appendObject(const models::AppendObjectRequest& r
         }
     }
 
-    auto result = client_->Execute(input, options);
+    internal::OperationInnerOptions innerOpts;
+    std::shared_ptr<internal::CRC64Observer> crcObserver;
+    if (client_->hasFlag(FeatureFlagsType::EnableCRC64CheckUpload)
+        && request.hasBody() && request.getInitHashCRC64().has_value()) {
+        crcObserver = std::make_shared<internal::CRC64Observer>(request.getInitHashCRC64().value());
+        innerOpts.uploadObserver.push_back(crcObserver);
+    }
+
+    auto result = client_->Execute(input, options, &innerOpts);
     if (std::holds_alternative<OperationError>(result)) {
         return makeUnexpected(std::get<OperationError>(result));
     }
-    return transform::toAppendObject(std::move(std::get<OperationOutput>(result)));
+
+    auto appendOutcome = transform::toAppendObject(std::move(std::get<OperationOutput>(result)));
+
+    if (crcObserver && appendOutcome.has_value()) {
+        const auto& serverCrc = appendOutcome.value().getHashCrc64ecma();
+        if (!serverCrc.empty()) {
+            auto ccrc = crcObserver->crcAsString();
+            if (ccrc != serverCrc) {
+                return makeUnexpected(OperationError(
+                    ClientErrorCode::CrcMismatch,
+                    {{"Code", "CRCInconsistent"},
+                     {"Message", "crc is inconsistent, client crc:" + ccrc + ", server crc:" + serverCrc}}));
+            }
+        }
+    }
+
+    return appendOutcome;
 }
 
 SealAppendObjectOutcome OSSClient::sealAppendObject(const models::SealAppendObjectRequest& request,

@@ -1,9 +1,12 @@
 #include <gtest/gtest.h>
 
 #include "alibabacloud/oss2/ClientConfiguration.h"
+#include "alibabacloud/oss2/ClientOptions.h"
 #include "alibabacloud/oss2/OSSAsyncClient.h"
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
 #include "alibabacloud/oss2/io/ByteStream.h"
+#include "alibabacloud/oss2/utils/CRC64Utils.h"
+#include "CRC64MockAsyncTransport.h"
 #include "MockAsyncTransport.h"
 
 namespace alibabacloud::oss2 {
@@ -207,6 +210,67 @@ TEST(OSSAsyncClientObjectMultipartTest, UploadPartAsync_Progress) {
     EXPECT_GT(callCount, 0);
     EXPECT_EQ(data.size(), lastTransferred);
     EXPECT_EQ(data.size(), totalIncrement);
+}
+
+// --- CRC64 Upload Check Tests: Async UploadPart ---
+
+TEST(OSSAsyncClientObjectMultipartTest, UploadPartAsync_CRC64Check_Success) {
+    auto mockTransport = std::make_shared<CRC64MockAsyncTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.asyncHttpTransport = mockTransport;
+    auto client = OSSAsyncClient(config);
+
+    std::string data = "Hello, OSS!";
+    uint64_t crc = utils::CalcCRC64(0, data.data(), data.size());
+
+    mockTransport->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-1"},
+             {"ETag", "\"etag-1\""},
+             {"x-oss-hash-crc64ecma", std::to_string(crc)}},
+            nullptr}));
+
+    auto request = models::UploadPartRequest();
+    request.setBucket("test-bucket").setKey("test-key");
+    request.setPartNumber(1);
+    request.setUploadId("upload-123");
+    request.setBody(RequestBody::FromString(data));
+
+    auto future = client.asyncCall(request);
+    auto outcome = future.get();
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(1ULL, mockTransport->requests.size());
+}
+
+TEST(OSSAsyncClientObjectMultipartTest, UploadPartAsync_CRC64Check_Mismatch) {
+    auto mockTransport = std::make_shared<CRC64MockAsyncTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.asyncHttpTransport = mockTransport;
+    auto client = OSSAsyncClient(config);
+
+    std::string data = "Hello, OSS!";
+
+    for (int i = 0; i < 4; ++i) {
+        mockTransport->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+                200, "OK",
+                {{"x-oss-request-id", "id-1"}, {"ETag", "\"etag-1\""}, {"x-oss-hash-crc64ecma", "99999"}},
+                nullptr}));
+    }
+
+    auto request = models::UploadPartRequest();
+    request.setBucket("test-bucket").setKey("test-key");
+    request.setPartNumber(1);
+    request.setUploadId("upload-123");
+    request.setBody(RequestBody::FromString(data));
+
+    auto future = client.asyncCall(request);
+    auto outcome = future.get();
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("CRCInconsistent", outcome.error().getCode());
 }
 
 } // namespace alibabacloud::oss2

@@ -344,7 +344,7 @@ TEST(OSSAsyncClientExtensionTest, GetObjectToFileAsync_CRC64Mismatch) {
 
     auto outcome = ar->wait();
     EXPECT_FALSE(outcome.has_value());
-    EXPECT_EQ("CrcMismatch", outcome.error().getCode());
+    EXPECT_EQ("CRCInconsistent", outcome.error().getCode());
     std::remove(filePath.c_str());
 }
 

@@ -105,12 +105,12 @@ void OSSAsyncClient::getObjectToFileAsync(const models::GetObjectRequest& reques
         if (outcome.has_value() && crcObserver) {
             const auto& serverCrc = outcome.value().getHashCrc64ecma();
             if (!serverCrc.empty()) {
-                uint64_t expected = outcome.value().getHashCrc64ecmaAsUint64();
-                if (expected != crcObserver->crc()) {
+                auto ccrc = crcObserver->crcAsString();
+                if (ccrc != serverCrc) {
                     callback(makeUnexpected(OperationError(
                             ClientErrorCode::CrcMismatch,
-                            {{"Code", "CrcMismatch"},
-                             {"Message", "CRC-64 verification failed"}})));
+                            {{"Code", "CRCInconsistent"},
+                             {"Message", "crc is inconsistent, client crc:" + ccrc + ", server crc:" + serverCrc}})));
                     return;
                 }
             }

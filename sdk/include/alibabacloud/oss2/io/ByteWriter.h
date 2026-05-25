@@ -208,7 +208,10 @@ class ALIBABACLOUD_OSS_API CRC64WriteObserver : public ByteWriterObserver {
     explicit CRC64WriteObserver(uint64_t init = 0) : init_(init), value_(init) {}
 
     /// Returns the current CRC-64 checksum value.
-    uint64_t crc() const { return value_; }
+    inline uint64_t crc() const { return value_; }
+
+    /// Returns the current CRC-64 checksum as a decimal string.
+    inline std::string crcAsString() const { return std::to_string(value_); }
 
   private:
     std::size_t onWrite(const std::uint8_t* data, std::size_t n) override;
