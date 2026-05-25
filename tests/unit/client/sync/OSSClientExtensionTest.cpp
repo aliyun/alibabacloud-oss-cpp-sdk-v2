@@ -331,11 +331,8 @@ TEST(OSSClientExtensionTest, GetObjectToFile_CRC64Mismatch) {
     config.region = "cn-hangzhou";
     config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
     config.httpTransport = mock;
-    ClientOptionsFns fns = {[](ClientOptions& opt) {
-        opt.featureFlags |= static_cast<int>(FeatureFlagsType::EnableCRC64CheckDownload);
-    }};
 
-    auto client = OSSClient(config, fns);
+    auto client = OSSClient(config);
 
     std::string content = "data for crc mismatch test";
     mock->responses.push_back({200, {{"x-oss-request-id", "id-123"},
@@ -361,10 +358,9 @@ TEST(OSSClientExtensionTest, GetObjectToFile_CRC64Disabled) {
     config.region = "cn-hangzhou";
     config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
     config.httpTransport = mock;
-    ClientOptionsFns fns = {[](ClientOptions& opt) {
-        opt.featureFlags &= ~static_cast<int>(FeatureFlagsType::EnableCRC64CheckDownload);
-    }};
-    auto client = OSSClient(config, fns);
+    config.disableDownloadCRC64Check = true;
+
+    auto client = OSSClient(config);
 
     std::string content = "data with wrong crc but disabled";
     mock->responses.push_back({200, {{"x-oss-request-id", "id-123"},
@@ -394,11 +390,8 @@ TEST(OSSClientExtensionTest, GetObjectToFile_CRC64SkippedForRange) {
     config.region = "cn-hangzhou";
     config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
     config.httpTransport = mock;
-    ClientOptionsFns fns = {[](ClientOptions& opt) {
-        opt.featureFlags |= static_cast<int>(FeatureFlagsType::EnableCRC64CheckDownload);
-    }};
 
-    auto client = OSSClient(config, fns);
+    auto client = OSSClient(config);
 
     std::string content = "partial data";
     mock->responses.push_back({206, {{"x-oss-request-id", "id-123"},
@@ -507,11 +500,8 @@ TEST(OSSClientExtensionTest, GetObjectToFile_WithProgressCallbackAndCRC) {
     config.region = "cn-hangzhou";
     config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
     config.httpTransport = mock;
-    ClientOptionsFns fns = {[](ClientOptions& opt) {
-        opt.featureFlags |= static_cast<int>(FeatureFlagsType::EnableCRC64CheckDownload);
-    }};
 
-    auto client = OSSClient(config, fns);
+    auto client = OSSClient(config);
 
     std::string content = "progress and crc together";
     uint64_t crc = utils::CalcCRC64(0, content.data(), content.size());

@@ -110,7 +110,9 @@ static bool onClockSkewError(std::unique_ptr<ResponseMessage>& response, Execute
         }
     }
 
-    if (!isClockSkewError) return true;
+    if (!isClockSkewError) {
+        return true;
+    }
 
     std::time_t serverTime = -1;
     auto dateIt = response->headers.find("Date");
@@ -125,7 +127,9 @@ static bool onClockSkewError(std::unique_ptr<ResponseMessage>& response, Execute
         }
     }
 
-    if (serverTime == -1) return true;
+    if (serverTime == -1) {
+        return true;
+    }
 
     auto localTime = std::time(nullptr);
     auto newOffset = static_cast<int64_t>(serverTime - localTime);
@@ -241,8 +245,21 @@ std::string ClientImplBase::resolveUserAgent(const struct ClientConfiguration& c
     return ss.str();
 }
 
-int ClientImplBase::resolveFeatureFlags([[maybe_unused]] const struct ClientConfiguration& config) {
-    return defaults::FEATURE_FLAGS;
+int ClientImplBase::resolveFeatureFlags(const struct ClientConfiguration& config) {
+    int flags = defaults::FEATURE_FLAGS;
+    if (config.disableClockSkewCorrection.value_or(false)) {
+        flags &= ~static_cast<int>(FeatureFlagsType::CorrectClockSkew);
+    }
+    if (config.disableAutoDetectMimeType.value_or(false)) {
+        flags &= ~static_cast<int>(FeatureFlagsType::AutoDetectMimeType);
+    }
+    if (config.disableUploadCRC64Check.value_or(false)) {
+        flags &= ~static_cast<int>(FeatureFlagsType::EnableCRC64CheckUpload);
+    }
+    if (config.disableDownloadCRC64Check.value_or(false)) {
+        flags &= ~static_cast<int>(FeatureFlagsType::EnableCRC64CheckDownload);
+    }
+    return flags;
 }
 
 void ClientImplBase::verifyOperation(const OperationInput& input, ExecuteContext& context) const {

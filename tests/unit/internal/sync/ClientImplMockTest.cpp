@@ -2440,11 +2440,9 @@ TEST(ClientImplMockTest, ClockSkew_DisabledFlag) {
     config.region = "cn-hangzhou";
     config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
     config.httpTransport = mockHandler;
+    config.disableClockSkewCorrection = true;
 
-    ClientOptionsFns fns = {[](ClientOptions& opt) {
-        opt.featureFlags &= ~static_cast<int>(FeatureFlagsType::CorrectClockSkew);
-    }};
-    auto client = ClientImpl(config, fns);
+    auto client = ClientImpl(config, defaultClientFns);
 
     auto serverTime = std::time(nullptr) + 600;
     auto serverDateStr = utils::ToGmtTime(serverTime);
@@ -2784,6 +2782,132 @@ TEST(ClientImplMockTest, PrePostServiceError_SuccessHandlersRunOn2xx) {
     auto output = std::get_if<OperationOutput>(&result);
     EXPECT_NE(nullptr, output);
     EXPECT_EQ(200, output->statusCode);
+}
+
+
+// ---------------------------------------------------------------------------
+// Feature Flags Configuration Tests
+// ---------------------------------------------------------------------------
+
+TEST(ClientImplMockTest, FeatureFlags_DefaultAllEnabled) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = ClientImpl(config, defaultClientFns);
+
+    EXPECT_TRUE(client.hasFlag(FeatureFlagsType::CorrectClockSkew));
+    EXPECT_TRUE(client.hasFlag(FeatureFlagsType::AutoDetectMimeType));
+    EXPECT_TRUE(client.hasFlag(FeatureFlagsType::EnableCRC64CheckUpload));
+    EXPECT_TRUE(client.hasFlag(FeatureFlagsType::EnableCRC64CheckDownload));
+}
+
+TEST(ClientImplMockTest, FeatureFlags_DisableClockSkewCorrection) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+    config.disableClockSkewCorrection = true;
+
+    auto client = ClientImpl(config, defaultClientFns);
+
+    EXPECT_FALSE(client.hasFlag(FeatureFlagsType::CorrectClockSkew));
+    EXPECT_TRUE(client.hasFlag(FeatureFlagsType::AutoDetectMimeType));
+    EXPECT_TRUE(client.hasFlag(FeatureFlagsType::EnableCRC64CheckUpload));
+    EXPECT_TRUE(client.hasFlag(FeatureFlagsType::EnableCRC64CheckDownload));
+}
+
+TEST(ClientImplMockTest, FeatureFlags_DisableAutoDetectMimeType) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+    config.disableAutoDetectMimeType = true;
+
+    auto client = ClientImpl(config, defaultClientFns);
+
+    EXPECT_TRUE(client.hasFlag(FeatureFlagsType::CorrectClockSkew));
+    EXPECT_FALSE(client.hasFlag(FeatureFlagsType::AutoDetectMimeType));
+    EXPECT_TRUE(client.hasFlag(FeatureFlagsType::EnableCRC64CheckUpload));
+    EXPECT_TRUE(client.hasFlag(FeatureFlagsType::EnableCRC64CheckDownload));
+}
+
+TEST(ClientImplMockTest, FeatureFlags_DisableUploadCRC64Check) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+    config.disableUploadCRC64Check = true;
+
+    auto client = ClientImpl(config, defaultClientFns);
+
+    EXPECT_TRUE(client.hasFlag(FeatureFlagsType::CorrectClockSkew));
+    EXPECT_TRUE(client.hasFlag(FeatureFlagsType::AutoDetectMimeType));
+    EXPECT_FALSE(client.hasFlag(FeatureFlagsType::EnableCRC64CheckUpload));
+    EXPECT_TRUE(client.hasFlag(FeatureFlagsType::EnableCRC64CheckDownload));
+}
+
+TEST(ClientImplMockTest, FeatureFlags_DisableDownloadCRC64Check) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+    config.disableDownloadCRC64Check = true;
+
+    auto client = ClientImpl(config, defaultClientFns);
+
+    EXPECT_TRUE(client.hasFlag(FeatureFlagsType::CorrectClockSkew));
+    EXPECT_TRUE(client.hasFlag(FeatureFlagsType::AutoDetectMimeType));
+    EXPECT_TRUE(client.hasFlag(FeatureFlagsType::EnableCRC64CheckUpload));
+    EXPECT_FALSE(client.hasFlag(FeatureFlagsType::EnableCRC64CheckDownload));
+}
+
+TEST(ClientImplMockTest, FeatureFlags_DisableMultiple) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+    config.disableClockSkewCorrection = true;
+    config.disableUploadCRC64Check = true;
+    config.disableDownloadCRC64Check = true;
+
+    auto client = ClientImpl(config, defaultClientFns);
+
+    EXPECT_FALSE(client.hasFlag(FeatureFlagsType::CorrectClockSkew));
+    EXPECT_TRUE(client.hasFlag(FeatureFlagsType::AutoDetectMimeType));
+    EXPECT_FALSE(client.hasFlag(FeatureFlagsType::EnableCRC64CheckUpload));
+    EXPECT_FALSE(client.hasFlag(FeatureFlagsType::EnableCRC64CheckDownload));
+}
+
+TEST(ClientImplMockTest, FeatureFlags_ExplicitFalseKeepsEnabled) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+    config.disableClockSkewCorrection = false;
+    config.disableAutoDetectMimeType = false;
+
+    auto client = ClientImpl(config, defaultClientFns);
+
+    EXPECT_TRUE(client.hasFlag(FeatureFlagsType::CorrectClockSkew));
+    EXPECT_TRUE(client.hasFlag(FeatureFlagsType::AutoDetectMimeType));
+    EXPECT_TRUE(client.hasFlag(FeatureFlagsType::EnableCRC64CheckUpload));
+    EXPECT_TRUE(client.hasFlag(FeatureFlagsType::EnableCRC64CheckDownload));
 }
 
 } // namespace internal

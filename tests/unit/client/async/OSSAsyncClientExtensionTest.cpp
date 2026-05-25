@@ -279,11 +279,7 @@ TEST(OSSAsyncClientExtensionTest, GetObjectToFileAsync_CRC64ResetOnRetry) {
     config.region = "cn-hangzhou";
     config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
     config.asyncHttpTransport = mock;
-    ClientOptionsFns fns = {[](ClientOptions& opt) {
-        opt.featureFlags |= static_cast<int>(FeatureFlagsType::EnableCRC64CheckDownload);
-    }};
-
-    auto client = OSSAsyncClient(config, fns);
+    auto client = OSSAsyncClient(config);
 
     std::string content = "full download content after retry";
     uint64_t crc = utils::CalcCRC64(0, content.data(), content.size());
@@ -320,11 +316,7 @@ TEST(OSSAsyncClientExtensionTest, GetObjectToFileAsync_CRC64Mismatch) {
     config.region = "cn-hangzhou";
     config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
     config.asyncHttpTransport = mock;
-    ClientOptionsFns fns = {[](ClientOptions& opt) {
-        opt.featureFlags |= static_cast<int>(FeatureFlagsType::EnableCRC64CheckDownload);
-    }};
-
-    auto client = OSSAsyncClient(config, fns);
+    auto client = OSSAsyncClient(config);
 
     std::string content = "data for async crc mismatch test";
     mock->responses.emplace_back(
@@ -355,10 +347,9 @@ TEST(OSSAsyncClientExtensionTest, GetObjectToFileAsync_CRC64Disabled) {
     config.region = "cn-hangzhou";
     config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
     config.asyncHttpTransport = mock;
-    ClientOptionsFns fns = {[](ClientOptions& opt) {
-        opt.featureFlags &= ~static_cast<int>(FeatureFlagsType::EnableCRC64CheckDownload);
-    }};
-    auto client = OSSAsyncClient(config, fns);
+    config.disableDownloadCRC64Check = true;
+
+    auto client = OSSAsyncClient(config);
 
     std::string content = "data with wrong crc but disabled";
     mock->responses.emplace_back(
@@ -393,11 +384,7 @@ TEST(OSSAsyncClientExtensionTest, GetObjectToFileAsync_CRC64SkippedForRange) {
     config.region = "cn-hangzhou";
     config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
     config.asyncHttpTransport = mock;
-    ClientOptionsFns fns = {[](ClientOptions& opt) {
-        opt.featureFlags |= static_cast<int>(FeatureFlagsType::EnableCRC64CheckDownload);
-    }};
-
-    auto client = OSSAsyncClient(config, fns);
+    auto client = OSSAsyncClient(config);
 
     std::string content = "partial data";
     mock->responses.emplace_back(
@@ -467,11 +454,7 @@ TEST(OSSAsyncClientExtensionTest, GetObjectToFileAsync_WithProgressCallbackAndCR
     config.region = "cn-hangzhou";
     config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
     config.asyncHttpTransport = mock;
-    ClientOptionsFns fns = {[](ClientOptions& opt) {
-        opt.featureFlags |= static_cast<int>(FeatureFlagsType::EnableCRC64CheckDownload);
-    }};
-
-    auto client = OSSAsyncClient(config, fns);
+    auto client = OSSAsyncClient(config);
 
     std::string content = "async progress and crc together";
     uint64_t crc = utils::CalcCRC64(0, content.data(), content.size());
