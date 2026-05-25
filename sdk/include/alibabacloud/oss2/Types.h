@@ -53,7 +53,7 @@ enum class FeatureFlagsType {
 
     /**
      * Check data integrity of downloads via the crc64.
-     * This feature takes effect for Downloader.DownloadFile
+     * This feature takes effect for GetObjectToFile and Downloader.DownloadFile
      */
     EnableCRC64CheckDownload = (1 << 3),
 };
