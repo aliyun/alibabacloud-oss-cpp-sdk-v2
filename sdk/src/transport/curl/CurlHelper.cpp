@@ -42,11 +42,12 @@ size_t recvBodyCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
         long response_code = 0;
         curl_easy_getinfo(io->curl, CURLINFO_RESPONSE_CODE, &response_code);
         if (response_code / 100 != 2 || response_code == 203 ||
-            io->ostreamFactory == nullptr || !io->ostreamFactory->has_value()) {
+            io->sinkFactory == nullptr || !io->sinkFactory->has_value()) {
             io->defaultSink = std::make_shared<std::stringstream>();
-            io->sink = io->defaultSink.get();
+            io->userSink = std::make_shared<OStreamWriter>(io->defaultSink);
+            io->sink = io->userSink.get();
         } else {
-            io->userSink = io->ostreamFactory->value()(io->recvDataLength);
+            io->userSink = io->sinkFactory->value()(io->recvDataLength);
             io->sink = io->userSink.get();
         }
         io->recvFirstData = false;
@@ -56,7 +57,7 @@ size_t recvBodyCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
         return 0;
     }
 
-    io->sink->write(ptr, static_cast<std::streamsize>(wanted));
+    io->sink->write(reinterpret_cast<const std::uint8_t*>(ptr), wanted);
     if (io->sink->bad()) {
         return 0;
     }

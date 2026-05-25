@@ -231,8 +231,8 @@ void ClientImplBase::applyOperationOptions(ExecuteContext& context, const Operat
     context.signingContext.region = options_.region;
     context.signingContext.authMethodQuery = false;
 
-    if (innerOpts->ostreamFactory.has_value()) {
-        context.transportContext.ostreamFactory = innerOpts->ostreamFactory;
+    if (innerOpts->sinkFactory.has_value()) {
+        context.transportContext.sinkFactory = innerOpts->sinkFactory;
     }
 
     if (opts->cancellationToken.has_value() && opts->cancellationToken->canBeCanceled()) {

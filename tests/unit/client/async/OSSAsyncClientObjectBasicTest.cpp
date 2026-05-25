@@ -4,6 +4,7 @@
 #include "alibabacloud/oss2/OSSAsyncClient.h"
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
 #include "alibabacloud/oss2/io/ByteStream.h"
+#include "alibabacloud/oss2/io/ByteWriter.h"
 #include "MockAsyncTransport.h"
 
 namespace alibabacloud::oss2 {
@@ -112,7 +113,7 @@ TEST(OSSAsyncClientObjectBasicTest, GetObjectAsync_Success) {
     EXPECT_EQ(200, outcome.value().getStatusCode());
 }
 
-TEST(OSSAsyncClientObjectBasicTest, GetObjectAsync_WithOStreamFactory) {
+TEST(OSSAsyncClientObjectBasicTest, GetObjectAsync_WithSinkFactory) {
     class ContextCaptureMockAsync : public AsyncHttpTransport {
       public:
         void sendAsync(std::unique_ptr<RequestMessage> request,
@@ -136,24 +137,24 @@ TEST(OSSAsyncClientObjectBasicTest, GetObjectAsync_WithOStreamFactory) {
     config.asyncHttpTransport = mockTransport;
     auto client = OSSAsyncClient(config);
 
-    OStreamFactory factory;
-    factory.supplier = [](std::int64_t size) {
-        return std::make_shared<std::stringstream>();
+    SinkFactory factory;
+    factory.supplier = [](std::int64_t size) -> std::shared_ptr<ByteWriter> {
+        return std::make_shared<OStreamWriter>(std::make_shared<std::stringstream>());
     };
     factory.isOneShot = false;
 
     auto request = models::GetObjectRequest();
-    request.setBucket("test-bucket").setKey("test-key").setOStreamFactory(factory);
+    request.setBucket("test-bucket").setKey("test-key").setSinkFactory(factory);
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
     EXPECT_TRUE(outcome.has_value());
-    ASSERT_TRUE(mockTransport->capturedOptions.ostreamFactory.has_value());
-    EXPECT_FALSE(mockTransport->capturedOptions.ostreamFactory->isOneShot);
-    EXPECT_NE(nullptr, mockTransport->capturedOptions.ostreamFactory->supplier);
+    ASSERT_TRUE(mockTransport->capturedOptions.sinkFactory.has_value());
+    EXPECT_FALSE(mockTransport->capturedOptions.sinkFactory->isOneShot);
+    EXPECT_NE(nullptr, mockTransport->capturedOptions.sinkFactory->supplier);
 }
 
-TEST(OSSAsyncClientObjectBasicTest, GetObjectAsync_WithoutOStreamFactory) {
+TEST(OSSAsyncClientObjectBasicTest, GetObjectAsync_WithoutSinkFactory) {
     auto mockTransport = std::make_shared<MockAsyncTransport>();
     auto config = ClientConfiguration::loadDefault();
     config.region = "cn-hangzhou";

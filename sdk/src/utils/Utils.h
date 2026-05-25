@@ -39,9 +39,9 @@ void HmacSh256(const void* data, size_t numDataBytes, const void* key, size_t nu
 std::string HashSh256(const void* data, size_t numDataBytes);
 
 // crc64 utils
-uint64_t CalcCRC64(uint64_t crc, void* buf, size_t len);
+uint64_t CalcCRC64(uint64_t crc, const void* buf, size_t len);
 uint64_t CombineCRC64(uint64_t crc1, uint64_t crc2, uintmax_t len2);
-uint64_t CalcCRC64(uint64_t crc, void* buf, size_t len, bool little);
+uint64_t CalcCRC64(uint64_t crc, const void* buf, size_t len, bool little);
 
 // xml utils
 std::string XmlEscape(const std::string& value);

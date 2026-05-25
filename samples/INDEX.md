@@ -17,6 +17,7 @@
 | [scenario/request-body/](scenario/request-body/README.md) | `RequestBody` factory variants (String, File, Stream, Memory) |
 | [scenario/cancellation/](scenario/cancellation/README.md) | Cancel in-flight requests with `CancellationToken` |
 | [scenario/endpoint-config/](scenario/endpoint-config/README.md) | Endpoint modes (dual-stack, internal, accelerate, CName, path-style) |
+| [scenario/sink-factory/](scenario/sink-factory/README.md) | Download with SinkFactory (progress, CRC-64, zero-copy MemoryWriter) |
 
 ## Build
 

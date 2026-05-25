@@ -128,7 +128,7 @@ struct AsyncRequestContext {
 
         int64_t recvDataLength = parseResponseContentLength(response->headers);
 
-        rs = createResponseSink(response->statusCode, options.ostreamFactory, recvDataLength);
+        rs = createResponseSink(response->statusCode, options.sinkFactory, recvDataLength);
 
         queryData();
     }
@@ -144,7 +144,7 @@ struct AsyncRequestContext {
         if (checkCancelled()) return;
 
         if (bytesAvailable == 0) {
-            finalizeResponseBody(*response, response->statusCode, options.ostreamFactory, rs.defaultSink);
+            finalizeResponseBody(*response, response->statusCode, options.sinkFactory, rs.defaultSink);
             closeHandle();
             return;
         }
@@ -160,12 +160,12 @@ struct AsyncRequestContext {
         if (checkCancelled()) return;
 
         if (bytesRead == 0) {
-            finalizeResponseBody(*response, response->statusCode, options.ostreamFactory, rs.defaultSink);
+            finalizeResponseBody(*response, response->statusCode, options.sinkFactory, rs.defaultSink);
             closeHandle();
             return;
         }
 
-        rs.sink->write(buffer, static_cast<std::streamsize>(bytesRead));
+        rs.sink->write(reinterpret_cast<const std::uint8_t*>(buffer), bytesRead);
         if (rs.sink->bad()) {
             error = TransportError{make_error_code(TransportErrorCode::SendRecvError),
                                    "WriteStreamError", "Failed to write response body to output stream"};

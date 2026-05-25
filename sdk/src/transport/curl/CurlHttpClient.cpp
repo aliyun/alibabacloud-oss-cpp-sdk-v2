@@ -41,13 +41,13 @@ ResponseResult CurlHttpClient::send(std::unique_ptr<RequestMessage>& request, co
     CURL* curl = curlContainer_->Acquire();
     OSS_LOG(LogLevel::LogDebug, TAG, "request(%p) acquire curl handle:%p", request.get(), curl);
 
-    auto ostreamFactory = options.ostreamFactory;
+    auto sinkFactory = options.sinkFactory;
 
     TransferIO io{};
     io.curl = curl;
     io.request = request.get();
     io.response = response.get();
-    io.ostreamFactory = &ostreamFactory;
+    io.sinkFactory = &sinkFactory;
     if (options.cancellationToken.has_value()) {
         io.cancellationToken = &options.cancellationToken.value();
     }

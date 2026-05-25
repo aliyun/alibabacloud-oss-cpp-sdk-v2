@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "alibabacloud/oss2/io/ByteWriter.h"
 #include "alibabacloud/oss2/transport/curl/CurlTransportFactory.h"
 #include "alibabacloud/oss2/transport/curl/CurlTransportOptions.h"
 #include "src/transport/TransportDefaults.h"
@@ -506,20 +507,20 @@ TEST(RecvBodyCallbackTest, FirstDataNon2xxUsesDefaultSink) {
     curl_easy_cleanup(curl);
 }
 
-TEST(RecvBodyCallbackTest, FirstData2xxWithOStreamFactoryUsesUserSink) {
+TEST(RecvBodyCallbackTest, FirstData2xxWithSinkFactoryUsesUserSink) {
     ResponseMessage resp{};
     auto userStream = std::make_shared<std::stringstream>();
-    OStreamFactory factory;
-    factory.supplier = [&](int64_t) -> std::shared_ptr<std::ostream> {
-        return userStream;
+    SinkFactory factory;
+    factory.supplier = [&](int64_t) -> std::shared_ptr<ByteWriter> {
+        return std::make_shared<OStreamWriter>(userStream);
     };
-    std::optional<OStreamFactory> optFactory = factory;
+    std::optional<SinkFactory> optFactory = factory;
 
     TransferIO io;
     io.response = &resp;
     io.recvFirstData = true;
     io.recvDataLength = 100;
-    io.ostreamFactory = &optFactory;
+    io.sinkFactory = &optFactory;
 
     CURL* curl = curl_easy_init();
     io.curl = curl;
@@ -546,12 +547,14 @@ TEST(RecvBodyCallbackTest, FirstData2xxWithOStreamFactoryUsesUserSink) {
 TEST(RecvBodyCallbackTest, WritesToExistingSink) {
     ResponseMessage resp{};
     auto ss = std::make_shared<std::stringstream>();
+    auto writer = std::make_shared<OStreamWriter>(ss);
 
     TransferIO io;
     io.response = &resp;
     io.recvFirstData = false;
     io.defaultSink = ss;
-    io.sink = ss.get();
+    io.userSink = writer;
+    io.sink = writer.get();
 
     char data[] = "chunk1";
     EXPECT_EQ(recvBodyCallback(data, 1, 6, &io), 6u);
@@ -573,13 +576,13 @@ TEST(RecvBodyCallbackTest, NullSinkReturnsZero) {
     EXPECT_EQ(recvBodyCallback(data, 1, 5, &io), 0u);
 }
 
-TEST(RecvBodyCallbackTest, FirstDataNoOStreamFactoryUsesDefaultSink) {
+TEST(RecvBodyCallbackTest, FirstDataNoSinkFactoryUsesDefaultSink) {
     ResponseMessage resp{};
     TransferIO io;
     io.response = &resp;
     io.recvFirstData = true;
     io.recvDataLength = -1;
-    io.ostreamFactory = nullptr;
+    io.sinkFactory = nullptr;
 
     CURL* curl = curl_easy_init();
     io.curl = curl;

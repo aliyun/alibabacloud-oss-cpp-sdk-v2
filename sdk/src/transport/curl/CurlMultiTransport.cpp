@@ -17,7 +17,7 @@ struct AsyncTransferContext {
 
     std::unique_ptr<ResponseMessage> response;
 
-    std::optional<OStreamFactory> ostreamFactory;
+    std::optional<SinkFactory> sinkFactory;
     std::optional<CancellationToken> cancellationToken;
 
     TransferIO io;
@@ -108,13 +108,13 @@ void CurlMultiTransport::sendAsync(std::unique_ptr<RequestMessage> request,
     ctx->request = std::move(request);
     ctx->callback = std::move(callback);
     ctx->response = std::make_unique<ResponseMessage>();
-    ctx->ostreamFactory = options.ostreamFactory;
+    ctx->sinkFactory = options.sinkFactory;
     ctx->cancellationToken = options.cancellationToken;
 
     ctx->io.curl = curl;
     ctx->io.request = ctx->request.get();
     ctx->io.response = ctx->response.get();
-    ctx->io.ostreamFactory = &ctx->ostreamFactory;
+    ctx->io.sinkFactory = &ctx->sinkFactory;
     if (ctx->cancellationToken.has_value()) {
         ctx->io.cancellationToken = &ctx->cancellationToken.value();
     }

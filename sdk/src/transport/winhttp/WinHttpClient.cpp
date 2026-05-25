@@ -156,7 +156,7 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
     int64_t recvDataLength = parseResponseContentLength(response->headers);
 
     {
-        auto rs = createResponseSink(response->statusCode, options.ostreamFactory, recvDataLength);
+        auto rs = createResponseSink(response->statusCode, options.sinkFactory, recvDataLength);
 
         char readBuf[kWriteBufferLength];
         for (;;) {
@@ -193,7 +193,7 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
                     available = 0;
                     break;
                 }
-                rs.sink->write(readBuf, static_cast<std::streamsize>(bytesRead));
+                rs.sink->write(reinterpret_cast<const std::uint8_t*>(readBuf), bytesRead);
                 if (rs.sink->bad()) {
                     return TransportError{make_error_code(TransportErrorCode::SendRecvError),
                                           "WriteStreamError", "Failed to write response body to output stream"};
@@ -202,7 +202,7 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
             }
         }
 
-        finalizeResponseBody(*response, response->statusCode, options.ostreamFactory, rs.defaultSink);
+        finalizeResponseBody(*response, response->statusCode, options.sinkFactory, rs.defaultSink);
     }
 
     OSS_LOG(LogLevel::LogDebug, TAG, "request(%p) leave Send, ResponseCode:%ld",

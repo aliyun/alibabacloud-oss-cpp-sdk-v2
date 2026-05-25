@@ -4,6 +4,7 @@
 #include "alibabacloud/oss2/OSSClient.h"
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
 #include "alibabacloud/oss2/io/ByteStream.h"
+#include "alibabacloud/oss2/io/ByteWriter.h"
 #include "alibabacloud/oss2/models/ObjectBasic.h"
 #include "MockTransport.h"
 
@@ -338,7 +339,7 @@ TEST(OSSClientObjectBasicTest, GetObject_RequiredField) {
     EXPECT_EQ("Missing field Key", error.getMessage());
 }
 
-TEST(OSSClientObjectBasicTest, GetObject_WithOStreamFactory) {
+TEST(OSSClientObjectBasicTest, GetObject_WithSinkFactory) {
     class ContextCaptureMock : public HttpTransport {
       public:
         ResponseResult send(std::unique_ptr<RequestMessage>& request, const RequestOptions& options) override {
@@ -359,23 +360,23 @@ TEST(OSSClientObjectBasicTest, GetObject_WithOStreamFactory) {
     config.httpTransport = mockHandler;
     auto client = OSSClient(config);
 
-    OStreamFactory factory;
-    factory.supplier = [](std::int64_t size) {
-        return std::make_shared<std::stringstream>();
+    SinkFactory factory;
+    factory.supplier = [](std::int64_t size) -> std::shared_ptr<ByteWriter> {
+        return std::make_shared<OStreamWriter>(std::make_shared<std::stringstream>());
     };
     factory.isOneShot = true;
 
     auto request = models::GetObjectRequest();
-    request.setBucket("test-bucket").setKey("test-key").setOStreamFactory(factory);
+    request.setBucket("test-bucket").setKey("test-key").setSinkFactory(factory);
 
     auto outcome = client.getObject(request);
     EXPECT_TRUE(outcome.has_value());
-    ASSERT_TRUE(mockHandler->capturedOptions.ostreamFactory.has_value());
-    EXPECT_TRUE(mockHandler->capturedOptions.ostreamFactory->isOneShot);
-    EXPECT_NE(nullptr, mockHandler->capturedOptions.ostreamFactory->supplier);
+    ASSERT_TRUE(mockHandler->capturedOptions.sinkFactory.has_value());
+    EXPECT_TRUE(mockHandler->capturedOptions.sinkFactory->isOneShot);
+    EXPECT_NE(nullptr, mockHandler->capturedOptions.sinkFactory->supplier);
 }
 
-TEST(OSSClientObjectBasicTest, GetObject_WithoutOStreamFactory) {
+TEST(OSSClientObjectBasicTest, GetObject_WithoutSinkFactory) {
     class ContextCaptureMock : public HttpTransport {
       public:
         ResponseResult send(std::unique_ptr<RequestMessage>& request, const RequestOptions& options) override {
@@ -401,7 +402,7 @@ TEST(OSSClientObjectBasicTest, GetObject_WithoutOStreamFactory) {
 
     auto outcome = client.getObject(request);
     EXPECT_TRUE(outcome.has_value());
-    EXPECT_FALSE(mockHandler->capturedOptions.ostreamFactory.has_value());
+    EXPECT_FALSE(mockHandler->capturedOptions.sinkFactory.has_value());
 }
 
 // Test CopyObject operation

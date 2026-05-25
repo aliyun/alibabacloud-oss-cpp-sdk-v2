@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "alibabacloud/oss2/io/MemoryOStream.h"
+#include "alibabacloud/oss2/io/ByteWriter.h"
 #include "alibabacloud/oss2/Types.h"
 
 #include <cstring>
@@ -68,26 +69,26 @@ TEST(MemoryOStreamTest, RetryWithNewInstance) {
     }
 }
 
-TEST(MemoryOStreamTest, WithOStreamFactory) {
+TEST(MemoryOStreamTest, WithSinkFactory) {
     char buf[64] = {};
     std::size_t bufSize = sizeof(buf);
 
-    OStreamFactory factory;
-    factory.supplier = [ptr = buf, bufSize](std::int64_t) -> std::shared_ptr<std::ostream> {
-        return std::make_shared<MemoryOStream>(ptr, bufSize);
+    SinkFactory factory;
+    factory.supplier = [ptr = buf, bufSize](std::int64_t) -> std::shared_ptr<ByteWriter> {
+        return std::make_shared<OStreamWriter>(std::make_shared<MemoryOStream>(ptr, bufSize));
     };
     factory.isOneShot = false;
 
     // First call
-    auto stream1 = factory(0);
-    ASSERT_NE(nullptr, stream1);
-    stream1->write("hello", 5);
+    auto writer1 = factory(0);
+    ASSERT_NE(nullptr, writer1);
+    writer1->write(reinterpret_cast<const std::uint8_t*>("hello"), 5);
     EXPECT_EQ(0, std::memcmp(buf, "hello", 5));
 
     // Second call (simulates retry) -- starts from beginning
-    auto stream2 = factory(0);
-    ASSERT_NE(nullptr, stream2);
-    stream2->write("world", 5);
+    auto writer2 = factory(0);
+    ASSERT_NE(nullptr, writer2);
+    writer2->write(reinterpret_cast<const std::uint8_t*>("world"), 5);
     EXPECT_EQ(0, std::memcmp(buf, "world", 5));
 }
 

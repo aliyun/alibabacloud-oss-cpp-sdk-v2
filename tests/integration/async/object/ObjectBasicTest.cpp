@@ -3,6 +3,7 @@
 #include "Config.h"
 #include "async/ClientHelper.h"
 #include "alibabacloud/oss2/OSSAsyncClient.h"
+#include "alibabacloud/oss2/io/ByteWriter.h"
 
 namespace alibabacloud {
 namespace oss2 {
@@ -69,22 +70,22 @@ TEST_F(AsyncObjectBasicTest, GetObject_Fail) {
     EXPECT_EQ("InvalidAccessKeyId", outcome.error().getCode());
 }
 
-TEST_F(AsyncObjectBasicTest, GetObject_WithOStreamFactory) {
+TEST_F(AsyncObjectBasicTest, GetObject_WithSinkFactory) {
     auto client = ClientHelper::GetDefaultClient();
-    std::string key = "test-get-object-ostreamfactory";
-    std::string content = "Hello, Async OStreamFactory!";
+    std::string key = "test-get-object-sinkfactory";
+    std::string content = "Hello, Async SinkFactory!";
 
     auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::FromString(content)));
     EXPECT_TRUE(putFuture.get().has_value());
 
     auto userStream = std::make_shared<std::stringstream>();
-    OStreamFactory factory;
-    factory.supplier = [userStream](std::int64_t size) {
-        return userStream;
+    SinkFactory factory;
+    factory.supplier = [userStream](std::int64_t) -> std::shared_ptr<ByteWriter> {
+        return std::make_shared<OStreamWriter>(userStream);
     };
     factory.isOneShot = false;
 
-    auto future = client->asyncCall(models::GetObjectRequest().setBucket(bucketName_).setKey(key).setOStreamFactory(factory));
+    auto future = client->asyncCall(models::GetObjectRequest().setBucket(bucketName_).setKey(key).setSinkFactory(factory));
     auto outcome = future.get();
     EXPECT_TRUE(outcome.has_value());
     EXPECT_EQ(content, userStream->str());

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "alibabacloud/oss2/Error.h"
+#include "alibabacloud/oss2/io/ByteWriter.h"
 #include "alibabacloud/oss2/transport/HttpTransport.h"
 #include "alibabacloud/oss2/transport/HttpTypes.h"
 #include "alibabacloud/oss2/transport/winhttp/WinHttpTransportOptions.h"
@@ -71,18 +72,18 @@ void addRequestHeaders(HINTERNET hRequest, const HeaderCollection& headers);
 void readResponseStatusAndHeaders(HINTERNET hRequest, ResponseMessage& response);
 
 struct ResponseSink {
-    std::shared_ptr<std::ostream> sink;
+    std::shared_ptr<ByteWriter> sink;
     std::shared_ptr<std::stringstream> defaultSink;
 };
 
 int64_t parseResponseContentLength(const HeaderCollection& headers);
 
 ResponseSink createResponseSink(long statusCode,
-                                 const std::optional<OStreamFactory>& factory,
+                                 const std::optional<SinkFactory>& factory,
                                  int64_t contentLength);
 
 void finalizeResponseBody(ResponseMessage& response, long statusCode,
-                           const std::optional<OStreamFactory>& factory,
+                           const std::optional<SinkFactory>& factory,
                            const std::shared_ptr<std::stringstream>& defaultSink);
 
 } // namespace alibabacloud::oss2::transport::winhttp

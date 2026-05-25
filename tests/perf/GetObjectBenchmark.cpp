@@ -1,5 +1,6 @@
 #include "PerfConfig.h"
 #include "alibabacloud/oss2/io/ByteStream.h"
+#include "alibabacloud/oss2/io/ByteWriter.h"
 
 #include <benchmark/benchmark.h>
 #include <chrono>
@@ -12,17 +13,17 @@ using namespace alibabacloud::oss2;
 
 namespace {
 
-class NullStreamBuf : public std::streambuf {
-  protected:
-    std::streamsize xsputn(const char*, std::streamsize n) override { return n; }
-    int overflow(int c) override { return c; }
+class NullByteWriter : public ByteWriter {
+  private:
+    std::size_t onWrite(const std::uint8_t*, std::size_t n) override { return n; }
+    int iostate() const override { return 0; }
 };
 
-OStreamFactory makeDiscardFactory() {
-    OStreamFactory factory;
-    factory.supplier = [](std::int64_t) -> std::shared_ptr<std::ostream> {
-        static thread_local auto buf = std::make_shared<NullStreamBuf>();
-        return std::make_shared<std::ostream>(buf.get());
+SinkFactory makeDiscardFactory() {
+    SinkFactory factory;
+    factory.supplier = [](std::int64_t) -> std::shared_ptr<ByteWriter> {
+        static thread_local auto writer = std::make_shared<NullByteWriter>();
+        return writer;
     };
     factory.isOneShot = false;
     return factory;
@@ -63,7 +64,7 @@ static void BM_GetObject_Sync_1KB(benchmark::State& state) {
 
     for (auto _ : state) {
         auto outcome = client->getObject(
-            models::GetObjectRequest().setBucket(cfg.bucket).setKey(kGetKey1KB).setOStreamFactory(makeDiscardFactory()));
+            models::GetObjectRequest().setBucket(cfg.bucket).setKey(kGetKey1KB).setSinkFactory(makeDiscardFactory()));
         if (!outcome.has_value()) {
             state.SkipWithError("GetObject failed");
             break;
@@ -81,7 +82,7 @@ static void BM_GetObject_Sync_1MB(benchmark::State& state) {
 
     for (auto _ : state) {
         auto outcome = client->getObject(
-            models::GetObjectRequest().setBucket(cfg.bucket).setKey(kGetKey1MB).setOStreamFactory(makeDiscardFactory()));
+            models::GetObjectRequest().setBucket(cfg.bucket).setKey(kGetKey1MB).setSinkFactory(makeDiscardFactory()));
         if (!outcome.has_value()) {
             state.SkipWithError("GetObject failed");
             break;
@@ -99,7 +100,7 @@ static void BM_GetObject_Sync_4MB(benchmark::State& state) {
 
     for (auto _ : state) {
         auto outcome = client->getObject(
-            models::GetObjectRequest().setBucket(cfg.bucket).setKey(kGetKey4MB).setOStreamFactory(makeDiscardFactory()));
+            models::GetObjectRequest().setBucket(cfg.bucket).setKey(kGetKey4MB).setSinkFactory(makeDiscardFactory()));
         if (!outcome.has_value()) {
             state.SkipWithError("GetObject failed");
             break;
@@ -121,7 +122,7 @@ static void BM_GetObject_Async_1KB_Concurrent(benchmark::State& state) {
         futures.reserve(concurrency);
         for (int i = 0; i < concurrency; i++) {
             futures.push_back(client->asyncCall(
-                models::GetObjectRequest().setBucket(cfg.bucket).setKey(kGetKey1KB).setOStreamFactory(makeDiscardFactory())));
+                models::GetObjectRequest().setBucket(cfg.bucket).setKey(kGetKey1KB).setSinkFactory(makeDiscardFactory())));
         }
         int failures = 0;
         for (auto& f : futures) {
@@ -151,7 +152,7 @@ static void BM_GetObject_Async_1MB_Concurrent(benchmark::State& state) {
         futures.reserve(concurrency);
         for (int i = 0; i < concurrency; i++) {
             futures.push_back(client->asyncCall(
-                models::GetObjectRequest().setBucket(cfg.bucket).setKey(kGetKey1MB).setOStreamFactory(makeDiscardFactory())));
+                models::GetObjectRequest().setBucket(cfg.bucket).setKey(kGetKey1MB).setSinkFactory(makeDiscardFactory())));
         }
         int failures = 0;
         for (auto& f : futures) {
@@ -181,7 +182,7 @@ static void BM_GetObject_Async_4MB_Concurrent(benchmark::State& state) {
         futures.reserve(concurrency);
         for (int i = 0; i < concurrency; i++) {
             futures.push_back(client->asyncCall(
-                models::GetObjectRequest().setBucket(cfg.bucket).setKey(kGetKey4MB).setOStreamFactory(makeDiscardFactory())));
+                models::GetObjectRequest().setBucket(cfg.bucket).setKey(kGetKey4MB).setSinkFactory(makeDiscardFactory())));
         }
         int failures = 0;
         for (auto& f : futures) {
@@ -229,7 +230,7 @@ static void BM_GetObject_Async_Custom_Concurrent(benchmark::State& state) {
         futures.reserve(concurrency);
         for (int i = 0; i < concurrency; i++) {
             futures.push_back(client->asyncCall(
-                models::GetObjectRequest().setBucket(cfg.bucket).setKey(customKey).setOStreamFactory(makeDiscardFactory())));
+                models::GetObjectRequest().setBucket(cfg.bucket).setKey(customKey).setSinkFactory(makeDiscardFactory())));
         }
         int failures = 0;
         for (auto& f : futures) {
@@ -256,7 +257,7 @@ static void BM_GetObject_Async_Sustained(benchmark::State& state) {
 
     for (auto _ : state) {
         inflight.push_back(client->asyncCall(
-            models::GetObjectRequest().setBucket(cfg.bucket).setKey(customKey).setOStreamFactory(makeDiscardFactory())));
+            models::GetObjectRequest().setBucket(cfg.bucket).setKey(customKey).setSinkFactory(makeDiscardFactory())));
         total++;
 
         while (!inflight.empty() &&
@@ -288,7 +289,7 @@ static void BM_GetObject_Sync_Sustained(benchmark::State& state) {
 
     for (auto _ : state) {
         auto outcome = client->getObject(
-            models::GetObjectRequest().setBucket(cfg.bucket).setKey(customKey).setOStreamFactory(makeDiscardFactory()));
+            models::GetObjectRequest().setBucket(cfg.bucket).setKey(customKey).setSinkFactory(makeDiscardFactory()));
         if (!outcome.has_value()) {
             state.SkipWithError("GetObject failed");
             break;

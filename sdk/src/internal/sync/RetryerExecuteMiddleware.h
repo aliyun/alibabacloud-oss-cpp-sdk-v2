@@ -51,8 +51,8 @@ class RetryerExecuteMiddleware final : public ExecuteMiddleware {
             }
 
             // response.body().isReplayable()
-            if (context.transportContext.ostreamFactory.has_value() &&
-                context.transportContext.ostreamFactory.value().isOneShot) {
+            if (context.transportContext.sinkFactory.has_value() &&
+                context.transportContext.sinkFactory.value().isOneShot) {
                 break;
             }
 
