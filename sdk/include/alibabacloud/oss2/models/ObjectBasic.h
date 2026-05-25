@@ -877,11 +877,26 @@ class ALIBABACLOUD_OSS_API GetObjectRequest final : public RequestModel {
         return *this;
     }
 
+    // Progress callback for download operations.
+    // Currently only effective with getObjectToFile / getObjectToFileAsync.
+    // Ignored by getObject / getObjectAsync (use SinkFactory with
+    // ProgressWriteObserver for manual progress tracking in those cases).
+    // Future high-level interfaces (e.g. Downloader) will also honor this field.
+    inline const std::optional<ProgressCallback>& getProgressCallback() const {
+        return progressCallback_;
+    }
+    template <typename ValueT = ProgressCallback>
+    GetObjectRequest& setProgressCallback(ValueT&& value) {
+        progressCallback_ = std::forward<ValueT>(value);
+        return *this;
+    }
+
 
   private:
     std::string bucket_;
     std::string key_;
     std::optional<SinkFactory> sinkFactory_;
+    std::optional<ProgressCallback> progressCallback_;
 };
 
 /// The result for the GetObject operation.

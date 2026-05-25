@@ -148,6 +148,10 @@ class ALIBABACLOUD_OSS_API ObservableWriter : public ByteWriter {
         (observers_.push_back(std::move(observers)), ...);
     }
 
+    void addObserver(std::shared_ptr<ByteWriterObserver> observer) {
+        observers_.push_back(std::move(observer));
+    }
+
   private:
     std::size_t onWrite(const std::uint8_t* data, std::size_t n) override;
     int iostate() const override;
@@ -170,6 +174,8 @@ class ALIBABACLOUD_OSS_API ObservableWriter : public ByteWriter {
 class ALIBABACLOUD_OSS_API ProgressWriteObserver : public ByteWriterObserver {
   public:
     ProgressWriteObserver(ProgressCallback callback, std::int64_t total);
+
+    void updateTotal(std::int64_t total) { total_ = total; }
 
   private:
     std::size_t onWrite(const std::uint8_t* data, std::size_t n) override;

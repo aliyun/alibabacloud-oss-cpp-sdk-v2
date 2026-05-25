@@ -5,3 +5,9 @@ find_package(alibabacloud_oss_v2 REQUIRED)
 
 add_executable(UploadWithProgress UploadWithProgress.cpp)
 target_link_libraries(UploadWithProgress PRIVATE alibabacloud_oss_v2::oss)
+
+add_executable(DownloadWithProgress DownloadWithProgress.cpp)
+target_link_libraries(DownloadWithProgress PRIVATE alibabacloud_oss_v2::oss)
+
+add_executable(DownloadToFileWithProgress DownloadToFileWithProgress.cpp)
+target_link_libraries(DownloadToFileWithProgress PRIVATE alibabacloud_oss_v2::oss)

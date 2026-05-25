@@ -10,7 +10,7 @@
 | common/ | Shared helpers (`SampleConfig.h`) |
 | [scenario/sync-client-async/](scenario/sync-client-async/README.md) | Using `asyncCall()` / `asyncCallback()` on `OSSClient` |
 | [scenario/credentials/](scenario/credentials/README.md) | Various credential providers and credentials-cpp integration |
-| [scenario/progress/](scenario/progress/README.md) | Upload progress callback |
+| [scenario/progress/](scenario/progress/README.md) | Upload and download progress tracking |
 | [scenario/transport-curl/](scenario/transport-curl/README.md) | Curl HTTP transport customization |
 | [scenario/transport-winhttp/](scenario/transport-winhttp/README.md) | WinHTTP transport customization |
 | [scenario/retry/](scenario/retry/README.md) | Custom retry strategies and backoff |

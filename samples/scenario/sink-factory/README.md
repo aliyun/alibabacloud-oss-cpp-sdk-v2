@@ -8,7 +8,6 @@ Demonstrates how to use `SinkFactory` with `ByteWriter` to control where downloa
 |------|-------------|
 | `DownloadToFileWithCRC.cpp` | Download to file with progress reporting and CRC-64 verification |
 | `DownloadToMemory.cpp` | Zero-copy download into a pre-allocated memory buffer |
-| `DownloadWithProgress.cpp` | Download to file with progress-only observer |
 | `ResumableDownload.cpp` | Resumable download that recovers from network interruptions using Range requests |
 | `AsyncDownloadWithSinkFactory.cpp` | Async client with SinkFactory, progress, and CRC (thread safety notes) |
 | `ParallelRangeDownload.cpp` | Multi-threaded parallel range download into a shared buffer via MemoryWriter |
@@ -36,7 +35,6 @@ cmake --build build
 
 ./build/DownloadToFileWithCRC --region cn-hangzhou --bucket my-bucket --key my-object
 ./build/DownloadToMemory --region cn-hangzhou --bucket my-bucket --key my-object
-./build/DownloadWithProgress --region cn-hangzhou --bucket my-bucket --key my-object
 ./build/ResumableDownload --region cn-hangzhou --bucket my-bucket --key my-object
 ./build/AsyncDownloadWithSinkFactory --region cn-hangzhou --bucket my-bucket --key my-object
 ./build/ParallelRangeDownload --region cn-hangzhou --bucket my-bucket --key my-object --parts 4

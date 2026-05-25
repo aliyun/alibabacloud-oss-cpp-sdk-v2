@@ -501,8 +501,8 @@ TEST(RecvBodyCallbackTest, FirstDataNon2xxUsesDefaultSink) {
     EXPECT_FALSE(io.recvFirstData);
     ASSERT_NE(io.defaultSink, nullptr);
     EXPECT_EQ(io.defaultSink->str(), "error body");
-    EXPECT_EQ(io.sink, io.defaultSink.get());
-    EXPECT_EQ(io.userSink, nullptr);
+    ASSERT_NE(io.userSink, nullptr);
+    EXPECT_EQ(io.sink, io.userSink.get());
 
     curl_easy_cleanup(curl);
 }

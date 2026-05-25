@@ -20,20 +20,25 @@ PutObjectOutcome OSSClient::putObjectFromFile(const models::PutObjectRequest& re
 GetObjectOutcome OSSClient::getObjectToFile(const models::GetObjectRequest& request,
                                             const std::string& filePath,
                                             const OperationOptions* options) {
-    const bool crcEnabled = client_->hasFlag(FeatureFlagsType::EnableCRC64CheckDownload) &&
-                            request.getRange().empty();
+    std::shared_ptr<CRC64WriteObserver> crcObserver = nullptr;
+    if (client_->hasFlag(FeatureFlagsType::EnableCRC64CheckDownload) && request.getRange().empty()) {
+        crcObserver = std::make_shared<CRC64WriteObserver>();
+    }
+    std::shared_ptr<ProgressWriteObserver> progressObs = nullptr;
+    if (request.getProgressCallback().has_value()) {
+        progressObs = std::make_shared<ProgressWriteObserver>(request.getProgressCallback().value(), -1);
+    }
 
     std::int64_t offset = 0;
     models::GetObjectRequest req = request;
 
     for (;;) {
         std::shared_ptr<std::ofstream> fileStream = nullptr;
-        auto crcObserver = crcEnabled ? std::make_shared<CRC64WriteObserver>() : nullptr;
 
         SinkFactory factory;
         factory.isOneShot = true;
-        factory.supplier = [&fileStream, &filePath, offset, crcObserver](
-                std::int64_t /*contentLength*/) -> std::shared_ptr<ByteWriter> {
+        factory.supplier = [&fileStream, &filePath, offset, crcObserver, progressObs](
+                std::int64_t contentLength) -> std::shared_ptr<ByteWriter> {
             if (offset == 0) {
                 fileStream = std::make_shared<std::ofstream>(filePath, std::ios::binary | std::ios::trunc);
             } else {
@@ -42,10 +47,19 @@ GetObjectOutcome OSSClient::getObjectToFile(const models::GetObjectRequest& requ
             }
             auto writer = std::make_shared<OStreamWriter>(fileStream);
 
-            if (crcObserver) {
-                return std::make_shared<ObservableWriter>(writer, crcObserver);
+            if (!crcObserver && !progressObs) {
+                return writer;
             }
-            return writer;
+
+            auto observable = std::make_shared<ObservableWriter>(writer);
+            if (crcObserver) {
+                observable->addObserver(crcObserver);
+            }
+            if (progressObs) {
+                progressObs->updateTotal(contentLength);
+                observable->addObserver(progressObs);
+            }
+            return observable;
         };
 
         if (offset > 0) {

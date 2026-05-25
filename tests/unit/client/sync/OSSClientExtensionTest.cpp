@@ -408,4 +408,110 @@ TEST(OSSClientExtensionTest, GetObjectToFile_TruncatesExistingFile) {
     std::remove(filePath.c_str());
 }
 
+// --- getObjectToFile progress callback ---
+
+TEST(OSSClientExtensionTest, GetObjectToFile_WithProgressCallback) {
+    auto mock = std::make_shared<WritingMockTransport>();
+    auto client = makeClient(mock);
+
+    std::string content = "progress callback test data";
+    uint64_t crc = utils::CalcCRC64(0, content.data(), content.size());
+
+    mock->responses.push_back({200, {{"x-oss-request-id", "id-123"},
+                                     {"Content-Length", std::to_string(content.size())},
+                                     {"x-oss-hash-crc64ecma", std::to_string(crc)}},
+                               content});
+
+    auto filePath = std::string(std::tmpnam(nullptr));
+
+    std::vector<std::tuple<std::size_t, std::size_t, std::int64_t>> records;
+    ProgressCallback cb;
+    cb.callback = [&records](std::size_t increment, std::size_t transferred,
+                             std::int64_t total, std::uintptr_t) {
+        records.emplace_back(increment, transferred, total);
+    };
+
+    auto outcome = client.getObjectToFile(
+            models::GetObjectRequest().setBucket("bucket").setKey("key").setProgressCallback(cb),
+            filePath);
+
+    EXPECT_TRUE(outcome.has_value());
+    ASSERT_FALSE(records.empty());
+    auto& last = records.back();
+    EXPECT_EQ(content.size(), std::get<1>(last));
+    EXPECT_EQ(static_cast<std::int64_t>(content.size()), std::get<2>(last));
+    std::remove(filePath.c_str());
+}
+
+TEST(OSSClientExtensionTest, GetObjectToFile_WithProgressCallbackAndCRC) {
+    auto mock = std::make_shared<WritingMockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mock;
+    ClientOptionsFns fns = {[](ClientOptions& opt) {
+        opt.featureFlags |= static_cast<int>(FeatureFlagsType::EnableCRC64CheckDownload);
+    }};
+
+    auto client = OSSClient(config, fns);
+
+    std::string content = "progress and crc together";
+    uint64_t crc = utils::CalcCRC64(0, content.data(), content.size());
+
+    mock->responses.push_back({200, {{"x-oss-request-id", "id-123"},
+                                     {"Content-Length", std::to_string(content.size())},
+                                     {"x-oss-hash-crc64ecma", std::to_string(crc)}},
+                               content});
+
+    auto filePath = std::string(std::tmpnam(nullptr));
+
+    std::size_t totalTransferred = 0;
+    ProgressCallback cb;
+    cb.callback = [&totalTransferred](std::size_t, std::size_t transferred,
+                                      std::int64_t, std::uintptr_t) {
+        totalTransferred = transferred;
+    };
+
+    auto outcome = client.getObjectToFile(
+            models::GetObjectRequest().setBucket("bucket").setKey("key").setProgressCallback(cb),
+            filePath);
+
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(content.size(), totalTransferred);
+
+    std::ifstream f(filePath, std::ios::binary);
+    std::string downloaded((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+    f.close();
+    EXPECT_EQ(content, downloaded);
+    std::remove(filePath.c_str());
+}
+
+TEST(OSSClientExtensionTest, GetObjectToFile_NoProgressCallbackStillWorks) {
+    auto mock = std::make_shared<WritingMockTransport>();
+    auto client = makeClient(mock);
+
+    std::string content = "no progress callback";
+    uint64_t crc = utils::CalcCRC64(0, content.data(), content.size());
+
+    mock->responses.push_back({200, {{"x-oss-request-id", "id-123"},
+                                     {"Content-Length", std::to_string(content.size())},
+                                     {"x-oss-hash-crc64ecma", std::to_string(crc)}},
+                               content});
+
+    auto filePath = std::string(std::tmpnam(nullptr));
+
+    auto outcome = client.getObjectToFile(
+            models::GetObjectRequest().setBucket("bucket").setKey("key"),
+            filePath);
+
+    EXPECT_TRUE(outcome.has_value());
+
+    std::ifstream f(filePath, std::ios::binary);
+    std::string downloaded((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+    f.close();
+    EXPECT_EQ(content, downloaded);
+    std::remove(filePath.c_str());
+}
+
 } // namespace alibabacloud::oss2
