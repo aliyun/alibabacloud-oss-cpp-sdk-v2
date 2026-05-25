@@ -7,6 +7,21 @@ namespace alibabacloud {
 namespace oss2 {
 namespace utils {
 
+static std::map<std::string, std::string>& getUserMimeTypes() {
+    static std::map<std::string, std::string> userMappings;
+    return userMappings;
+}
+
+void addMimeType(const std::map<std::string, std::string>& mappings) {
+    auto& userMappings = getUserMimeTypes();
+    for (const auto& kv : mappings) {
+        userMappings[kv.first] = kv.second;
+    }
+}
+
+void clearMimeType() {
+    getUserMimeTypes().clear();
+}
 
 const std::string& LookupMimeType(const std::string& name) {
     const static std::map<std::string, std::string> mimeType = {{"html", "text/html"},
@@ -130,9 +145,16 @@ const std::string& LookupMimeType(const std::string& name) {
     }
 
     ext = ToLower(ext.c_str());
+    const auto& userMappings = getUserMimeTypes();
+
+    auto uiter = userMappings.find(ext);
+    if (uiter != userMappings.end()) {
+        return uiter->second;
+    }
+
     auto iter = mimeType.find(ext);
     if (iter != mimeType.end()) {
-        return (*iter).second;
+        return iter->second;
     }
 
     if (first_pos == last_pos) {
@@ -140,9 +162,15 @@ const std::string& LookupMimeType(const std::string& name) {
     }
 
     ext2 = ToLower(ext2.c_str());
+
+    uiter = userMappings.find(ext2);
+    if (uiter != userMappings.end()) {
+        return uiter->second;
+    }
+
     iter = mimeType.find(ext2);
     if (iter != mimeType.end()) {
-        return (*iter).second;
+        return iter->second;
     }
 
     return defaultType;

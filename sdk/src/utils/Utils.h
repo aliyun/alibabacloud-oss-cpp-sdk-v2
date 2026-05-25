@@ -6,6 +6,7 @@
 #include <array>
 #include <ctime>
 #include <iostream>
+#include <map>
 #include <string>
 #include <cstddef>
 #include <stdint.h>
@@ -72,6 +73,8 @@ uint32_t GetRandomValue();
 
 // mimetype utils
 const std::string& LookupMimeType(const std::string& name);
+void addMimeType(const std::map<std::string, std::string>& mappings);
+void clearMimeType();
 
 
 } // namespace utils
