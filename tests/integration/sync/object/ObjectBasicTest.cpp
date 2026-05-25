@@ -3,6 +3,7 @@
 #include "Config.h"
 #include "sync/ClientHelper.h"
 #include "alibabacloud/oss2/OSSClient.h"
+#include "alibabacloud/oss2/io/ByteWriter.h"
 
 namespace alibabacloud {
 namespace oss2 {
@@ -131,10 +132,10 @@ TEST_F(ObjectBasicTest, GetObject_Fail) {
     EXPECT_EQ("InvalidAccessKeyId", error.getCode());
 }
 
-TEST_F(ObjectBasicTest, GetObject_WithOStreamFactory) {
+TEST_F(ObjectBasicTest, GetObject_WithSinkFactory) {
     auto client = ClientHelper::GetDefaultClient();
-    std::string key = "test-get-object-ostreamfactory";
-    std::string content = "Hello, OStreamFactory!";
+    std::string key = "test-get-object-sinkfactory";
+    std::string content = "Hello, SinkFactory!";
 
     auto body = RequestBody::FromString(content);
     auto putOutcome = client->putObject(
@@ -145,9 +146,9 @@ TEST_F(ObjectBasicTest, GetObject_WithOStreamFactory) {
     EXPECT_TRUE(putOutcome.has_value());
 
     auto userStream = std::make_shared<std::stringstream>();
-    OStreamFactory factory;
-    factory.supplier = [userStream](std::int64_t size) {
-        return userStream;
+    SinkFactory factory;
+    factory.supplier = [userStream](std::int64_t) -> std::shared_ptr<ByteWriter> {
+        return std::make_shared<OStreamWriter>(userStream);
     };
     factory.isOneShot = false;
 
@@ -155,14 +156,14 @@ TEST_F(ObjectBasicTest, GetObject_WithOStreamFactory) {
         models::GetObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setOStreamFactory(factory));
+            .setSinkFactory(factory));
     EXPECT_TRUE(outcome.has_value());
     EXPECT_EQ(content, userStream->str());
 }
 
-TEST_F(ObjectBasicTest, GetObject_WithOStreamFactory_OneShot) {
+TEST_F(ObjectBasicTest, GetObject_WithSinkFactory_OneShot) {
     auto client = ClientHelper::GetDefaultClient();
-    std::string key = "test-get-object-ostreamfactory-oneshot";
+    std::string key = "test-get-object-sinkfactory-oneshot";
     std::string content = "OneShot content!";
 
     auto body = RequestBody::FromString(content);
@@ -174,9 +175,9 @@ TEST_F(ObjectBasicTest, GetObject_WithOStreamFactory_OneShot) {
     EXPECT_TRUE(putOutcome.has_value());
 
     auto userStream = std::make_shared<std::stringstream>();
-    OStreamFactory factory;
-    factory.supplier = [userStream](std::int64_t size) {
-        return userStream;
+    SinkFactory factory;
+    factory.supplier = [userStream](std::int64_t) -> std::shared_ptr<ByteWriter> {
+        return std::make_shared<OStreamWriter>(userStream);
     };
     factory.isOneShot = true;
 
@@ -184,7 +185,7 @@ TEST_F(ObjectBasicTest, GetObject_WithOStreamFactory_OneShot) {
         models::GetObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setOStreamFactory(factory));
+            .setSinkFactory(factory));
     EXPECT_TRUE(outcome.has_value());
     EXPECT_EQ(content, userStream->str());
 }

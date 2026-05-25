@@ -61,8 +61,8 @@ GetObjectOutcome OSSClient::getObject(const models::GetObjectRequest& request, c
     auto input = transform::fromGetObject(request);
 
     internal::OperationInnerOptions innerOpts;
-    if (request.getOStreamFactory().has_value()) {
-        innerOpts.ostreamFactory = request.getOStreamFactory();
+    if (request.getSinkFactory().has_value()) {
+        innerOpts.sinkFactory = request.getSinkFactory();
     }
 
     auto result = client_->Execute(input, options, &innerOpts);

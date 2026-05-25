@@ -4,6 +4,7 @@
 #include "alibabacloud/oss2/transport/HttpTypes.h"
 #include "alibabacloud/oss2/transport/curl/CurlTransportOptions.h"
 #include "alibabacloud/oss2/io/ByteStream.h"
+#include "alibabacloud/oss2/io/ByteWriter.h"
 
 #include <curl/curl.h>
 
@@ -40,11 +41,11 @@ struct TransferIO {
     CURL* curl{};
     RequestMessage* request{};
     ResponseMessage* response{};
-    std::optional<OStreamFactory>* ostreamFactory{};
+    std::optional<SinkFactory>* sinkFactory{};
 
     std::unique_ptr<ByteSource> source{};
-    std::ostream* sink{};
-    std::shared_ptr<std::ostream> userSink{};
+    ByteWriter* sink{};
+    std::shared_ptr<ByteWriter> userSink{};
     std::shared_ptr<std::stringstream> defaultSink{};
     bool recvFirstData{};
     int64_t recvDataLength{};

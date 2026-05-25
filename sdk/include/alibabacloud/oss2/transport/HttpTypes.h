@@ -10,7 +10,7 @@ namespace oss2 {
 enum class HttpMethod { Get, Head, Post, Put, Delete, Connect, Options, Patch, Trace };
 
 struct ALIBABACLOUD_OSS_API RequestOptions {
-    std::optional<OStreamFactory> ostreamFactory;
+    std::optional<SinkFactory> sinkFactory;
     std::optional<CancellationToken> cancellationToken;
 };
 

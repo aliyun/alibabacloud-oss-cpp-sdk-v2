@@ -1,0 +1,25 @@
+cmake_minimum_required(VERSION 3.15)
+project(scenario-sink-factory)
+
+find_package(alibabacloud_oss_v2 REQUIRED)
+
+add_executable(DownloadToFileWithCRC DownloadToFileWithCRC.cpp)
+target_link_libraries(DownloadToFileWithCRC PRIVATE alibabacloud_oss_v2::oss)
+
+add_executable(DownloadToMemory DownloadToMemory.cpp)
+target_link_libraries(DownloadToMemory PRIVATE alibabacloud_oss_v2::oss)
+
+add_executable(DownloadWithProgress DownloadWithProgress.cpp)
+target_link_libraries(DownloadWithProgress PRIVATE alibabacloud_oss_v2::oss)
+
+add_executable(ResumableDownload ResumableDownload.cpp)
+target_link_libraries(ResumableDownload PRIVATE alibabacloud_oss_v2::oss)
+
+add_executable(AsyncDownloadWithSinkFactory AsyncDownloadWithSinkFactory.cpp)
+target_link_libraries(AsyncDownloadWithSinkFactory PRIVATE alibabacloud_oss_v2::oss)
+
+add_executable(ParallelRangeDownload ParallelRangeDownload.cpp)
+target_link_libraries(ParallelRangeDownload PRIVATE alibabacloud_oss_v2::oss)
+
+add_executable(DownloadWithCancellation DownloadWithCancellation.cpp)
+target_link_libraries(DownloadWithCancellation PRIVATE alibabacloud_oss_v2::oss)

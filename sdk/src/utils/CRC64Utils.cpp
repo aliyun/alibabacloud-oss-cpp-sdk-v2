@@ -252,13 +252,15 @@ class CRC64_GUARD {
 
 static CRC64_GUARD crc64Guard;
 
-uint64_t CalcCRC64(uint64_t crc, void* buf, size_t len) {
+uint64_t CalcCRC64(uint64_t crc, const void* buf, size_t len) {
+    auto* p = const_cast<void*>(buf);
     uint64_t n = 1;
-    return *reinterpret_cast<char*>(&n) ? crc64_little(crc, buf, len) : crc64_big(crc, buf, len);
+    return *reinterpret_cast<char*>(&n) ? crc64_little(crc, p, len) : crc64_big(crc, p, len);
 }
 
-uint64_t CalcCRC64(uint64_t crc, void* buf, size_t len, bool little) {
-    return little ? crc64_little(crc, buf, len) : crc64_big(crc, buf, len);
+uint64_t CalcCRC64(uint64_t crc, const void* buf, size_t len, bool little) {
+    auto* p = const_cast<void*>(buf);
+    return little ? crc64_little(crc, p, len) : crc64_big(crc, p, len);
 }
 
 uint64_t CombineCRC64(uint64_t crc1, uint64_t crc2, uintmax_t len2) {

@@ -664,17 +664,34 @@ class ALIBABACLOUD_OSS_API GetObjectRequest final : public RequestModel {
         return *this;
     }
 
-    // The range of data of the object to be returned.   - If the value of Range is valid, OSS returns the response that
-    // includes the total size of the object and the range of data returned. For example, Content-Range: bytes 0~9/44
-    // indicates that the total size of the object is 44 bytes, and the range of data returned is the first 10 bytes. -
-    // However, if the value of Range is invalid, the entire object is returned, and the response returned by OSS
-    // excludes Content-Range. Default value: null
+    // The content range of the object to be returned.
+    // If the value of Range is valid, the total size of the object and the content range are returned.
+    // For example, Content-Range: bytes 0~9/44 indicates that the total size of the object is 44 bytes,
+    // and the range of data returned is the first 10 bytes.
+    // However, if the value of Range is invalid, the entire object is returned,
+    // and the response does not include the Content-Range parameter.
     inline const std::string& getRange() const {
         return getHeaderOrEmpty("Range");
     }
     template <typename ValueT = std::string>
     GetObjectRequest& setRange(ValueT&& value) {
         headers_.insert_or_assign("Range", std::forward<ValueT>(value));
+        return *this;
+    }
+
+    // Specify standard behaviors to download data by range.
+    // If the value is "standard", the download behavior is modified when the specified range
+    // is not within the valid range. For an object whose size is 1,000 bytes:
+    // 1) If you set Range: bytes to 500-2000, the value at the end of the range is invalid.
+    //    In this case, OSS returns HTTP status code 206 and the data within the range of byte 500 to byte 999.
+    // 2) If you set Range: bytes to 1000-2000, the value at the start of the range is invalid.
+    //    In this case, OSS returns HTTP status code 416 and the InvalidRange error code.
+    inline const std::string& getRangeBehavior() const {
+        return getHeaderOrEmpty("x-oss-range-behavior");
+    }
+    template <typename ValueT = std::string>
+    GetObjectRequest& setRangeBehavior(ValueT&& value) {
+        headers_.insert_or_assign("x-oss-range-behavior", std::forward<ValueT>(value));
         return *this;
     }
 
@@ -816,25 +833,41 @@ class ALIBABACLOUD_OSS_API GetObjectRequest final : public RequestModel {
         return *this;
     }
 
-    // The factory to create an output stream for receiving response body data.
-    // When set, the response body is written directly to the stream returned by the factory
+    // The factory to create a ByteWriter for receiving response body data.
+    // When set, the response body is written directly to the ByteWriter returned by the factory
     // instead of being buffered in memory.
+    // The factory is called with the content length (-1 if unknown) and returns a ByteWriter.
+    // On error responses (non-2xx or 203), the SDK uses an internal buffer instead.
     //
     // Example (zero-copy download into a user-provided buffer):
-    //   char buf[4 * 1024 * 1024];
+    //   std::uint8_t buf[4 * 1024 * 1024];
     //   std::size_t bufSize = sizeof(buf);
-    //   OStreamFactory factory;
-    //   factory.supplier = [ptr = buf, bufSize](std::int64_t) -> std::shared_ptr<std::ostream> {
-    //       return std::make_shared<MemoryOStream>(ptr, bufSize);
+    //   SinkFactory factory;
+    //   factory.supplier = [ptr = buf, bufSize](std::int64_t) -> std::shared_ptr<ByteWriter> {
+    //       return std::make_shared<MemoryWriter>(ptr, bufSize);
     //   };
     //   factory.isOneShot = false;  // supports retry
-    //   request.setOStreamFactory(factory);
-    inline const std::optional<OStreamFactory>& getOStreamFactory() const {
-        return ostreamFactory_;
+    //   request.setSinkFactory(factory);
+    //
+    // Example (download to file with progress and CRC verification):
+    //   auto progress = std::make_shared<ProgressWriteObserver>(cb, contentLength);
+    //   auto crc = std::make_shared<CRC64WriteObserver>();
+    //   SinkFactory factory;
+    //   factory.isOneShot = false;
+    //   factory.supplier = [&](std::int64_t) -> std::shared_ptr<ByteWriter> {
+    //       progress->reset();
+    //       crc->reset();
+    //       auto file = std::make_shared<std::ofstream>("local.dat", std::ios::binary);
+    //       auto writer = std::make_shared<OStreamWriter>(file);
+    //       return std::make_shared<ObservableWriter>(writer, progress, crc);
+    //   };
+    //   request.setSinkFactory(factory);
+    inline const std::optional<SinkFactory>& getSinkFactory() const {
+        return sinkFactory_;
     }
 
-    GetObjectRequest& setOStreamFactory(OStreamFactory value) {
-        ostreamFactory_ = std::move(value);
+    GetObjectRequest& setSinkFactory(SinkFactory value) {
+        sinkFactory_ = std::move(value);
         return *this;
     }
 
@@ -842,7 +875,7 @@ class ALIBABACLOUD_OSS_API GetObjectRequest final : public RequestModel {
   private:
     std::string bucket_;
     std::string key_;
-    std::optional<OStreamFactory> ostreamFactory_;
+    std::optional<SinkFactory> sinkFactory_;
 };
 
 /// The result for the GetObject operation.

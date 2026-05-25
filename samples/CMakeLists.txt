@@ -47,3 +47,4 @@ endforeach()
 # They use find_package() for SDK and external dependencies,
 # and must be built separately from their own directory.
 # See samples/scenario/*/README.md for build instructions.
+

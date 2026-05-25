@@ -315,25 +315,23 @@ int64_t parseResponseContentLength(const HeaderCollection& headers) {
 }
 
 ResponseSink createResponseSink(long statusCode,
-                                 const std::optional<OStreamFactory>& factory,
+                                 const std::optional<SinkFactory>& factory,
                                  int64_t contentLength) {
     ResponseSink rs;
     bool isError = (statusCode / 100 != 2) || (statusCode == 203);
-    rs.defaultSink = std::make_shared<std::stringstream>();
 
-    if (isError || !factory.has_value()) {
-        rs.sink = rs.defaultSink;
-    } else {
+    if (!isError && factory.has_value()) {
         rs.sink = factory.value()(contentLength);
-        if (!rs.sink) {
-            rs.sink = rs.defaultSink;
-        }
+    }
+    if (!rs.sink) {
+        rs.defaultSink = std::make_shared<std::stringstream>();
+        rs.sink = std::make_shared<OStreamWriter>(rs.defaultSink);
     }
     return rs;
 }
 
 void finalizeResponseBody(ResponseMessage& response, long statusCode,
-                           const std::optional<OStreamFactory>& factory,
+                           const std::optional<SinkFactory>& factory,
                            const std::shared_ptr<std::stringstream>& defaultSink) {
     bool isError = (statusCode / 100 != 2) || (statusCode == 203);
     if (isError || !factory.has_value()) {

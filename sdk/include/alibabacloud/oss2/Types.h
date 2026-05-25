@@ -3,6 +3,7 @@
 
 #include "alibabacloud/oss2/OSS_EXPORTS.h"
 #include <chrono>
+#include <cstdint>
 #include <functional>
 #include <map>
 #include <memory>
@@ -13,6 +14,8 @@
 
 namespace alibabacloud {
 namespace oss2 {
+
+class ByteWriter;
 
 enum class AddressStyleType { VirtualHosted, Path, CName };
 
@@ -91,14 +94,11 @@ struct ALIBABACLOUD_OSS_API ProgressCallback {
     std::uintptr_t userdata{};
 };
 
-struct ALIBABACLOUD_OSS_API OStreamFactory {
-    /*
-     * size: the max length of data to write, -1 means the length is unknown
-     */
-    std::shared_ptr<std::ostream> operator()(std::int64_t size) const {
+struct ALIBABACLOUD_OSS_API SinkFactory {
+    std::shared_ptr<ByteWriter> operator()(std::int64_t size) const {
         return supplier ? supplier(size) : nullptr;
     }
-    std::function<std::shared_ptr<std::ostream>(std::int64_t size)> supplier;
+    std::function<std::shared_ptr<ByteWriter>(std::int64_t size)> supplier;
     bool isOneShot{};
 };
 

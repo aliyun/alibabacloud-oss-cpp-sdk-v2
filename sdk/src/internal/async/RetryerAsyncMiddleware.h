@@ -32,8 +32,8 @@ class RetryerAsyncMiddleware final : public AsyncExecuteMiddleware {
                 if (state->request->body != nullptr && state->request->body->isOneShot()) {
                     canRetry = false;
                 }
-                if (state->context.transportContext.ostreamFactory.has_value() &&
-                    state->context.transportContext.ostreamFactory.value().isOneShot) {
+                if (state->context.transportContext.sinkFactory.has_value() &&
+                    state->context.transportContext.sinkFactory.value().isOneShot) {
                     canRetry = false;
                 }
                 if (canRetry && retryer_->isErrorRetryable(state->context.errorContext.error)) {

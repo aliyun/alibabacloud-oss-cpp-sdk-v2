@@ -22,7 +22,7 @@ struct ClientInnerOptions {
 };
 
 struct OperationInnerOptions {
-    std::optional<OStreamFactory> ostreamFactory;
+    std::optional<SinkFactory> sinkFactory;
     OnResponseMessage onResponseMessage;
     std::vector<std::shared_ptr<StreamObserver>> uploadObserver;
 };
