@@ -63,6 +63,7 @@ std::string ToUpper(const char* source);
 std::string ToGmtTime(std::time_t& t);
 std::string ToUtcTime(std::time_t& t);
 std::time_t UtcToUnixTime(const std::string& t);
+std::time_t GmtToUnixTime(const std::string& s);
 std::time_t ToUnixTime(const std::string& str, const std::string& fmt);
 std::string FormatUnixTime(const std::time_t& t, const std::string& fmt);
 

@@ -2,6 +2,7 @@
 
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
 #include "alibabacloud/oss2/Error.h"
+#include "alibabacloud/oss2/io/ByteStream.h"
 #include "alibabacloud/oss2/retry/Retryer.h"
 #include "alibabacloud/oss2/retry/StandardRetryer.h"
 #include "alibabacloud/oss2/signer/Signer.h"
@@ -2320,6 +2321,470 @@ TEST(ClientImplMockTest, returnsServiceExceptionNormal_json) {}
 TEST(ClientImplMockTest, returnsServiceExceptionEmpty_json) {}
 
 TEST(ClientImplMockTest, returnsServiceExceptionInvalidFormat_json) {}
+
+
+// ---------------------------------------------------------------------------
+// Clock Skew Correction Tests
+// ---------------------------------------------------------------------------
+
+const static std::string ClockSkewErrorXml =
+        R"(<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+    <Code>RequestTimeTooSkewed</Code>
+    <Message>The difference between the request time and the current time is too large.</Message>
+    <RequestId>id-skew</RequestId>
+    <ServerTime>2018-03-07T08:35:19.000Z</ServerTime>
+    <MaxAllowedSkewMilliseconds>900000</MaxAllowedSkewMilliseconds>
+</Error>
+)";
+
+const static std::string AccessDeniedErrorXml =
+        R"(<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+    <Code>AccessDenied</Code>
+    <Message>Access Denied.</Message>
+    <RequestId>id-denied</RequestId>
+</Error>
+)";
+
+TEST(ClientImplMockTest, ClockSkew_RetryWithCorrectedTime) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = ClientImpl(config, defaultClientFns);
+
+    auto now = std::time(nullptr);
+    auto serverDateStr = utils::ToGmtTime(now);
+
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            403, "Forbidden",
+            {{"x-oss-request-id", "id-1"}, {"Date", serverDateStr}},
+            std::make_shared<std::stringstream>(ClockSkewErrorXml)}));
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-2"}},
+            std::make_shared<std::stringstream>("")}));
+
+    auto input = OperationInput{};
+    input.opName = "PutObject";
+    input.method = "PUT";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    auto result = client.Execute(input);
+    EXPECT_EQ(2ULL, mockHandler->requests.size());
+    auto output = std::get_if<OperationOutput>(&result);
+    EXPECT_NE(nullptr, output);
+    EXPECT_EQ(200, output->statusCode);
+}
+
+TEST(ClientImplMockTest, ClockSkew_OffsetPersistsAcrossRequests) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = ClientImpl(config, defaultClientFns);
+
+    auto serverTime = std::time(nullptr) + 600;
+    auto serverDateStr = utils::ToGmtTime(serverTime);
+
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            403, "Forbidden",
+            {{"x-oss-request-id", "id-1"}, {"Date", serverDateStr}},
+            std::make_shared<std::stringstream>(ClockSkewErrorXml)}));
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-2"}},
+            std::make_shared<std::stringstream>("")}));
+
+    auto input = OperationInput{};
+    input.opName = "PutObject";
+    input.method = "PUT";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    auto result = client.Execute(input);
+    EXPECT_EQ(2ULL, mockHandler->requests.size());
+    auto output = std::get_if<OperationOutput>(&result);
+    EXPECT_NE(nullptr, output);
+
+    // Second request should use stored offset (no clock skew error)
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-3"}},
+            std::make_shared<std::stringstream>("")}));
+
+    result = client.Execute(input);
+    EXPECT_EQ(1ULL, mockHandler->requests.size());
+    output = std::get_if<OperationOutput>(&result);
+    EXPECT_NE(nullptr, output);
+
+    // Verify the stored clock offset is > 0 (approx 600s)
+    EXPECT_GT(client.getInnerOptions().clockOffset, 500);
+}
+
+TEST(ClientImplMockTest, ClockSkew_DisabledFlag) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    ClientOptionsFns fns = {[](ClientOptions& opt) {
+        opt.featureFlags &= ~static_cast<int>(FeatureFlagsType::CorrectClockSkew);
+    }};
+    auto client = ClientImpl(config, fns);
+
+    auto serverTime = std::time(nullptr) + 600;
+    auto serverDateStr = utils::ToGmtTime(serverTime);
+
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            403, "Forbidden",
+            {{"x-oss-request-id", "id-1"}, {"Date", serverDateStr}},
+            std::make_shared<std::stringstream>(ClockSkewErrorXml)}));
+
+    auto input = OperationInput{};
+    input.opName = "PutObject";
+    input.method = "PUT";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    auto result = client.Execute(input);
+    EXPECT_EQ(1ULL, mockHandler->requests.size());
+    auto error = std::get_if<OperationError>(&result);
+    EXPECT_NE(nullptr, error);
+    EXPECT_EQ(403, error->getStatusCode());
+    EXPECT_EQ("RequestTimeTooSkewed", error->getCode());
+}
+
+TEST(ClientImplMockTest, ClockSkew_NonSkewError403) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = ClientImpl(config, defaultClientFns);
+
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            403, "Forbidden",
+            {{"x-oss-request-id", "id-1"}, {"Date", "Wed, 07 Mar 2018 08:35:19 GMT"}},
+            std::make_shared<std::stringstream>(AccessDeniedErrorXml)}));
+
+    auto input = OperationInput{};
+    input.opName = "PutObject";
+    input.method = "PUT";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    auto result = client.Execute(input);
+    EXPECT_EQ(1ULL, mockHandler->requests.size());
+    auto error = std::get_if<OperationError>(&result);
+    EXPECT_NE(nullptr, error);
+    EXPECT_EQ(403, error->getStatusCode());
+    EXPECT_EQ("AccessDenied", error->getCode());
+}
+
+TEST(ClientImplMockTest, ClockSkew_ServerTimeFallback) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = ClientImpl(config, defaultClientFns);
+
+    // No Date header, but ServerTime is in the XML body
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            403, "Forbidden",
+            {{"x-oss-request-id", "id-1"}},
+            std::make_shared<std::stringstream>(ClockSkewErrorXml)}));
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-2"}},
+            std::make_shared<std::stringstream>("")}));
+
+    auto input = OperationInput{};
+    input.opName = "PutObject";
+    input.method = "PUT";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    auto result = client.Execute(input);
+    EXPECT_EQ(2ULL, mockHandler->requests.size());
+    auto output = std::get_if<OperationOutput>(&result);
+    EXPECT_NE(nullptr, output);
+    EXPECT_EQ(200, output->statusCode);
+}
+
+TEST(ClientImplMockTest, ClockSkew_ParseFailure) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = ClientImpl(config, defaultClientFns);
+
+    // RequestTimeTooSkewed but no Date header and no ServerTime in body
+    std::string errorXml = R"(<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+    <Code>RequestTimeTooSkewed</Code>
+    <Message>The difference between the request time and the current time is too large.</Message>
+    <RequestId>id-skew</RequestId>
+</Error>
+)";
+
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            403, "Forbidden",
+            {{"x-oss-request-id", "id-1"}},
+            std::make_shared<std::stringstream>(errorXml)}));
+
+    auto input = OperationInput{};
+    input.opName = "PutObject";
+    input.method = "PUT";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    auto result = client.Execute(input);
+    EXPECT_EQ(1ULL, mockHandler->requests.size());
+    auto error = std::get_if<OperationError>(&result);
+    EXPECT_NE(nullptr, error);
+    EXPECT_EQ(403, error->getStatusCode());
+    EXPECT_EQ("RequestTimeTooSkewed", error->getCode());
+}
+
+TEST(ClientImplMockTest, ClockSkew_OneShotBodyNotRetried) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = ClientImpl(config, defaultClientFns);
+
+    auto serverTime = std::time(nullptr) + 600;
+    auto serverDateStr = utils::ToGmtTime(serverTime);
+
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            403, "Forbidden",
+            {{"x-oss-request-id", "id-1"}, {"Date", serverDateStr}},
+            std::make_shared<std::stringstream>(ClockSkewErrorXml)}));
+
+    auto input = OperationInput{};
+    input.opName = "PutObject";
+    input.method = "PUT";
+    input.bucket = "bucket";
+    input.key = "key";
+    input.body = std::make_shared<StreamContent>(std::make_shared<std::istringstream>("hello"), false);
+
+    auto result = client.Execute(input);
+    EXPECT_EQ(1ULL, mockHandler->requests.size());
+    auto error = std::get_if<OperationError>(&result);
+    EXPECT_NE(nullptr, error);
+    EXPECT_EQ(403, error->getStatusCode());
+}
+
+
+const static std::string InvalidSigningDateErrorXml =
+        R"(<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+    <Code>InvalidArgument</Code>
+    <Message>Invalid signing date in Authorization header.</Message>
+    <RequestId>id-invalid-date</RequestId>
+</Error>
+)";
+
+TEST(ClientImplMockTest, ClockSkew_InvalidSigningDate_LargeSkew) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = ClientImpl(config, defaultClientFns);
+
+    auto serverTime = std::time(nullptr) + 1200;
+    auto serverDateStr = utils::ToGmtTime(serverTime);
+
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            400, "Bad Request",
+            {{"x-oss-request-id", "id-1"}, {"Date", serverDateStr}},
+            std::make_shared<std::stringstream>(InvalidSigningDateErrorXml)}));
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-2"}},
+            std::make_shared<std::stringstream>("")}));
+
+    auto input = OperationInput{};
+    input.opName = "PutObject";
+    input.method = "PUT";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    auto result = client.Execute(input);
+    EXPECT_EQ(2ULL, mockHandler->requests.size());
+    auto output = std::get_if<OperationOutput>(&result);
+    EXPECT_NE(nullptr, output);
+    EXPECT_EQ(200, output->statusCode);
+}
+
+TEST(ClientImplMockTest, ClockSkew_InvalidSigningDate_SmallSkew) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = ClientImpl(config, defaultClientFns);
+
+    auto serverTime = std::time(nullptr) + 60;
+    auto serverDateStr = utils::ToGmtTime(serverTime);
+
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            400, "Bad Request",
+            {{"x-oss-request-id", "id-1"}, {"Date", serverDateStr}},
+            std::make_shared<std::stringstream>(InvalidSigningDateErrorXml)}));
+
+    auto input = OperationInput{};
+    input.opName = "PutObject";
+    input.method = "PUT";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    auto result = client.Execute(input);
+    EXPECT_EQ(1ULL, mockHandler->requests.size());
+    auto error = std::get_if<OperationError>(&result);
+    EXPECT_NE(nullptr, error);
+    EXPECT_EQ(400, error->getStatusCode());
+    EXPECT_EQ("InvalidArgument", error->getCode());
+}
+
+
+// ---------------------------------------------------------------------------
+// Pre/Post ServiceError Split Tests
+// ---------------------------------------------------------------------------
+
+TEST(ClientImplMockTest, PrePostServiceError_ErrorStillParsed) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = ClientImpl(config, defaultClientFns);
+
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            403, "Forbidden", {{"x-oss-request-id", "id-12345"}}, std::make_shared<std::stringstream>(ErrorXml)}));
+
+    auto input = OperationInput{};
+    input.opName = "PutBucketAcl";
+    input.method = "PUT";
+    input.bucket = "bucket";
+
+    auto result = client.Execute(input);
+    auto error = std::get_if<OperationError>(&result);
+    EXPECT_NE(nullptr, error);
+    EXPECT_EQ(403, error->getStatusCode());
+    EXPECT_EQ("InvalidAccessKeyId", error->getCode());
+    EXPECT_EQ("The OSS Access Key Id you provided does not exist in our records.", error->getMessage());
+}
+
+TEST(ClientImplMockTest, PrePostServiceError_SuccessHandlersBlockedOnError) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = ClientImpl(config, defaultClientFns);
+
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            403, "Forbidden", {{"x-oss-request-id", "id-1"}}, std::make_shared<std::stringstream>(ErrorXml)}));
+
+    bool handlerCalled = false;
+    OperationInnerOptions innerOpts;
+    innerOpts.onResponseMessage.emplace_back(
+        [&handlerCalled](std::unique_ptr<ResponseMessage>&, ExecuteContext&) {
+            handlerCalled = true;
+            return true;
+        });
+
+    auto input = OperationInput{};
+    input.opName = "PutObject";
+    input.method = "PUT";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    auto result = client.Execute(input, nullptr, &innerOpts);
+    EXPECT_FALSE(handlerCalled);
+    auto error = std::get_if<OperationError>(&result);
+    EXPECT_NE(nullptr, error);
+    EXPECT_EQ(403, error->getStatusCode());
+}
+
+TEST(ClientImplMockTest, PrePostServiceError_SuccessHandlersRunOn2xx) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = ClientImpl(config, defaultClientFns);
+
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK", {{"x-oss-request-id", "id-1"}}, std::make_shared<std::stringstream>("")}));
+
+    bool handlerCalled = false;
+    OperationInnerOptions innerOpts;
+    innerOpts.onResponseMessage.emplace_back(
+        [&handlerCalled](std::unique_ptr<ResponseMessage>&, ExecuteContext&) {
+            handlerCalled = true;
+            return true;
+        });
+
+    auto input = OperationInput{};
+    input.opName = "PutObject";
+    input.method = "PUT";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    auto result = client.Execute(input, nullptr, &innerOpts);
+    EXPECT_TRUE(handlerCalled);
+    auto output = std::get_if<OperationOutput>(&result);
+    EXPECT_NE(nullptr, output);
+    EXPECT_EQ(200, output->statusCode);
+}
 
 } // namespace internal
 } // namespace oss2

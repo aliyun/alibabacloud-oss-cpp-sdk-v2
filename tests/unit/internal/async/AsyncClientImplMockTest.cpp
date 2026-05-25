@@ -862,6 +862,197 @@ TEST(AsyncClientImplMockTest, returnsServiceExceptionNormal) {
 }
 
 
+// ---------------------------------------------------------------------------
+// Async Clock Skew Correction Tests
+// ---------------------------------------------------------------------------
+
+const static std::string AsyncClockSkewErrorXml =
+        R"(<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+    <Code>RequestTimeTooSkewed</Code>
+    <Message>The difference between the request time and the current time is too large.</Message>
+    <RequestId>id-skew</RequestId>
+    <ServerTime>2018-03-07T08:35:19.000Z</ServerTime>
+</Error>
+)";
+
+const static std::string AsyncAccessDeniedErrorXml =
+        R"(<?xml version="1.0" encoding="UTF-8"?>
+<Error>
+    <Code>AccessDenied</Code>
+    <Message>Access Denied.</Message>
+    <RequestId>id-denied</RequestId>
+</Error>
+)";
+
+TEST(AsyncClientImplMockTest, ClockSkew_RetryWithCorrectedTime) {
+    auto mockHandler = std::make_shared<MockAsyncTransportImpl>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.asyncHttpTransport = mockHandler;
+
+    auto client = AsyncClientImpl(config, asyncDefaultClientFns);
+
+    auto now = std::time(nullptr);
+    auto serverDateStr = utils::ToGmtTime(now);
+
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            403, "Forbidden",
+            {{"x-oss-request-id", "id-1"}, {"Date", serverDateStr}},
+            std::make_shared<std::stringstream>(AsyncClockSkewErrorXml)}));
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-2"}},
+            std::make_shared<std::stringstream>("")}));
+
+    auto input = OperationInput{};
+    input.opName = "PutObject";
+    input.method = "PUT";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    AsyncTestHelper helper;
+    client.ExecuteAsync(input, helper.callback());
+    helper.wait();
+
+    EXPECT_EQ(2ULL, mockHandler->requests.size());
+    auto output = std::get_if<OperationOutput>(&helper.result);
+    EXPECT_NE(nullptr, output);
+    EXPECT_EQ(200, output->statusCode);
+}
+
+TEST(AsyncClientImplMockTest, ClockSkew_OffsetPersistsAcrossRequests) {
+    auto mockHandler = std::make_shared<MockAsyncTransportImpl>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.asyncHttpTransport = mockHandler;
+
+    auto client = AsyncClientImpl(config, asyncDefaultClientFns);
+
+    auto serverTime = std::time(nullptr) + 600;
+    auto serverDateStr = utils::ToGmtTime(serverTime);
+
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            403, "Forbidden",
+            {{"x-oss-request-id", "id-1"}, {"Date", serverDateStr}},
+            std::make_shared<std::stringstream>(AsyncClockSkewErrorXml)}));
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-2"}},
+            std::make_shared<std::stringstream>("")}));
+
+    auto input = OperationInput{};
+    input.opName = "PutObject";
+    input.method = "PUT";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    AsyncTestHelper helper;
+    client.ExecuteAsync(input, helper.callback());
+    helper.wait();
+
+    EXPECT_EQ(2ULL, mockHandler->requests.size());
+    auto output = std::get_if<OperationOutput>(&helper.result);
+    EXPECT_NE(nullptr, output);
+
+    // Verify offset is persisted
+    EXPECT_GT(client.getInnerOptions().clockOffset, 500);
+
+    // Second request uses stored offset
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-3"}},
+            std::make_shared<std::stringstream>("")}));
+
+    AsyncTestHelper helper2;
+    client.ExecuteAsync(input, helper2.callback());
+    helper2.wait();
+
+    EXPECT_EQ(1ULL, mockHandler->requests.size());
+    output = std::get_if<OperationOutput>(&helper2.result);
+    EXPECT_NE(nullptr, output);
+}
+
+TEST(AsyncClientImplMockTest, ClockSkew_DisabledFlag) {
+    auto mockHandler = std::make_shared<MockAsyncTransportImpl>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.asyncHttpTransport = mockHandler;
+
+    ClientOptionsFns fns = {[](ClientOptions& opt) {
+        opt.featureFlags &= ~static_cast<int>(FeatureFlagsType::CorrectClockSkew);
+    }};
+    auto client = AsyncClientImpl(config, fns);
+
+    auto serverTime = std::time(nullptr) + 600;
+    auto serverDateStr = utils::ToGmtTime(serverTime);
+
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            403, "Forbidden",
+            {{"x-oss-request-id", "id-1"}, {"Date", serverDateStr}},
+            std::make_shared<std::stringstream>(AsyncClockSkewErrorXml)}));
+
+    auto input = OperationInput{};
+    input.opName = "PutObject";
+    input.method = "PUT";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    AsyncTestHelper helper;
+    client.ExecuteAsync(input, helper.callback());
+    helper.wait();
+
+    EXPECT_EQ(1ULL, mockHandler->requests.size());
+    auto error = std::get_if<OperationError>(&helper.result);
+    EXPECT_NE(nullptr, error);
+    EXPECT_EQ(403, error->getStatusCode());
+    EXPECT_EQ("RequestTimeTooSkewed", error->getCode());
+}
+
+TEST(AsyncClientImplMockTest, ClockSkew_NonSkewError403) {
+    auto mockHandler = std::make_shared<MockAsyncTransportImpl>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.asyncHttpTransport = mockHandler;
+
+    auto client = AsyncClientImpl(config, asyncDefaultClientFns);
+
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            403, "Forbidden",
+            {{"x-oss-request-id", "id-1"}, {"Date", "Wed, 07 Mar 2018 08:35:19 GMT"}},
+            std::make_shared<std::stringstream>(AsyncAccessDeniedErrorXml)}));
+
+    auto input = OperationInput{};
+    input.opName = "PutObject";
+    input.method = "PUT";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    AsyncTestHelper helper;
+    client.ExecuteAsync(input, helper.callback());
+    helper.wait();
+
+    EXPECT_EQ(1ULL, mockHandler->requests.size());
+    auto error = std::get_if<OperationError>(&helper.result);
+    EXPECT_NE(nullptr, error);
+    EXPECT_EQ(403, error->getStatusCode());
+    EXPECT_EQ("AccessDenied", error->getCode());
+}
+
+
 } // namespace internal
 } // namespace oss2
 } // namespace alibabacloud

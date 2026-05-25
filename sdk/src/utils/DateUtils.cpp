@@ -73,6 +73,13 @@ std::time_t UtcToUnixTime(const std::string& t) {
     return tt < 0 ? -1 : tt;
 }
 
+std::time_t GmtToUnixTime(const std::string& s) {
+    if (s.size() < 4 || s.compare(s.size() - 4, 4, " GMT") != 0) {
+        return -1;
+    }
+    return ToUnixTime(s, "%a, %d %b %Y %H:%M:%S");
+}
+
 std::time_t ToUnixTime(const std::string& str, const std::string& fmt) {
     std::tm tm;
     std::time_t tt = -1;
