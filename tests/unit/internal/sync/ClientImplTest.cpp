@@ -370,7 +370,7 @@ TEST(ClientImplTest, ConfigFeatureFlags) {
     EXPECT_TRUE(client.hasFlag(FeatureFlagsType::CorrectClockSkew));
     EXPECT_TRUE(client.hasFlag(FeatureFlagsType::AutoDetectMimeType));
     EXPECT_TRUE(client.hasFlag(FeatureFlagsType::EnableCRC64CheckUpload));
-    EXPECT_FALSE(client.hasFlag(FeatureFlagsType::EnableCRC64CheckDonwload));
+    EXPECT_FALSE(client.hasFlag(FeatureFlagsType::EnableCRC64CheckDownload));
 }
 
 } // namespace internal

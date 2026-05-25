@@ -31,6 +31,17 @@ class ALIBABACLOUD_OSS_API OSSClient final {
 
     ~OSSClient() = default;
 
+    /**
+     * @brief Disables request processing for this client. All in-flight requests will be
+     * canceled and new requests will fail immediately until enableRequest() is called.
+     */
+    void disableRequest();
+
+    /**
+     * @brief Re-enables request processing after a prior disableRequest() call.
+     */
+    void enableRequest();
+
   public:
     /**
      * @brief A generic interface for handling data operations across different types.
@@ -464,6 +475,7 @@ class ALIBABACLOUD_OSS_API OSSClient final {
      */
     ListPartsOutcome listParts(const models::ListPartsRequest& request, const OperationOptions* options = nullptr);
 
+  public:
     // Presign
 
     /**
@@ -506,16 +518,58 @@ class ALIBABACLOUD_OSS_API OSSClient final {
     PresignOutcome presign(const models::UploadPartRequest& request,
                            const models::PresignOptions* options = nullptr);
 
-    /**
-     * @brief Disables request processing for this client. All in-flight requests will be
-     * canceled and new requests will fail immediately until enableRequest() is called.
-     */
-    void disableRequest();
+  public:
+    // Extension
 
     /**
-     * @brief Re-enables request processing after a prior disableRequest() call.
+     * @brief Uploads a local file as an object.
+     *
+     * @param request The PutObject request (bucket, key, metadata, etc.)
+     * @param filePath Path to the local file to upload
+     * @param options Optional, operation options
+     * @return The result instance
      */
-    void enableRequest();
+    PutObjectOutcome putObjectFromFile(const models::PutObjectRequest& request,
+                                       const std::string& filePath,
+                                       const OperationOptions* options = nullptr);
+
+    /**
+     * @brief Downloads an object to a local file with automatic resume on network failure.
+     *
+     * If the download is interrupted mid-stream, retries from the last written offset
+     * using Range requests. Retries indefinitely until the download succeeds; use a
+     * cancel token in OperationOptions to limit the total elapsed time.
+     * Supports CRC-64 verification (controlled by EnableCRC64CheckDownload feature flag).
+     *
+     * @param request The GetObject request (bucket, key, etc.)
+     * @param filePath Path to the local file to write
+     * @param options Optional, operation options
+     * @return The result instance
+     */
+    GetObjectOutcome getObjectToFile(const models::GetObjectRequest& request,
+                                     const std::string& filePath,
+                                     const OperationOptions* options = nullptr);
+
+    /**
+     * @brief Checks whether an object exists.
+     *
+     * @param bucket The bucket name
+     * @param key The object key
+     * @param options Optional, operation options
+     * @return true if the object exists, false if not, or error on failure
+     */
+    BoolOutcome isObjectExist(const std::string& bucket, const std::string& key,
+                              const OperationOptions* options = nullptr);
+
+    /**
+     * @brief Checks whether a bucket exists.
+     *
+     * @param bucket The bucket name
+     * @param options Optional, operation options
+     * @return true if the bucket exists, false if not, or error on failure
+     */
+    BoolOutcome isBucketExist(const std::string& bucket,
+                              const OperationOptions* options = nullptr);
 
     template<typename RequestT>
     struct OperationTraits;

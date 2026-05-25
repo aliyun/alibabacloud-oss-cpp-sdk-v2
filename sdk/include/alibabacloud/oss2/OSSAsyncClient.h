@@ -504,6 +504,45 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
                         const ListPartsAsyncCallback& callback,
                         const OperationOptions* options = nullptr);
 
+  public:
+    // Extension
+
+    /**
+     * @brief Asynchronously uploads a local file as an object.
+     */
+    void putObjectFromFileAsync(const models::PutObjectRequest& request,
+                                const std::string& filePath,
+                                const PutObjectAsyncCallback& callback,
+                                const OperationOptions* options = nullptr);
+
+    /**
+     * @brief Asynchronously downloads an object to a local file.
+     *
+     * Unlike the synchronous OSSClient::getObjectToFile which performs resumable retry
+     * from the last written offset, this method is a convenience wrapper around
+     * getObjectAsync that writes the response body to a file. Retries are handled
+     * internally by the SDK at the request level (each retry downloads from the beginning).
+     * Supports CRC-64 verification (controlled by EnableCRC64CheckDownload feature flag).
+     */
+    void getObjectToFileAsync(const models::GetObjectRequest& request,
+                              const std::string& filePath,
+                              const GetObjectAsyncCallback& callback,
+                              const OperationOptions* options = nullptr);
+
+    /**
+     * @brief Asynchronously checks whether an object exists.
+     */
+    void isObjectExistAsync(const std::string& bucket, const std::string& key,
+                            const BoolAsyncCallback& callback,
+                            const OperationOptions* options = nullptr);
+
+    /**
+     * @brief Asynchronously checks whether a bucket exists.
+     */
+    void isBucketExistAsync(const std::string& bucket,
+                            const BoolAsyncCallback& callback,
+                            const OperationOptions* options = nullptr);
+
     template<typename RequestT>
     struct OperationTraits;
 

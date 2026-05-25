@@ -105,6 +105,8 @@ using ListPartsOutcome = Outcome<models::ListPartsResult, OperationError>;
 
 using PresignOutcome = Outcome<models::PresignResult, OperationError>;
 
+using BoolOutcome = Outcome<bool, OperationError>;
+
 // Async Callbacks
 using ListBucketsAsyncCallback = std::function<void(ListBucketsOutcome)>;
 using DescribeRegionsAsyncCallback = std::function<void(DescribeRegionsOutcome)>;
@@ -147,6 +149,7 @@ using UploadPartCopyAsyncCallback = std::function<void(UploadPartCopyOutcome)>;
 using AbortMultipartUploadAsyncCallback = std::function<void(AbortMultipartUploadOutcome)>;
 using ListMultipartUploadsAsyncCallback = std::function<void(ListMultipartUploadsOutcome)>;
 using ListPartsAsyncCallback = std::function<void(ListPartsOutcome)>;
+using BoolAsyncCallback = std::function<void(BoolOutcome)>;
 
 } // namespace oss2
 } // namespace alibabacloud

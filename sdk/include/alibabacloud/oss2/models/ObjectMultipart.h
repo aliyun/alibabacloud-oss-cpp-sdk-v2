@@ -4,6 +4,7 @@
 #include "alibabacloud/oss2/io/ByteStream.h"
 #include "alibabacloud/oss2/models/Shared.h"
 
+#include <cstdlib>
 #include <optional>
 #include <string>
 
@@ -421,6 +422,11 @@ class ALIBABACLOUD_OSS_API UploadPartResult final : public ResultModel {
 
     inline const std::string& getHashCrc64ecma() const {
         return getHeaderOrEmpty("x-oss-hash-crc64ecma");
+    }
+
+    inline uint64_t getHashCrc64ecmaAsUint64() const {
+        const auto& val = getHeaderOrEmpty("x-oss-hash-crc64ecma");
+        return val.empty() ? 0 : std::strtoull(val.c_str(), nullptr, 10);
     }
 
   private:

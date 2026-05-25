@@ -55,7 +55,7 @@ enum class FeatureFlagsType {
      * Check data integrity of downloads via the crc64.
      * This feature takes effect for Downloader.DownloadFile
      */
-    EnableCRC64CheckDonwload = (1 << 3),
+    EnableCRC64CheckDownload = (1 << 3),
 };
 
 struct ALIBABACLOUD_OSS_API caseSensitiveLess {
