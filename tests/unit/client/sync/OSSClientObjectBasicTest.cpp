@@ -1996,11 +1996,9 @@ TEST(OSSClientObjectBasicTest, PutObject_CRC64Check_Disabled) {
     config.region = "cn-hangzhou";
     config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
     config.httpTransport = mockHandler;
+    config.disableUploadCRC64Check = true;
 
-    ClientOptionsFns fns = {[](ClientOptions& opt) {
-        opt.featureFlags &= ~static_cast<int>(FeatureFlagsType::EnableCRC64CheckUpload);
-    }};
-    auto client = OSSClient(config, fns);
+    auto client = OSSClient(config);
 
     std::string data = "Hello, OSS!";
 
@@ -2158,11 +2156,9 @@ TEST(OSSClientObjectBasicTest, AppendObject_CRC64Check_Disabled) {
     config.region = "cn-hangzhou";
     config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
     config.httpTransport = mockHandler;
+    config.disableUploadCRC64Check = true;
 
-    ClientOptionsFns fns = {[](ClientOptions& opt) {
-        opt.featureFlags &= ~static_cast<int>(FeatureFlagsType::EnableCRC64CheckUpload);
-    }};
-    auto client = OSSClient(config, fns);
+    auto client = OSSClient(config);
 
     std::string data = "hello";
 

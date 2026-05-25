@@ -987,11 +987,9 @@ TEST(AsyncClientImplMockTest, ClockSkew_DisabledFlag) {
     config.region = "cn-hangzhou";
     config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
     config.asyncHttpTransport = mockHandler;
+    config.disableClockSkewCorrection = true;
 
-    ClientOptionsFns fns = {[](ClientOptions& opt) {
-        opt.featureFlags &= ~static_cast<int>(FeatureFlagsType::CorrectClockSkew);
-    }};
-    auto client = AsyncClientImpl(config, fns);
+    auto client = AsyncClientImpl(config, asyncDefaultClientFns);
 
     auto serverTime = std::time(nullptr) + 600;
     auto serverDateStr = utils::ToGmtTime(serverTime);

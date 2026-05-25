@@ -132,6 +132,27 @@ struct ALIBABACLOUD_OSS_API ClientConfiguration {
     /// Additional signable headers to include in the request signature.
     std::optional<std::vector<std::string>> additionalHeaders;
 
+    // ---- Feature Flags ----
+
+    /// Disable automatic clock skew correction.
+    /// When not set (default), the SDK will detect and correct clock skew.
+    std::optional<bool> disableClockSkewCorrection;
+
+    /// Disable automatic Content-Type detection based on the object name.
+    /// When not set (default), Content-Type is auto-detected for
+    /// PutObject, AppendObject and InitiateMultipartUpload.
+    std::optional<bool> disableAutoDetectMimeType;
+
+    /// Disable CRC64 integrity check for uploads.
+    /// When not set (default), CRC64 is checked for PutObject, AppendObject,
+    /// UploadPart, Uploader.UploadFrom and Uploader.UploadFile.
+    std::optional<bool> disableUploadCRC64Check;
+
+    /// Disable CRC64 integrity check for downloads.
+    /// When not set (default), CRC64 is checked for GetObjectToFile
+    /// and Downloader.DownloadFile.
+    std::optional<bool> disableDownloadCRC64Check;
+
     // ---- Async ----
 
     /// Custom executor for async operations, used by OSSClient::asyncCall / asyncCallback.

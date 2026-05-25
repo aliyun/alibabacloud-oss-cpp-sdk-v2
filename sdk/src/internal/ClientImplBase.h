@@ -63,7 +63,7 @@ class ClientImplBase {
     inline ClientInnerOptions& getInnerOptions() {
         return innerOptions_;
     }
-    inline bool hasFlag(FeatureFlagsType flag) {
+    inline bool hasFlag(FeatureFlagsType flag) const {
         return (options_.featureFlags & static_cast<int>(flag)) != 0;
     }
 };
