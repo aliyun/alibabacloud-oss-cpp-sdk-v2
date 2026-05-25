@@ -88,6 +88,15 @@ auto& result = outcome.value();
 | Query versioning state | GetBucketVersioning.cpp | asyncCall |
 | List object versions | ListObjectVersions.cpp | asyncCall |
 
+## Extension
+
+| Use Case | File | Patterns |
+|----------|------|----------|
+| Upload a local file | PutObjectFromFile.cpp | Callback |
+| Download to a local file | GetObjectToFile.cpp | Callback |
+| Check if an object exists | IsObjectExist.cpp | Callback |
+| Check if a bucket exists | IsBucketExist.cpp | Callback |
+
 ## Service
 
 | Use Case | File | Patterns |

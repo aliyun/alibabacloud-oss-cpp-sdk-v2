@@ -105,6 +105,15 @@ auto& result = outcome.value();
 | Presign HeadObject | PresignHeadObject.cpp | `client.presign(HeadObjectRequest)` |
 | Presign UploadPart | PresignUploadPart.cpp | `client.presign(UploadPartRequest)` |
 
+## Extension
+
+| Use Case | File | Key API |
+|----------|------|---------|
+| Upload a local file | PutObjectFromFile.cpp | `client.putObjectFromFile()` |
+| Download to a local file (resumable) | GetObjectToFile.cpp | `client.getObjectToFile()` |
+| Check if an object exists | IsObjectExist.cpp | `client.isObjectExist()` |
+| Check if a bucket exists | IsBucketExist.cpp | `client.isBucketExist()` |
+
 ## Advanced
 
 | Use Case | File | Key API |

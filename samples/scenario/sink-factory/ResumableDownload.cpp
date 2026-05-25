@@ -144,6 +144,10 @@ int main(int argc, char* argv[]) {
             }
 
             fileStream->flush();
+            if (fileStream->fail()) {
+                std::cerr << "  Failed to flush file stream" << std::endl;
+                return 1;
+            }
             fileStream.reset();
 
             // Re-check file size to determine new offset

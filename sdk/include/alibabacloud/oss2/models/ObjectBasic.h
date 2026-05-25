@@ -3,6 +3,7 @@
 #include "alibabacloud/oss2/Types.h"
 #include "alibabacloud/oss2/io/ByteStream.h"
 
+#include <cstdlib>
 #include <optional>
 #include <string>
 
@@ -322,6 +323,11 @@ class ALIBABACLOUD_OSS_API PutObjectResult final : public ResultModel {
     // <no value>
     inline const std::string& getHashCrc64ecma() const {
         return getHeaderOrEmpty("x-oss-hash-crc64ecma");
+    }
+
+    inline uint64_t getHashCrc64ecmaAsUint64() const {
+        const auto& val = getHeaderOrEmpty("x-oss-hash-crc64ecma");
+        return val.empty() ? 0 : std::strtoull(val.c_str(), nullptr, 10);
     }
 
     // <no value>
@@ -922,6 +928,11 @@ class ALIBABACLOUD_OSS_API GetObjectResult final : public ResultModel {
         return getHeaderOrEmpty("x-oss-hash-crc64ecma");
     }
 
+    inline uint64_t getHashCrc64ecmaAsUint64() const {
+        const auto& val = getHeaderOrEmpty("x-oss-hash-crc64ecma");
+        return val.empty() ? 0 : std::strtoull(val.c_str(), nullptr, 10);
+    }
+
     // <no value>
     inline const std::string& getServerSideEncryptionKeyId() const {
         return getHeaderOrEmpty("x-oss-server-side-encryption-key-id");
@@ -1177,6 +1188,11 @@ class ALIBABACLOUD_OSS_API AppendObjectResult final : public ResultModel {
     // <no value>
     inline const std::string& getHashCrc64ecma() const {
         return getHeaderOrEmpty("x-oss-hash-crc64ecma");
+    }
+
+    inline uint64_t getHashCrc64ecmaAsUint64() const {
+        const auto& val = getHeaderOrEmpty("x-oss-hash-crc64ecma");
+        return val.empty() ? 0 : std::strtoull(val.c_str(), nullptr, 10);
     }
 
 
@@ -1554,6 +1570,11 @@ class ALIBABACLOUD_OSS_API HeadObjectResult final : public ResultModel {
     // <no value>
     inline const std::string& getHashCrc64ecma() const {
         return getHeaderOrEmpty("x-oss-hash-crc64ecma");
+    }
+
+    inline uint64_t getHashCrc64ecmaAsUint64() const {
+        const auto& val = getHeaderOrEmpty("x-oss-hash-crc64ecma");
+        return val.empty() ? 0 : std::strtoull(val.c_str(), nullptr, 10);
     }
 
     // <no value>
