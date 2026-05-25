@@ -541,6 +541,10 @@ class ALIBABACLOUD_OSS_API OSSClient final {
      * cancel token in OperationOptions to limit the total elapsed time.
      * Supports CRC-64 verification (controlled by EnableCRC64CheckDownload feature flag).
      *
+     * Range restrictions: only a single range (e.g. "bytes=100-200" or "bytes=100-") is
+     * supported. Multi-range and suffix-range (e.g. "bytes=-500") are not supported and
+     * will return ArgumentInvalid.
+     *
      * @param request The GetObject request (bucket, key, etc.)
      * @param filePath Path to the local file to write
      * @param options Optional, operation options

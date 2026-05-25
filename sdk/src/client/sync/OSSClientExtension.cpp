@@ -3,6 +3,7 @@
 #include "alibabacloud/oss2/io/ByteWriter.h"
 #include "alibabacloud/oss2/utils/CRC64Utils.h"
 #include "src/internal/sync/ClientImpl.h"
+#include "src/utils/Utils.h"
 
 #include <fstream>
 
@@ -20,8 +21,24 @@ PutObjectOutcome OSSClient::putObjectFromFile(const models::PutObjectRequest& re
 GetObjectOutcome OSSClient::getObjectToFile(const models::GetObjectRequest& request,
                                             const std::string& filePath,
                                             const OperationOptions* options) {
+    std::int64_t rangeStart = 0;
+    std::int64_t rangeEnd = -1;
+    if (!request.getRange().empty()) {
+        std::vector<std::pair<std::int64_t, std::int64_t>> ranges;
+        if (!utils::ParseRangeHeader(request.getRange(), ranges) ||
+            ranges.size() != 1 || ranges[0].first == -1) {
+            return makeUnexpected(OperationError(
+                    ClientErrorCode::ArgumentInvalid,
+                    {{"Code", "ArgumentInvalid"},
+                     {"Message", "Invalid, multi-range, or suffix-range is not supported for getObjectToFile"}}));
+        }
+        rangeStart = ranges[0].first;
+        rangeEnd = ranges[0].second;
+    }
+
+    bool isFullDownload = (rangeStart == 0 && rangeEnd == -1);
     std::shared_ptr<CRC64WriteObserver> crcObserver = nullptr;
-    if (client_->hasFlag(FeatureFlagsType::EnableCRC64CheckDownload) && request.getRange().empty()) {
+    if (client_->hasFlag(FeatureFlagsType::EnableCRC64CheckDownload) && isFullDownload) {
         crcObserver = std::make_shared<CRC64WriteObserver>();
     }
     std::shared_ptr<ProgressWriteObserver> progressObs = nullptr;
@@ -62,8 +79,12 @@ GetObjectOutcome OSSClient::getObjectToFile(const models::GetObjectRequest& requ
             return observable;
         };
 
-        if (offset > 0) {
-            req.setRange("bytes=" + std::to_string(offset) + "-");
+        if (offset + rangeStart > 0 || rangeEnd != -1) {
+            std::string range = "bytes=" + std::to_string(rangeStart + offset) + "-";
+            if (rangeEnd >= 0) {
+                range += std::to_string(rangeEnd);
+            }
+            req.setRange(std::move(range));
             req.setRangeBehavior("standard");
         }
         req.setSinkFactory(factory);

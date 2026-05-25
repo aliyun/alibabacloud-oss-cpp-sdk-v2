@@ -103,6 +103,55 @@ std::string createTempFile(const std::string& content) {
     return name;
 }
 
+class PartialWriteMockTransport : public HttpTransport {
+  public:
+    struct Response {
+        int statusCode{200};
+        HeaderCollection headers;
+        std::string body;
+        std::size_t writeBytes{0};
+        bool failAfterWrite{false};
+    };
+    std::vector<Response> responses;
+    std::vector<std::unique_ptr<RequestMessage>> requests;
+
+    ResponseResult send(std::unique_ptr<RequestMessage>& request, const RequestOptions& options) override {
+        if (request->body != nullptr) {
+            auto src = request->body->spanSource();
+            src->readToEnd();
+        }
+        requests.emplace_back(std::make_unique<RequestMessage>(*request));
+
+        auto r = std::move(responses.front());
+        responses.erase(responses.begin());
+
+        auto response = std::make_unique<ResponseMessage>();
+        response->statusCode = r.statusCode;
+        response->headers = r.headers;
+
+        bool isError = (r.statusCode / 100 != 2) || (r.statusCode == 203);
+
+        if (!isError && options.sinkFactory.has_value()) {
+            std::size_t toWrite = r.writeBytes > 0 ? r.writeBytes : r.body.size();
+            auto sink = options.sinkFactory.value()(static_cast<std::int64_t>(toWrite));
+            if (sink) {
+                auto* data = reinterpret_cast<const std::uint8_t*>(r.body.data());
+                sink->write(data, toWrite);
+            }
+            if (r.failAfterWrite) {
+                return TransportError{make_error_code(TransportErrorCode::SendRecvError),
+                                      "NetworkError", "Connection reset"};
+            }
+        } else {
+            response->body = std::make_shared<std::stringstream>(r.body);
+        }
+
+        return response;
+    }
+
+    std::string getName() const override { return "PartialWriteMockTransport"; }
+};
+
 } // namespace
 
 // --- putObjectFromFile ---
@@ -511,6 +560,241 @@ TEST(OSSClientExtensionTest, GetObjectToFile_NoProgressCallbackStillWorks) {
     std::string downloaded((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
     f.close();
     EXPECT_EQ(content, downloaded);
+    std::remove(filePath.c_str());
+}
+
+// --- getObjectToFile range handling ---
+
+TEST(OSSClientExtensionTest, GetObjectToFile_InvalidRange) {
+    auto mock = std::make_shared<WritingMockTransport>();
+    auto client = makeClient(mock);
+
+    auto filePath = std::string(std::tmpnam(nullptr));
+
+    auto outcome = client.getObjectToFile(
+            models::GetObjectRequest().setBucket("bucket").setKey("key").setRange("invalid"),
+            filePath);
+
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("ArgumentInvalid", outcome.error().getCode());
+    std::remove(filePath.c_str());
+}
+
+TEST(OSSClientExtensionTest, GetObjectToFile_MultiRangeRejected) {
+    auto mock = std::make_shared<WritingMockTransport>();
+    auto client = makeClient(mock);
+
+    auto filePath = std::string(std::tmpnam(nullptr));
+
+    auto outcome = client.getObjectToFile(
+            models::GetObjectRequest().setBucket("bucket").setKey("key").setRange("bytes=0-99,200-299"),
+            filePath);
+
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("ArgumentInvalid", outcome.error().getCode());
+    std::remove(filePath.c_str());
+}
+
+TEST(OSSClientExtensionTest, GetObjectToFile_RangeStartEnd) {
+    auto mock = std::make_shared<WritingMockTransport>();
+    auto client = makeClient(mock);
+
+    std::string content = "partial content here";
+    mock->responses.push_back({206, {{"x-oss-request-id", "id-123"},
+                                     {"Content-Length", std::to_string(content.size())}},
+                               content});
+
+    auto filePath = std::string(std::tmpnam(nullptr));
+
+    auto outcome = client.getObjectToFile(
+            models::GetObjectRequest().setBucket("bucket").setKey("key").setRange("bytes=100-200"),
+            filePath);
+
+    EXPECT_TRUE(outcome.has_value());
+
+    std::ifstream f(filePath, std::ios::binary);
+    std::string downloaded((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+    f.close();
+    EXPECT_EQ(content, downloaded);
+
+    ASSERT_FALSE(mock->requests.empty());
+    auto& headers = mock->requests[0]->headers;
+    auto it = headers.find("Range");
+    ASSERT_NE(it, headers.end());
+    EXPECT_EQ("bytes=100-200", it->second);
+    std::remove(filePath.c_str());
+}
+
+TEST(OSSClientExtensionTest, GetObjectToFile_RangeOpenEnd) {
+    auto mock = std::make_shared<WritingMockTransport>();
+    auto client = makeClient(mock);
+
+    std::string content = "from 500 onwards";
+    mock->responses.push_back({206, {{"x-oss-request-id", "id-123"},
+                                     {"Content-Length", std::to_string(content.size())}},
+                               content});
+
+    auto filePath = std::string(std::tmpnam(nullptr));
+
+    auto outcome = client.getObjectToFile(
+            models::GetObjectRequest().setBucket("bucket").setKey("key").setRange("bytes=500-"),
+            filePath);
+
+    EXPECT_TRUE(outcome.has_value());
+
+    ASSERT_FALSE(mock->requests.empty());
+    auto& headers = mock->requests[0]->headers;
+    auto it = headers.find("Range");
+    ASSERT_NE(it, headers.end());
+    EXPECT_EQ("bytes=500-", it->second);
+    std::remove(filePath.c_str());
+}
+
+TEST(OSSClientExtensionTest, GetObjectToFile_SuffixRangeRejected) {
+    auto mock = std::make_shared<WritingMockTransport>();
+    auto client = makeClient(mock);
+
+    auto filePath = std::string(std::tmpnam(nullptr));
+
+    auto outcome = client.getObjectToFile(
+            models::GetObjectRequest().setBucket("bucket").setKey("key").setRange("bytes=-200"),
+            filePath);
+
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("ArgumentInvalid", outcome.error().getCode());
+    std::remove(filePath.c_str());
+}
+
+// --- getObjectToFile resume with range ---
+
+TEST(OSSClientExtensionTest, GetObjectToFile_ResumeWithRange) {
+    auto mock = std::make_shared<PartialWriteMockTransport>();
+    auto client = makeClient(mock);
+
+    std::string part1 = "AAAABBBB";
+    std::string part2 = "CCCCDDDD";
+
+    // first attempt: write 8 bytes then fail
+    mock->responses.push_back({206,
+            {{"x-oss-request-id", "id-1"},
+             {"Content-Length", std::to_string(part1.size())}},
+            part1, part1.size(), true});
+
+    // second attempt: write remaining 8 bytes, success
+    mock->responses.push_back({206,
+            {{"x-oss-request-id", "id-2"},
+             {"Content-Length", std::to_string(part2.size())}},
+            part2, 0, false});
+
+    auto filePath = std::string(std::tmpnam(nullptr));
+
+    auto outcome = client.getObjectToFile(
+            models::GetObjectRequest().setBucket("bucket").setKey("key").setRange("bytes=100-115"),
+            filePath);
+
+    EXPECT_TRUE(outcome.has_value());
+
+    // verify file content = part1 + part2
+    std::ifstream f(filePath, std::ios::binary);
+    std::string downloaded((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+    f.close();
+    EXPECT_EQ(part1 + part2, downloaded);
+
+    // verify first request: bytes=100-115
+    ASSERT_GE(mock->requests.size(), 2u);
+    auto& h1 = mock->requests[0]->headers;
+    auto it1 = h1.find("Range");
+    ASSERT_NE(it1, h1.end());
+    EXPECT_EQ("bytes=100-115", it1->second);
+
+    // verify second request: bytes=108-115 (100 + 8 bytes written)
+    auto& h2 = mock->requests[1]->headers;
+    auto it2 = h2.find("Range");
+    ASSERT_NE(it2, h2.end());
+    EXPECT_EQ("bytes=108-115", it2->second);
+
+    std::remove(filePath.c_str());
+}
+
+TEST(OSSClientExtensionTest, GetObjectToFile_ResumeWithOpenEndRange) {
+    auto mock = std::make_shared<PartialWriteMockTransport>();
+    auto client = makeClient(mock);
+
+    std::string part1 = "12345";
+    std::string part2 = "67890";
+
+    mock->responses.push_back({206,
+            {{"x-oss-request-id", "id-1"},
+             {"Content-Length", std::to_string(part1.size())}},
+            part1, part1.size(), true});
+
+    mock->responses.push_back({206,
+            {{"x-oss-request-id", "id-2"},
+             {"Content-Length", std::to_string(part2.size())}},
+            part2, 0, false});
+
+    auto filePath = std::string(std::tmpnam(nullptr));
+
+    auto outcome = client.getObjectToFile(
+            models::GetObjectRequest().setBucket("bucket").setKey("key").setRange("bytes=500-"),
+            filePath);
+
+    EXPECT_TRUE(outcome.has_value());
+
+    std::ifstream f(filePath, std::ios::binary);
+    std::string downloaded((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+    f.close();
+    EXPECT_EQ(part1 + part2, downloaded);
+
+    ASSERT_GE(mock->requests.size(), 2u);
+    auto& h1 = mock->requests[0]->headers;
+    EXPECT_EQ("bytes=500-", h1.find("Range")->second);
+
+    auto& h2 = mock->requests[1]->headers;
+    EXPECT_EQ("bytes=505-", h2.find("Range")->second);
+
+    std::remove(filePath.c_str());
+}
+
+TEST(OSSClientExtensionTest, GetObjectToFile_ResumeNoRange) {
+    auto mock = std::make_shared<PartialWriteMockTransport>();
+    auto client = makeClient(mock);
+
+    std::string part1 = "abcde";
+    std::string part2 = "fghij";
+
+    mock->responses.push_back({200,
+            {{"x-oss-request-id", "id-1"},
+             {"Content-Length", std::to_string(part1.size())}},
+            part1, part1.size(), true});
+
+    mock->responses.push_back({206,
+            {{"x-oss-request-id", "id-2"},
+             {"Content-Length", std::to_string(part2.size())}},
+            part2, 0, false});
+
+    auto filePath = std::string(std::tmpnam(nullptr));
+
+    auto outcome = client.getObjectToFile(
+            models::GetObjectRequest().setBucket("bucket").setKey("key"),
+            filePath);
+
+    EXPECT_TRUE(outcome.has_value());
+
+    std::ifstream f(filePath, std::ios::binary);
+    std::string downloaded((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+    f.close();
+    EXPECT_EQ(part1 + part2, downloaded);
+
+    ASSERT_GE(mock->requests.size(), 2u);
+    // first request: no Range header
+    auto& h1 = mock->requests[0]->headers;
+    EXPECT_EQ(h1.find("Range"), h1.end());
+
+    // second request: bytes=5-
+    auto& h2 = mock->requests[1]->headers;
+    EXPECT_EQ("bytes=5-", h2.find("Range")->second);
+
     std::remove(filePath.c_str());
 }
 

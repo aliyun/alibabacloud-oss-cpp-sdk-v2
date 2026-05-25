@@ -166,6 +166,78 @@ TEST_F(ObjectExtensionTest, GetObjectToFile_TruncatesExisting) {
     std::remove(filePath.c_str());
 }
 
+TEST_F(ObjectExtensionTest, GetObjectToFile_WithRange) {
+    auto client = ClientHelper::GetDefaultClient();
+    std::string key = "test-get-to-file-range";
+    std::string content = "0123456789abcdefghij";
+
+    client->putObject(
+            models::PutObjectRequest().setBucket(bucketName_).setKey(key)
+                    .setBody(RequestBody::FromString(content)));
+
+    auto filePath = std::string(std::tmpnam(nullptr));
+
+    auto outcome = client->getObjectToFile(
+            models::GetObjectRequest().setBucket(bucketName_).setKey(key).setRange("bytes=5-14"),
+            filePath);
+    EXPECT_TRUE(outcome.has_value());
+
+    std::ifstream f(filePath, std::ios::binary);
+    std::string downloaded((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+    f.close();
+    EXPECT_EQ("56789abcde", downloaded);
+    std::remove(filePath.c_str());
+}
+
+TEST_F(ObjectExtensionTest, GetObjectToFile_WithOpenEndRange) {
+    auto client = ClientHelper::GetDefaultClient();
+    std::string key = "test-get-to-file-range-open";
+    std::string content = "0123456789abcdefghij";
+
+    client->putObject(
+            models::PutObjectRequest().setBucket(bucketName_).setKey(key)
+                    .setBody(RequestBody::FromString(content)));
+
+    auto filePath = std::string(std::tmpnam(nullptr));
+
+    auto outcome = client->getObjectToFile(
+            models::GetObjectRequest().setBucket(bucketName_).setKey(key).setRange("bytes=10-"),
+            filePath);
+    EXPECT_TRUE(outcome.has_value());
+
+    std::ifstream f(filePath, std::ios::binary);
+    std::string downloaded((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+    f.close();
+    EXPECT_EQ("abcdefghij", downloaded);
+    std::remove(filePath.c_str());
+}
+
+TEST_F(ObjectExtensionTest, GetObjectToFile_InvalidRange) {
+    auto client = ClientHelper::GetDefaultClient();
+
+    auto filePath = std::string(std::tmpnam(nullptr));
+
+    auto outcome = client->getObjectToFile(
+            models::GetObjectRequest().setBucket(bucketName_).setKey("any-key").setRange("invalid-range"),
+            filePath);
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("ArgumentInvalid", outcome.error().getCode());
+    std::remove(filePath.c_str());
+}
+
+TEST_F(ObjectExtensionTest, GetObjectToFile_MultiRangeRejected) {
+    auto client = ClientHelper::GetDefaultClient();
+
+    auto filePath = std::string(std::tmpnam(nullptr));
+
+    auto outcome = client->getObjectToFile(
+            models::GetObjectRequest().setBucket(bucketName_).setKey("any-key").setRange("bytes=0-10,20-30"),
+            filePath);
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("ArgumentInvalid", outcome.error().getCode());
+    std::remove(filePath.c_str());
+}
+
 // --- isObjectExist ---
 
 TEST_F(ObjectExtensionTest, IsObjectExist_True) {
