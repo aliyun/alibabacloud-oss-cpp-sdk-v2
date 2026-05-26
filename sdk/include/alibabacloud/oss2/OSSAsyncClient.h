@@ -339,6 +339,30 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
                                   const CleanRestoredObjectAsyncCallback& callback,
                                   const OperationOptions* options = nullptr);
 
+    // Object Select
+
+    /**
+     * @brief Executes a SQL query against a CSV or JSON object stored in OSS.
+     *
+     * @param request The request parameter to send
+     * @param callback The callback to receive the operation result
+     * @param options Optional, operation options
+     */
+    void selectObjectAsync(const models::SelectObjectRequest& request,
+                           const SelectObjectAsyncCallback& callback,
+                           const OperationOptions* options = nullptr);
+
+    /**
+     * @brief Creates or retrieves select metadata (row/column counts) for a CSV or JSON object.
+     *
+     * @param request The request parameter to send
+     * @param callback The callback to receive the operation result
+     * @param options Optional, operation options
+     */
+    void createSelectObjectMetaAsync(const models::CreateSelectObjectMetaRequest& request,
+                                     const CreateSelectObjectMetaAsyncCallback& callback,
+                                     const OperationOptions* options = nullptr);
+
     // Object Acl
 
     /**
@@ -880,6 +904,21 @@ struct OSSAsyncClient::OperationTraits<models::ListPartsRequest> {
     using OutcomeType = ListPartsOutcome;
     using CallbackType = ListPartsAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::listPartsAsync;
+};
+
+// Object Select
+template<>
+struct OSSAsyncClient::OperationTraits<models::SelectObjectRequest> {
+    using OutcomeType = SelectObjectOutcome;
+    using CallbackType = SelectObjectAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::selectObjectAsync;
+};
+
+template<>
+struct OSSAsyncClient::OperationTraits<models::CreateSelectObjectMetaRequest> {
+    using OutcomeType = CreateSelectObjectMetaOutcome;
+    using CallbackType = CreateSelectObjectMetaAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::createSelectObjectMetaAsync;
 };
 
 } // namespace oss2

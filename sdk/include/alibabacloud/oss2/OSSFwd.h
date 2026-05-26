@@ -14,6 +14,7 @@
 #include "alibabacloud/oss2/models/ObjectMultipart.h"
 #include "alibabacloud/oss2/models/ObjectSymlink.h"
 #include "alibabacloud/oss2/models/ObjectTagging.h"
+#include "alibabacloud/oss2/models/ObjectSelect.h"
 #include "alibabacloud/oss2/models/Presign.h"
 #include "alibabacloud/oss2/models/Region.h"
 #include "alibabacloud/oss2/models/Service.h"
@@ -105,6 +106,10 @@ using ListPartsOutcome = Outcome<models::ListPartsResult, OperationError>;
 
 using PresignOutcome = Outcome<models::PresignResult, OperationError>;
 
+using SelectObjectOutcome = Outcome<models::SelectObjectResult, OperationError>;
+
+using CreateSelectObjectMetaOutcome = Outcome<models::CreateSelectObjectMetaResult, OperationError>;
+
 using BoolOutcome = Outcome<bool, OperationError>;
 
 // Async Callbacks
@@ -149,6 +154,8 @@ using UploadPartCopyAsyncCallback = std::function<void(UploadPartCopyOutcome)>;
 using AbortMultipartUploadAsyncCallback = std::function<void(AbortMultipartUploadOutcome)>;
 using ListMultipartUploadsAsyncCallback = std::function<void(ListMultipartUploadsOutcome)>;
 using ListPartsAsyncCallback = std::function<void(ListPartsOutcome)>;
+using SelectObjectAsyncCallback = std::function<void(SelectObjectOutcome)>;
+using CreateSelectObjectMetaAsyncCallback = std::function<void(CreateSelectObjectMetaOutcome)>;
 using BoolAsyncCallback = std::function<void(BoolOutcome)>;
 
 } // namespace oss2

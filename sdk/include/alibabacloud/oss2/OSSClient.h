@@ -575,6 +575,28 @@ class ALIBABACLOUD_OSS_API OSSClient final {
     BoolOutcome isBucketExist(const std::string& bucket,
                               const OperationOptions* options = nullptr);
 
+    // Object Select
+
+    /**
+     * @brief Runs a SQL-like query on a CSV or JSON object stored in OSS.
+     *
+     * @param request The request parameter to send
+     * @param options Optional, operation options
+     * @return The result instance
+     */
+    SelectObjectOutcome selectObject(const models::SelectObjectRequest& request,
+                                     const OperationOptions* options = nullptr);
+
+    /**
+     * @brief Creates metadata for a CSV or JSON object to speed up subsequent SelectObject calls.
+     *
+     * @param request The request parameter to send
+     * @param options Optional, operation options
+     * @return The result instance
+     */
+    CreateSelectObjectMetaOutcome createSelectObjectMeta(const models::CreateSelectObjectMetaRequest& request,
+                                                         const OperationOptions* options = nullptr);
+
     template<typename RequestT>
     struct OperationTraits;
 
@@ -882,6 +904,17 @@ template<> struct OSSClient::OperationTraits<models::ListMultipartUploadsRequest
 template<> struct OSSClient::OperationTraits<models::ListPartsRequest> {
     using OutcomeType = ListPartsOutcome;
     static constexpr auto method = &OSSClient::listParts;
+};
+
+// Object Select
+template<> struct OSSClient::OperationTraits<models::SelectObjectRequest> {
+    using OutcomeType = SelectObjectOutcome;
+    static constexpr auto method = &OSSClient::selectObject;
+};
+
+template<> struct OSSClient::OperationTraits<models::CreateSelectObjectMetaRequest> {
+    using OutcomeType = CreateSelectObjectMetaOutcome;
+    static constexpr auto method = &OSSClient::createSelectObjectMeta;
 };
 
 } // namespace oss2
