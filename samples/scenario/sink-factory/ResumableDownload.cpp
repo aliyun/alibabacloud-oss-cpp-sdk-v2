@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
 
         oss::SinkFactory factory;
         factory.isOneShot = true;
-        factory.supplier = [&](std::int64_t) -> std::shared_ptr<oss::ByteWriter> {
+        factory.supplier = [&](std::int64_t, const oss::HeaderCollection&) -> std::shared_ptr<oss::ByteWriter> {
             fileStream = std::make_shared<std::ofstream>(
                 localFile, std::ios::binary | std::ios::app);
             return std::make_shared<oss::OStreamWriter>(fileStream);

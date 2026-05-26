@@ -94,20 +94,36 @@ struct ALIBABACLOUD_OSS_API ProgressCallback {
     std::uintptr_t userdata{};
 };
 
-struct ALIBABACLOUD_OSS_API SinkFactory {
-    std::shared_ptr<ByteWriter> operator()(std::int64_t size) const {
-        return supplier ? supplier(size) : nullptr;
-    }
-    std::function<std::shared_ptr<ByteWriter>(std::int64_t size)> supplier;
-    bool isOneShot{};
-};
-
 typedef void (*LogCallback)(LogLevel level, const std::string& stream);
 using AttributeValue = std::variant<bool, std::vector<std::string>, std::int64_t>;
 using AttributeMap = std::map<std::string, AttributeValue>;
 using MetaData = std::map<std::string, std::string, caseInsensitiveLess>;
 using HeaderCollection = std::map<std::string, std::string, caseInsensitiveLess>;
 using ParameterCollection = std::map<std::string, std::string, caseSensitiveLess>;
+
+/// Factory that creates a ByteWriter sink for receiving response body data.
+/// The supplier is invoked once per HTTP response with the content length
+/// (or -1 if unknown) and the response headers, allowing the caller to
+/// choose the sink based on Content-Type, Content-Disposition, etc.
+/// If isOneShot is true, the request will not be retried on transport error
+/// because the sink cannot be reset.
+struct ALIBABACLOUD_OSS_API SinkFactory {
+    std::shared_ptr<ByteWriter> operator()(std::int64_t size, const HeaderCollection& headers) const {
+        return supplier ? supplier(size, headers) : nullptr;
+    }
+    std::function<std::shared_ptr<ByteWriter>(std::int64_t size, const HeaderCollection& headers)> supplier;
+    bool isOneShot{};
+};
+
+/// Convenience helper to create a SinkFactory from a simple supplier that
+/// only needs the content length and does not inspect response headers.
+inline SinkFactory makeSinkFactory(
+    std::function<std::shared_ptr<ByteWriter>(std::int64_t)> fn,
+    bool isOneShot = false) {
+    return SinkFactory{[fn = std::move(fn)](std::int64_t size, const HeaderCollection&) {
+        return fn(size);
+    }, isOneShot};
+}
 
 
 /**

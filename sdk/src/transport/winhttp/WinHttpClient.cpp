@@ -153,10 +153,8 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
 
     readResponseStatusAndHeaders(handles.hRequest.get(), *response);
 
-    int64_t recvDataLength = parseResponseContentLength(response->headers);
-
     {
-        auto rs = createResponseSink(response->statusCode, options.sinkFactory, recvDataLength);
+        auto rs = createResponseSink(response->statusCode, options.sinkFactory, response->headers);
 
         char readBuf[kWriteBufferLength];
         for (;;) {

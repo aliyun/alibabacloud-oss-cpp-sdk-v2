@@ -359,7 +359,7 @@ TEST(OSSClientObjectBasicTest, GetObject_WithSinkFactory) {
     auto client = OSSClient(config);
 
     SinkFactory factory;
-    factory.supplier = [](std::int64_t size) -> std::shared_ptr<ByteWriter> {
+    factory.supplier = [](std::int64_t size, const HeaderCollection&) -> std::shared_ptr<ByteWriter> {
         return std::make_shared<OStreamWriter>(std::make_shared<std::stringstream>());
     };
     factory.isOneShot = true;

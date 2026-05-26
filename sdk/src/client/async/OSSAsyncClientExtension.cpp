@@ -78,7 +78,7 @@ void OSSAsyncClient::getObjectToFileAsync(const models::GetObjectRequest& reques
     SinkFactory factory;
     factory.isOneShot = false;
     factory.supplier = [filePath, crcObserver, progressObs](
-            std::int64_t contentLength) -> std::shared_ptr<ByteWriter> {
+            std::int64_t contentLength, const HeaderCollection&) -> std::shared_ptr<ByteWriter> {
         auto fileStream = std::make_shared<std::ofstream>(filePath, std::ios::binary | std::ios::trunc);
         auto writer = std::make_shared<OStreamWriter>(fileStream);
 

@@ -74,19 +74,19 @@ TEST(MemoryOStreamTest, WithSinkFactory) {
     std::size_t bufSize = sizeof(buf);
 
     SinkFactory factory;
-    factory.supplier = [ptr = buf, bufSize](std::int64_t) -> std::shared_ptr<ByteWriter> {
+    factory.supplier = [ptr = buf, bufSize](std::int64_t, const HeaderCollection&) -> std::shared_ptr<ByteWriter> {
         return std::make_shared<OStreamWriter>(std::make_shared<MemoryOStream>(ptr, bufSize));
     };
     factory.isOneShot = false;
 
     // First call
-    auto writer1 = factory(0);
+    auto writer1 = factory(0, HeaderCollection{});
     ASSERT_NE(nullptr, writer1);
     writer1->write(reinterpret_cast<const std::uint8_t*>("hello"), 5);
     EXPECT_EQ(0, std::memcmp(buf, "hello", 5));
 
     // Second call (simulates retry) -- starts from beginning
-    auto writer2 = factory(0);
+    auto writer2 = factory(0, HeaderCollection{});
     ASSERT_NE(nullptr, writer2);
     writer2->write(reinterpret_cast<const std::uint8_t*>("world"), 5);
     EXPECT_EQ(0, std::memcmp(buf, "world", 5));

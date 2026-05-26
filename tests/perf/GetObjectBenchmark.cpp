@@ -21,7 +21,7 @@ class NullByteWriter : public ByteWriter {
 
 SinkFactory makeDiscardFactory() {
     SinkFactory factory;
-    factory.supplier = [](std::int64_t) -> std::shared_ptr<ByteWriter> {
+    factory.supplier = [](std::int64_t, const HeaderCollection&) -> std::shared_ptr<ByteWriter> {
         static thread_local auto writer = std::make_shared<NullByteWriter>();
         return writer;
     };

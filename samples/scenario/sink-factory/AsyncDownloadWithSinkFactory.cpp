@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     // before the async operation completes.
     oss::SinkFactory factory;
     factory.isOneShot = false;
-    factory.supplier = [crc, progress, localFile](std::int64_t contentLength) -> std::shared_ptr<oss::ByteWriter> {
+    factory.supplier = [crc, progress, localFile](std::int64_t contentLength, const oss::HeaderCollection&) -> std::shared_ptr<oss::ByteWriter> {
         crc->reset();
         auto progressObs = std::make_shared<oss::ProgressWriteObserver>(progress, contentLength);
         auto file = std::make_shared<std::ofstream>(localFile, std::ios::binary | std::ios::trunc);

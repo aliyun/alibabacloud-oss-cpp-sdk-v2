@@ -70,7 +70,7 @@ class WritingMockTransport : public HttpTransport {
         bool isError = (r.statusCode / 100 != 2) || (r.statusCode == 203);
 
         if (!isError && options.sinkFactory.has_value()) {
-            auto sink = options.sinkFactory.value()(static_cast<std::int64_t>(r.body.size()));
+            auto sink = options.sinkFactory.value()(static_cast<std::int64_t>(r.body.size()), response->headers);
             if (sink) {
                 auto* data = reinterpret_cast<const std::uint8_t*>(r.body.data());
                 sink->write(data, r.body.size());
@@ -135,7 +135,7 @@ class PartialWriteMockTransport : public HttpTransport {
 
         if (!isError && options.sinkFactory.has_value()) {
             std::size_t toWrite = r.writeBytes > 0 ? r.writeBytes : r.body.size();
-            auto sink = options.sinkFactory.value()(static_cast<std::int64_t>(toWrite));
+            auto sink = options.sinkFactory.value()(static_cast<std::int64_t>(toWrite), response->headers);
             if (sink) {
                 auto* data = reinterpret_cast<const std::uint8_t*>(r.body.data());
                 sink->write(data, toWrite);

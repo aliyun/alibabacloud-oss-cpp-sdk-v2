@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
     std::string localFile = key + ".download";
     oss::SinkFactory factory;
     factory.isOneShot = false;
-    factory.supplier = [&](std::int64_t) -> std::shared_ptr<oss::ByteWriter> {
+    factory.supplier = [&](std::int64_t, const oss::HeaderCollection&) -> std::shared_ptr<oss::ByteWriter> {
         progressObs->reset();
         crc->reset();
         auto file = std::make_shared<std::ofstream>(localFile, std::ios::binary | std::ios::trunc);

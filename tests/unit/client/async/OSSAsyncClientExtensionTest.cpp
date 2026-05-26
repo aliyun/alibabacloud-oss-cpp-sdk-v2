@@ -43,7 +43,7 @@ class MockAsyncTransport : public AsyncHttpTransport {
             auto& resp = std::get<std::unique_ptr<ResponseMessage>>(result);
             bool isError = (resp->statusCode / 100 != 2) || (resp->statusCode == 203);
             if (!isError && options.sinkFactory.has_value() && bodyData.has_value()) {
-                auto sink = options.sinkFactory.value()(static_cast<std::int64_t>(bodyData->size()));
+                auto sink = options.sinkFactory.value()(static_cast<std::int64_t>(bodyData->size()), resp->headers);
                 if (sink) {
                     auto* data = reinterpret_cast<const std::uint8_t*>(bodyData->data());
                     sink->write(data, bodyData->size());
@@ -69,7 +69,7 @@ class RetryMockAsyncTransport : public AsyncHttpTransport {
         callCount_++;
         if (callCount_ <= failCount_) {
             if (options.sinkFactory.has_value() && !partialData_.empty()) {
-                auto sink = options.sinkFactory.value()(static_cast<std::int64_t>(fullData_.size()));
+                auto sink = options.sinkFactory.value()(static_cast<std::int64_t>(fullData_.size()), HeaderCollection{});
                 if (sink) {
                     auto* data = reinterpret_cast<const std::uint8_t*>(partialData_.data());
                     sink->write(data, partialData_.size());
@@ -81,7 +81,7 @@ class RetryMockAsyncTransport : public AsyncHttpTransport {
         }
 
         if (options.sinkFactory.has_value() && !fullData_.empty()) {
-            auto sink = options.sinkFactory.value()(static_cast<std::int64_t>(fullData_.size()));
+            auto sink = options.sinkFactory.value()(static_cast<std::int64_t>(fullData_.size()), successHeaders_);
             if (sink) {
                 auto* data = reinterpret_cast<const std::uint8_t*>(fullData_.data());
                 sink->write(data, fullData_.size());

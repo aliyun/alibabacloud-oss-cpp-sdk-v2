@@ -147,7 +147,7 @@ TEST_F(ObjectBasicTest, GetObject_WithSinkFactory) {
 
     auto userStream = std::make_shared<std::stringstream>();
     SinkFactory factory;
-    factory.supplier = [userStream](std::int64_t) -> std::shared_ptr<ByteWriter> {
+    factory.supplier = [userStream](std::int64_t, const HeaderCollection&) -> std::shared_ptr<ByteWriter> {
         return std::make_shared<OStreamWriter>(userStream);
     };
     factory.isOneShot = false;
@@ -176,7 +176,7 @@ TEST_F(ObjectBasicTest, GetObject_WithSinkFactory_OneShot) {
 
     auto userStream = std::make_shared<std::stringstream>();
     SinkFactory factory;
-    factory.supplier = [userStream](std::int64_t) -> std::shared_ptr<ByteWriter> {
+    factory.supplier = [userStream](std::int64_t, const HeaderCollection&) -> std::shared_ptr<ByteWriter> {
         return std::make_shared<OStreamWriter>(userStream);
     };
     factory.isOneShot = true;

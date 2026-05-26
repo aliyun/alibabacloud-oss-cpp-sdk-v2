@@ -283,7 +283,7 @@ TEST(ObjectBasicTest, GetObjectRequest_SinkFactory) {
     EXPECT_FALSE(request.getSinkFactory().has_value());
 
     SinkFactory factory;
-    factory.supplier = [](std::int64_t size) {
+    factory.supplier = [](std::int64_t size, const HeaderCollection&) {
         return std::make_shared<OStreamWriter>(std::make_shared<std::stringstream>());
     };
     factory.isOneShot = true;
@@ -293,7 +293,7 @@ TEST(ObjectBasicTest, GetObjectRequest_SinkFactory) {
     EXPECT_TRUE(request.getSinkFactory()->isOneShot);
     EXPECT_NE(nullptr, request.getSinkFactory()->supplier);
 
-    auto writer = request.getSinkFactory()->operator()(100);
+    auto writer = request.getSinkFactory()->operator()(100, HeaderCollection{});
     EXPECT_NE(nullptr, writer);
 }
 
