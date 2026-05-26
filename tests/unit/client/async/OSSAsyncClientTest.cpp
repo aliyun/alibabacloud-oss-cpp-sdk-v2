@@ -200,4 +200,20 @@ TEST(OSSAsyncClientTest, InvokeOperation_WithCredentials) {
     EXPECT_TRUE(mockTransport->lastRequest->headers.find("Authorization") != mockTransport->lastRequest->headers.end());
 }
 
+TEST(OSSAsyncClientTest, WithClientOptionsFns) {
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<StaticCredentialsProvider>("ak", "sk");
+
+    ClientOptionsFns fns;
+    fns.push_back([](ClientOptions& opts) {
+        opts.additionalHeaders.push_back("x-custom-header");
+    });
+
+    auto client = OSSAsyncClient(config, fns);
+    // Just verify it constructs successfully
+    SUCCEED();
+}
+
+
 } // namespace alibabacloud::oss2

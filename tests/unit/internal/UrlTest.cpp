@@ -51,6 +51,15 @@ TEST(UrlTest, UrlFunctionTest)
     url2.toString();
     url2.userInfo();
 }
+
+TEST(UrlTest, QueryAccessor) {
+    Url url;
+    EXPECT_EQ("", url.query());
+
+    url.fromString("https://example.com/path?key=value&foo=bar");
+    EXPECT_EQ("key=value&foo=bar", url.query());
+}
+
 }
 }
 }

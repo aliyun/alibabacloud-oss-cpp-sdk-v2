@@ -92,6 +92,12 @@ TEST(OSSAsyncClientObjectBasicTest, GetObjectAsync_RequiredField) {
     auto outcome = future.get();
     EXPECT_FALSE(outcome.has_value());
     EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
+
+    request.setBucket("test-bucket");
+    auto future2 = client.asyncCall(request);
+    auto outcome2 = future2.get();
+    EXPECT_FALSE(outcome2.has_value());
+    EXPECT_EQ("Missing field Key", outcome2.error().getMessage());
 }
 
 TEST(OSSAsyncClientObjectBasicTest, GetObjectAsync_Success) {
@@ -212,6 +218,18 @@ TEST(OSSAsyncClientObjectBasicTest, SealAppendObjectAsync_RequiredField) {
     auto outcome = future.get();
     EXPECT_FALSE(outcome.has_value());
     EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
+
+    request.setBucket("test-bucket");
+    auto future2 = client.asyncCall(request);
+    auto outcome2 = future2.get();
+    EXPECT_FALSE(outcome2.has_value());
+    EXPECT_EQ("Missing field Key", outcome2.error().getMessage());
+
+    request.setKey("test-key");
+    auto future3 = client.asyncCall(request);
+    auto outcome3 = future3.get();
+    EXPECT_FALSE(outcome3.has_value());
+    EXPECT_EQ("Missing field Position", outcome3.error().getMessage());
 }
 
 TEST(OSSAsyncClientObjectBasicTest, DeleteObjectAsync_RequiredField) {
@@ -227,6 +245,12 @@ TEST(OSSAsyncClientObjectBasicTest, DeleteObjectAsync_RequiredField) {
     auto outcome = future.get();
     EXPECT_FALSE(outcome.has_value());
     EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
+
+    request.setBucket("test-bucket");
+    auto future2 = client.asyncCall(request);
+    auto outcome2 = future2.get();
+    EXPECT_FALSE(outcome2.has_value());
+    EXPECT_EQ("Missing field Key", outcome2.error().getMessage());
 }
 
 TEST(OSSAsyncClientObjectBasicTest, DeleteObjectAsync_Success) {
@@ -262,6 +286,12 @@ TEST(OSSAsyncClientObjectBasicTest, DeleteMultipleObjectsAsync_RequiredField) {
     auto outcome = future.get();
     EXPECT_FALSE(outcome.has_value());
     EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
+
+    request.setBucket("test-bucket");
+    auto future2 = client.asyncCall(request);
+    auto outcome2 = future2.get();
+    EXPECT_FALSE(outcome2.has_value());
+    EXPECT_EQ("Missing field Delete", outcome2.error().getMessage());
 }
 
 TEST(OSSAsyncClientObjectBasicTest, HeadObjectAsync_RequiredField) {
@@ -277,6 +307,12 @@ TEST(OSSAsyncClientObjectBasicTest, HeadObjectAsync_RequiredField) {
     auto outcome = future.get();
     EXPECT_FALSE(outcome.has_value());
     EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
+
+    request.setBucket("test-bucket");
+    auto future2 = client.asyncCall(request);
+    auto outcome2 = future2.get();
+    EXPECT_FALSE(outcome2.has_value());
+    EXPECT_EQ("Missing field Key", outcome2.error().getMessage());
 }
 
 TEST(OSSAsyncClientObjectBasicTest, GetObjectMetaAsync_RequiredField) {
@@ -292,6 +328,12 @@ TEST(OSSAsyncClientObjectBasicTest, GetObjectMetaAsync_RequiredField) {
     auto outcome = future.get();
     EXPECT_FALSE(outcome.has_value());
     EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
+
+    request.setBucket("test-bucket");
+    auto future2 = client.asyncCall(request);
+    auto outcome2 = future2.get();
+    EXPECT_FALSE(outcome2.has_value());
+    EXPECT_EQ("Missing field Key", outcome2.error().getMessage());
 }
 
 TEST(OSSAsyncClientObjectBasicTest, RestoreObjectAsync_RequiredField) {
@@ -307,6 +349,12 @@ TEST(OSSAsyncClientObjectBasicTest, RestoreObjectAsync_RequiredField) {
     auto outcome = future.get();
     EXPECT_FALSE(outcome.has_value());
     EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
+
+    request.setBucket("test-bucket");
+    auto future2 = client.asyncCall(request);
+    auto outcome2 = future2.get();
+    EXPECT_FALSE(outcome2.has_value());
+    EXPECT_EQ("Missing field Key", outcome2.error().getMessage());
 }
 
 TEST(OSSAsyncClientObjectBasicTest, CleanRestoredObjectAsync_RequiredField) {
@@ -322,6 +370,12 @@ TEST(OSSAsyncClientObjectBasicTest, CleanRestoredObjectAsync_RequiredField) {
     auto outcome = future.get();
     EXPECT_FALSE(outcome.has_value());
     EXPECT_EQ("Missing field Bucket", outcome.error().getMessage());
+
+    request.setBucket("test-bucket");
+    auto future2 = client.asyncCall(request);
+    auto outcome2 = future2.get();
+    EXPECT_FALSE(outcome2.has_value());
+    EXPECT_EQ("Missing field Key", outcome2.error().getMessage());
 }
 
 TEST(OSSAsyncClientObjectBasicTest, PutObjectAsync_Progress) {
@@ -481,6 +535,67 @@ TEST(OSSAsyncClientObjectBasicTest, AppendObjectAsync_CRC64Check_Mismatch) {
     auto outcome = future.get();
     EXPECT_FALSE(outcome.has_value());
     EXPECT_EQ("CRCInconsistent", outcome.error().getCode());
+}
+
+TEST(OSSAsyncClientObjectBasicTest, SealAppendObjectAsync_Success) {
+    auto mockTransport = std::make_shared<MockAsyncTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.asyncHttpTransport = mockTransport;
+    auto client = OSSAsyncClient(config);
+
+    mockTransport->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-seal"}}, nullptr}));
+
+    auto request = models::SealAppendObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setPosition(0);
+    auto future = client.asyncCall(request);
+    auto outcome = future.get();
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(200, outcome.value().getStatusCode());
+}
+
+TEST(OSSAsyncClientObjectBasicTest, RestoreObjectAsync_Success) {
+    auto mockTransport = std::make_shared<MockAsyncTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.asyncHttpTransport = mockTransport;
+    auto client = OSSAsyncClient(config);
+
+    mockTransport->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{202, "Accepted", {{"x-oss-request-id", "id-restore"}}, nullptr}));
+
+    auto request = models::RestoreObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    auto future = client.asyncCall(request);
+    auto outcome = future.get();
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(202, outcome.value().getStatusCode());
+}
+
+TEST(OSSAsyncClientObjectBasicTest, CleanRestoredObjectAsync_Success) {
+    auto mockTransport = std::make_shared<MockAsyncTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.asyncHttpTransport = mockTransport;
+    auto client = OSSAsyncClient(config);
+
+    mockTransport->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{204, "No Content", {{"x-oss-request-id", "id-clean"}}, nullptr}));
+
+    auto request = models::CleanRestoredObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    auto future = client.asyncCall(request);
+    auto outcome = future.get();
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(204, outcome.value().getStatusCode());
 }
 
 } // namespace alibabacloud::oss2

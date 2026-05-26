@@ -1348,4 +1348,551 @@ TEST(OSSClientBucketBasicTest, GetBucketLocation_RequiredField) {
     EXPECT_TRUE(outcome.has_value());
 }
 
+TEST(OSSClientBucketBasicTest, GetBucketStat_NullBody) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}}, nullptr}));
+
+    auto request = models::GetBucketStatRequest();
+    request.setBucket("test-bucket");
+    auto outcome = client.getBucketStat(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientBucketBasicTest, GetBucketStat_EmptyBody) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<BucketStat></BucketStat>)";
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}},
+                           std::make_shared<std::stringstream>(body)}));
+
+    auto request = models::GetBucketStatRequest();
+    request.setBucket("test-bucket");
+    auto outcome = client.getBucketStat(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientBucketBasicTest, GetBucketStat_InvalidXml) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}},
+                           std::make_shared<std::stringstream>("<bad>")}));
+
+    auto request = models::GetBucketStatRequest();
+    request.setBucket("test-bucket");
+    auto outcome = client.getBucketStat(request);
+    EXPECT_FALSE(outcome.has_value());
+}
+
+TEST(OSSClientBucketBasicTest, GetBucketStat_WithAllFields) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<BucketStat>
+    <Storage>1024</Storage>
+    <ObjectCount>10</ObjectCount>
+    <DeleteMarkerCount>2</DeleteMarkerCount>
+    <ColdArchiveStorage>100</ColdArchiveStorage>
+    <ColdArchiveRealStorage>90</ColdArchiveRealStorage>
+    <InfrequentMultipartPartStorage>50</InfrequentMultipartPartStorage>
+    <ColdArchiveMultipartPartStorage>30</ColdArchiveMultipartPartStorage>
+    <StandardObjectCount>5</StandardObjectCount>
+    <ArchiveStorage>200</ArchiveStorage>
+    <ColdArchiveObjectCount>3</ColdArchiveObjectCount>
+    <InfrequentMultipartPartCount>4</InfrequentMultipartPartCount>
+    <StandardMultipartPartCount>6</StandardMultipartPartCount>
+    <DeepColdArchiveMultipartPartCount>1</DeepColdArchiveMultipartPartCount>
+    <MultipartPartCount>7</MultipartPartCount>
+    <InfrequentAccessStorage>300</InfrequentAccessStorage>
+    <InfrequentAccessRealStorage>280</InfrequentAccessRealStorage>
+    <ArchiveObjectCount>8</ArchiveObjectCount>
+    <InfrequentAccessObjectCount>9</InfrequentAccessObjectCount>
+    <ColdArchiveMultipartPartCount>2</ColdArchiveMultipartPartCount>
+    <LiveChannelCount>1</LiveChannelCount>
+    <LastModifiedTime>1704067200</LastModifiedTime>
+    <ArchiveRealStorage>190</ArchiveRealStorage>
+    <DeepColdArchiveStorage>400</DeepColdArchiveStorage>
+    <DeepColdArchiveRealStorage>380</DeepColdArchiveRealStorage>
+    <DeepColdArchiveObjectCount>2</DeepColdArchiveObjectCount>
+    <MultipartPartStorage>500</MultipartPartStorage>
+    <MultipartUploadCount>3</MultipartUploadCount>
+    <StandardStorage>600</StandardStorage>
+    <StandardMultipartPartStorage>60</StandardMultipartPartStorage>
+    <ArchiveMultipartPartCount>4</ArchiveMultipartPartCount>
+    <ArchiveMultipartPartStorage>40</ArchiveMultipartPartStorage>
+    <DeepColdArchiveMultipartPartStorage>20</DeepColdArchiveMultipartPartStorage>
+</BucketStat>)";
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}},
+                           std::make_shared<std::stringstream>(body)}));
+
+    auto request = models::GetBucketStatRequest();
+    request.setBucket("test-bucket");
+    request.addHeader("x-custom", "val");
+    request.addParameter("p1", "v1");
+    auto outcome = client.getBucketStat(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientBucketBasicTest, ListObjects_WithRestoreInfo) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<ListBucketResult>
+    <Name>test-bucket</Name>
+    <Prefix></Prefix>
+    <Marker></Marker>
+    <MaxKeys>100</MaxKeys>
+    <IsTruncated>false</IsTruncated>
+    <EncodingType>url</EncodingType>
+    <Contents>
+        <Key>file1.txt</Key>
+        <LastModified>2024-01-01T00:00:00.000Z</LastModified>
+        <ETag>"etag-1"</ETag>
+        <Size>512</Size>
+        <StorageClass>Archive</StorageClass>
+        <Owner>
+            <ID>owner-id</ID>
+            <DisplayName>owner-name</DisplayName>
+        </Owner>
+        <Type>Normal</Type>
+        <RestoreInfo>ongoing-request="false", expiry-date="2024-02-01"</RestoreInfo>
+        <TransitionTime>2024-01-15T00:00:00.000Z</TransitionTime>
+    </Contents>
+    <CommonPrefixes>
+        <Prefix>subdir/</Prefix>
+    </CommonPrefixes>
+</ListBucketResult>)";
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-list"}},
+                           std::make_shared<std::stringstream>(body)}));
+
+    auto request = models::ListObjectsRequest();
+    request.setBucket("test-bucket");
+    request.addHeader("x-h1", "v1");
+    request.addParameter("p1", "v1");
+    auto outcome = client.listObjects(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientBucketBasicTest, ListObjects_EmptyContents) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<ListBucketResult>
+    <Name>test-bucket</Name>
+    <IsTruncated>false</IsTruncated>
+    <Contents>
+        <Key>file.txt</Key>
+    </Contents>
+</ListBucketResult>)";
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}},
+                           std::make_shared<std::stringstream>(body)}));
+
+    auto request = models::ListObjectsRequest();
+    request.setBucket("test-bucket");
+    auto outcome = client.listObjects(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientBucketBasicTest, ListObjects_NullBody) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}}, nullptr}));
+
+    auto request = models::ListObjectsRequest();
+    request.setBucket("test-bucket");
+    auto outcome = client.listObjects(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientBucketBasicTest, ListObjects_InvalidXml) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}},
+                           std::make_shared<std::stringstream>("<not-valid-xml<<<")}));
+
+    auto request = models::ListObjectsRequest();
+    request.setBucket("test-bucket");
+    auto outcome = client.listObjects(request);
+    EXPECT_FALSE(outcome.has_value());
+}
+
+TEST(OSSClientBucketBasicTest, ListObjectsV2_WithOptionalFields) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<ListBucketResult>
+    <Name>test-bucket</Name>
+    <Prefix>p/</Prefix>
+    <StartAfter>start</StartAfter>
+    <MaxKeys>50</MaxKeys>
+    <ContinuationToken>token1</ContinuationToken>
+    <NextContinuationToken>token2</NextContinuationToken>
+    <IsTruncated>true</IsTruncated>
+    <EncodingType>url</EncodingType>
+    <Contents>
+        <Key>p/file.txt</Key>
+        <LastModified>2024-01-01T00:00:00.000Z</LastModified>
+        <ETag>"e1"</ETag>
+        <Size>100</Size>
+        <StorageClass>Standard</StorageClass>
+        <RestoreInfo>ongoing-request="true"</RestoreInfo>
+    </Contents>
+    <CommonPrefixes>
+        <Prefix>p/sub/</Prefix>
+    </CommonPrefixes>
+</ListBucketResult>)";
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-v2"}},
+                           std::make_shared<std::stringstream>(body)}));
+
+    auto request = models::ListObjectsV2Request();
+    request.setBucket("test-bucket");
+    request.addHeader("x-h", "v");
+    request.addParameter("p", "v");
+    auto outcome = client.listObjectsV2(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientBucketBasicTest, ListObjectsV2_NullBody) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}}, nullptr}));
+
+    auto request = models::ListObjectsV2Request();
+    request.setBucket("test-bucket");
+    auto outcome = client.listObjectsV2(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientBucketBasicTest, GetBucketInfo_WithAllFields) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<BucketInfo>
+    <Bucket>
+        <Name>test-bucket</Name>
+        <Location>oss-cn-hangzhou</Location>
+        <CreationDate>2024-01-01T00:00:00.000Z</CreationDate>
+        <StorageClass>Standard</StorageClass>
+        <ExtranetEndpoint>oss-cn-hangzhou.aliyuncs.com</ExtranetEndpoint>
+        <IntranetEndpoint>oss-cn-hangzhou-internal.aliyuncs.com</IntranetEndpoint>
+        <Owner>
+            <ID>owner-id</ID>
+            <DisplayName>owner-name</DisplayName>
+        </Owner>
+        <AccessControlList>
+            <Grant>private</Grant>
+        </AccessControlList>
+        <ServerSideEncryptionRule>
+            <SSEAlgorithm>KMS</SSEAlgorithm>
+            <KMSMasterKeyID>key-id-123</KMSMasterKeyID>
+            <KMSDataEncryption>SM4</KMSDataEncryption>
+        </ServerSideEncryptionRule>
+        <DataRedundancyType>LRS</DataRedundancyType>
+        <CrossRegionReplication>Disabled</CrossRegionReplication>
+        <TransferAcceleration>Enabled</TransferAcceleration>
+        <ResourceGroupId>rg-123</ResourceGroupId>
+        <AccessMonitor>Enabled</AccessMonitor>
+        <Comment>test-comment</Comment>
+        <BlockPublicAccess>true</BlockPublicAccess>
+        <Versioning>Enabled</Versioning>
+        <BucketPolicy>
+            <LogBucket>log-bucket</LogBucket>
+            <LogPrefix>log/</LogPrefix>
+        </BucketPolicy>
+    </Bucket>
+</BucketInfo>)";
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-info"}},
+                           std::make_shared<std::stringstream>(body)}));
+
+    auto request = models::GetBucketInfoRequest();
+    request.setBucket("test-bucket");
+    request.addHeader("x-h", "v");
+    request.addParameter("p", "v");
+    auto outcome = client.getBucketInfo(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientBucketBasicTest, GetBucketInfo_MinimalBucket) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<BucketInfo>
+    <Bucket></Bucket>
+</BucketInfo>)";
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-min"}},
+                           std::make_shared<std::stringstream>(body)}));
+
+    auto request = models::GetBucketInfoRequest();
+    request.setBucket("test-bucket");
+    auto outcome = client.getBucketInfo(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientBucketBasicTest, GetBucketInfo_NullBody) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}}, nullptr}));
+
+    auto request = models::GetBucketInfoRequest();
+    request.setBucket("test-bucket");
+    auto outcome = client.getBucketInfo(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientBucketBasicTest, GetBucketInfo_InvalidXml) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}},
+                           std::make_shared<std::stringstream>("not xml")}));
+
+    auto request = models::GetBucketInfoRequest();
+    request.setBucket("test-bucket");
+    auto outcome = client.getBucketInfo(request);
+    EXPECT_FALSE(outcome.has_value());
+}
+
+TEST(OSSClientBucketBasicTest, PutBucket_WithCustomHeaders) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}}, nullptr}));
+
+    auto request = models::PutBucketRequest();
+    request.setBucket("test-bucket");
+    request.addHeader("x-h", "v");
+    request.addParameter("p", "v");
+    auto outcome = client.putBucket(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientBucketBasicTest, PutBucket_WithCreateBucketConfig) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-2"}}, nullptr}));
+
+    models::CreateBucketConfiguration conf;
+    conf.storageClass = "IA";
+    conf.dataRedundancyType = "ZRS";
+    auto request = models::PutBucketRequest();
+    request.setBucket("test-bucket");
+    request.setCreateBucketConfiguration(conf);
+    auto outcome = client.putBucket(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientBucketBasicTest, DeleteBucket_WithCustomHeaders) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{204, "No Content", {{"x-oss-request-id", "id-1"}}, nullptr}));
+
+    auto request = models::DeleteBucketRequest();
+    request.setBucket("test-bucket");
+    request.addHeader("x-h", "v");
+    request.addParameter("p", "v");
+    auto outcome = client.deleteBucket(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientBucketBasicTest, GetBucketLocation_WithCustomHeaders) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<LocationConstraint>oss-cn-hangzhou</LocationConstraint>)";
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-loc"}},
+                           std::make_shared<std::stringstream>(body)}));
+
+    auto request = models::GetBucketLocationRequest();
+    request.setBucket("test-bucket");
+    request.addHeader("x-h", "v");
+    request.addParameter("p", "v");
+    auto outcome = client.getBucketLocation(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientBucketBasicTest, GetBucketLocation_NullBody) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}}, nullptr}));
+
+    auto request = models::GetBucketLocationRequest();
+    request.setBucket("test-bucket");
+    auto outcome = client.getBucketLocation(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientBucketBasicTest, GetBucketLocation_InvalidXml) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}},
+                           std::make_shared<std::stringstream>("<bad")}));
+
+    auto request = models::GetBucketLocationRequest();
+    request.setBucket("test-bucket");
+    auto outcome = client.getBucketLocation(request);
+    EXPECT_FALSE(outcome.has_value());
+}
+
 } // namespace alibabacloud::oss2

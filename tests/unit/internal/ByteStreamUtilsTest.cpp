@@ -24,6 +24,12 @@ class MockStreamObserver : public StreamObserver {
     std::size_t totalBytes_ = 0;
 };
 
+// Minimal observer that only implements data() — uses all base class defaults
+class MinimalStreamObserver : public StreamObserver {
+  public:
+    void data(std::uint8_t*, std::size_t) override {}
+};
+
 TEST(ByteStreamUtilsTest, ProgressObserverTest) {
     std::size_t capturedIncrement = 0;
     std::size_t capturedTransferred = 0;
@@ -167,4 +173,26 @@ TEST(ByteStreamUtilsTest, TeeByteContentEmptySinks) {
     auto bytesRead = spanSource->read(buffer, 20);
 
     EXPECT_EQ(10, bytesRead);
+}
+
+TEST(ByteStreamUtilsTest, StreamObserverBaseDefaults) {
+    MinimalStreamObserver observer;
+    // These are the base class default virtual implementations (no-ops)
+    std::error_code ec = std::make_error_code(std::errc::io_error);
+    observer.closed();
+    observer.error(ec);
+    observer.finished();
+    observer.reset();
+    // If we get here without crash, the defaults work
+    SUCCEED();
+}
+
+TEST(ByteStreamUtilsTest, TeeByteContentPathReturnsNullopt) {
+    auto source = std::make_shared<alibabacloud::oss2::StringContent>("test");
+    std::vector<std::shared_ptr<StreamObserver>> sinks;
+    sinks.push_back(std::make_shared<MockStreamObserver>());
+
+    TeeByteContent tee(source, sinks);
+    // TeeByteContent::path() always returns nullopt
+    EXPECT_FALSE(tee.path().has_value());
 }
