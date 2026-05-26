@@ -540,5 +540,93 @@ TEST_F(OSSClientPresignTest, presignUploadPart_invalidPartNumber) {
     EXPECT_EQ(ClientErrorCode::ArgumentRequired, outcome.error().getErrorCode());
 }
 
+TEST_F(OSSClientPresignTest, presignGetObject_WithCustomHeaders) {
+    ClientConfiguration config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockTransport;
+
+    OSSClient client(config);
+
+    auto request = models::GetObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.addHeader("x-oss-custom", "val");
+    request.addParameter("response-content-type", "application/json");
+    auto result = client.presign(request);
+    EXPECT_TRUE(result.has_value());
+    EXPECT_FALSE(result.value().getUrl().empty());
+}
+
+TEST_F(OSSClientPresignTest, presignPutObject_WithCustomHeaders) {
+    ClientConfiguration config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockTransport;
+
+    OSSClient client(config);
+
+    auto request = models::PutObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.addHeader("Content-Type", "image/png");
+    request.addParameter("p", "v");
+    auto result = client.presign(request);
+    EXPECT_TRUE(result.has_value());
+}
+
+TEST_F(OSSClientPresignTest, presignHeadObject_Success) {
+    ClientConfiguration config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockTransport;
+
+    OSSClient client(config);
+
+    auto request = models::HeadObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.addHeader("x-h", "v");
+    request.addParameter("p", "v");
+    auto result = client.presign(request);
+    EXPECT_TRUE(result.has_value());
+}
+
+TEST_F(OSSClientPresignTest, presignUploadPart_Success) {
+    ClientConfiguration config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockTransport;
+
+    OSSClient client(config);
+
+    auto request = models::UploadPartRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setUploadId("uid-123");
+    request.setPartNumber(1);
+    request.addHeader("x-h", "v");
+    request.addParameter("p", "v");
+    auto result = client.presign(request);
+    EXPECT_TRUE(result.has_value());
+}
+
+TEST_F(OSSClientPresignTest, presignGetObject_WithExpiration) {
+    ClientConfiguration config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockTransport;
+
+    OSSClient client(config);
+
+    auto request = models::GetObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    models::PresignOptions opts;
+    opts.setExpiration(std::time(nullptr) + 3600);
+    auto result = client.presign(request, &opts);
+    EXPECT_TRUE(result.has_value());
+}
+
 } // namespace oss2
 } // namespace alibabacloud

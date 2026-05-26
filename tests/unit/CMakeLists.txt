@@ -11,6 +11,7 @@ file(GLOB_RECURSE test_unit_retry_src "retry/*.cpp")
 file(GLOB_RECURSE test_unit_internal_src "internal/*.cpp")
 file(GLOB_RECURSE test_unit_models_src "models/*.cpp")
 file(GLOB_RECURSE test_unit_utils_src "utils/*.cpp")
+file(GLOB_RECURSE test_unit_error_src "error/*.cpp")
 file(GLOB_RECURSE test_unit_io_src "io/*.cpp")
 file(GLOB_RECURSE test_unit_signer_src "signer/*.cpp")
 file(GLOB_RECURSE test_unit_transform_src "transform/*.cpp")
@@ -36,6 +37,7 @@ add_executable(${PROJECT_NAME}
 	${test_unit_io_src}
 	${test_unit_signer_src}
 	${test_unit_transform_src}
+	${test_unit_error_src}
 	${test_unit_transport_src}
 )
 

@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <cstdlib>
+
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
 
 using namespace alibabacloud::oss2;
@@ -54,3 +56,4 @@ TEST(CredentialsProviderTest, AnonymousCredentialsProvider) {
     EXPECT_EQ("", cred.getAccessKeySecret());
     EXPECT_EQ("", cred.getSessionToken());
 }
+

@@ -2180,4 +2180,307 @@ TEST(OSSClientObjectBasicTest, AppendObject_CRC64Check_Disabled) {
     EXPECT_TRUE(outcome.has_value());
 }
 
+TEST(OSSClientObjectBasicTest, HeadObject_WithAllHeaders) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK",
+                           {{"x-oss-request-id", "id-head"},
+                            {"Content-Length", "1024"},
+                            {"Content-Type", "text/plain"},
+                            {"ETag", "\"etag-123\""},
+                            {"Last-Modified", "Mon, 01 Jan 2024 00:00:00 GMT"},
+                            {"x-oss-object-type", "Normal"},
+                            {"x-oss-storage-class", "Standard"},
+                            {"x-oss-hash-crc64ecma", "12345678"}},
+                           nullptr}));
+
+    auto request = models::HeadObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.addHeader("x-h", "v");
+    request.addParameter("p", "v");
+    auto outcome = client.headObject(request);
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(200, outcome.value().getStatusCode());
+}
+
+TEST(OSSClientObjectBasicTest, GetObjectMeta_WithAllHeaders) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK",
+                           {{"x-oss-request-id", "id-meta"},
+                            {"Content-Length", "512"},
+                            {"ETag", "\"etag-456\""},
+                            {"Last-Modified", "Tue, 02 Jan 2024 00:00:00 GMT"},
+                            {"x-oss-hash-crc64ecma", "87654321"},
+                            {"x-oss-version-id", "vid-001"}},
+                           nullptr}));
+
+    auto request = models::GetObjectMetaRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.addHeader("x-h", "v");
+    request.addParameter("p", "v");
+    auto outcome = client.getObjectMeta(request);
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(200, outcome.value().getStatusCode());
+}
+
+TEST(OSSClientObjectBasicTest, RestoreObject_WithRestoreRequest) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{202, "Accepted", {{"x-oss-request-id", "id-restore"}}, nullptr}));
+
+    auto request = models::RestoreObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    models::RestoreRequest rr;
+    rr.days = 3;
+    models::JobParameters jp;
+    jp.tier = "Standard";
+    rr.jobParameters = jp;
+    request.setRestoreRequest(rr);
+    auto outcome = client.restoreObject(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientObjectBasicTest, RestoreObject_WithEmptyRestoreRequest) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{202, "Accepted", {{"x-oss-request-id", "id-restore2"}}, nullptr}));
+
+    auto request = models::RestoreObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    models::RestoreRequest rr;
+    request.setRestoreRequest(rr);
+    auto outcome = client.restoreObject(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientObjectBasicTest, DeleteMultipleObjects_WithQuietAndVersionId) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<DeleteResult>
+</DeleteResult>)";
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-dm2"}},
+                           std::make_shared<std::stringstream>(body)}));
+
+    models::Delete del;
+    del.setQuiet(true);
+    del.setObjects({models::ObjectIdentifier{"f1.txt", "vid-1"},
+                    models::ObjectIdentifier{"f2.txt"}});
+    auto request = models::DeleteMultipleObjectsRequest();
+    request.setBucket("test-bucket");
+    request.setDelete(del);
+    auto outcome = client.deleteMultipleObjects(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientObjectBasicTest, DeleteMultipleObjects_WithDeletedItems) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<DeleteResult>
+    <EncodingType>url</EncodingType>
+    <Deleted>
+        <Key>file1.txt</Key>
+        <VersionId>vid-001</VersionId>
+        <DeleteMarker>true</DeleteMarker>
+        <DeleteMarkerVersionId>vid-dm-001</DeleteMarkerVersionId>
+    </Deleted>
+    <Deleted>
+        <Key>file2.txt</Key>
+    </Deleted>
+</DeleteResult>)";
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-dm"}},
+                           std::make_shared<std::stringstream>(body)}));
+
+    models::Delete del;
+    del.setObjects({models::ObjectIdentifier{"file1.txt"}, models::ObjectIdentifier{"file2.txt"}});
+    auto request = models::DeleteMultipleObjectsRequest();
+    request.setBucket("test-bucket");
+    request.setDelete(del);
+    request.addHeader("x-h", "v");
+    request.addParameter("p", "v");
+    auto outcome = client.deleteMultipleObjects(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientObjectBasicTest, DeleteMultipleObjects_NullBody) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}}, nullptr}));
+
+    models::Delete del;
+    del.setObjects({models::ObjectIdentifier{"file1.txt"}});
+    auto request = models::DeleteMultipleObjectsRequest();
+    request.setBucket("test-bucket");
+    request.setDelete(del);
+    auto outcome = client.deleteMultipleObjects(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientObjectBasicTest, DeleteMultipleObjects_InvalidXml) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}},
+                           std::make_shared<std::stringstream>("<bad")}));
+
+    models::Delete del;
+    del.setObjects({models::ObjectIdentifier{"file1.txt"}});
+    auto request = models::DeleteMultipleObjectsRequest();
+    request.setBucket("test-bucket");
+    request.setDelete(del);
+    auto outcome = client.deleteMultipleObjects(request);
+    EXPECT_FALSE(outcome.has_value());
+}
+
+TEST(OSSClientObjectBasicTest, CopyObject_WithVersionHeaders) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<CopyObjectResult>
+    <LastModified>2024-01-01T00:00:00.000Z</LastModified>
+    <ETag>"etag-copy"</ETag>
+</CopyObjectResult>)";
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK",
+                           {{"x-oss-request-id", "id-copy"},
+                            {"x-oss-version-id", "vid-new"},
+                            {"x-oss-copy-source-version-id", "vid-src"},
+                            {"x-oss-hash-crc64ecma", "12345"}},
+                           std::make_shared<std::stringstream>(body)}));
+
+    auto request = models::CopyObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setSourceKey("source-key");
+    request.setSourceBucket("source-bucket");
+    request.addHeader("x-h", "v");
+    request.addParameter("p", "v");
+    auto outcome = client.copyObject(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientObjectBasicTest, CopyObject_MinimalResponse) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<CopyObjectResult>
+</CopyObjectResult>)";
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-copy-min"}},
+                           std::make_shared<std::stringstream>(body)}));
+
+    auto request = models::CopyObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setSourceKey("source-key");
+    request.setSourceBucket("source-bucket");
+    auto outcome = client.copyObject(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientObjectBasicTest, CopyObject_NullBody) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}}, nullptr}));
+
+    auto request = models::CopyObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setSourceKey("source-key");
+    request.setSourceBucket("source-bucket");
+    auto outcome = client.copyObject(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
 } // namespace alibabacloud::oss2

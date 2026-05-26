@@ -1690,4 +1690,380 @@ TEST(OSSClientObjectMultipartTest, UploadPart_CRC64Check_Disabled) {
     EXPECT_TRUE(outcome.has_value());
 }
 
+TEST(OSSClientObjectMultipartTest, ListMultipartUploads_FullResponse) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<ListMultipartUploadsResult>
+    <Bucket>test-bucket</Bucket>
+    <KeyMarker></KeyMarker>
+    <UploadIdMarker></UploadIdMarker>
+    <NextKeyMarker>key2</NextKeyMarker>
+    <NextUploadIdMarker>uid2</NextUploadIdMarker>
+    <Delimiter>/</Delimiter>
+    <Prefix></Prefix>
+    <MaxUploads>100</MaxUploads>
+    <IsTruncated>false</IsTruncated>
+    <EncodingType>url</EncodingType>
+    <Upload>
+        <Key>file1.txt</Key>
+        <UploadId>upload-001</UploadId>
+        <Initiated>2024-01-01T00:00:00.000Z</Initiated>
+    </Upload>
+    <CommonPrefixes>
+        <Prefix>dir/</Prefix>
+    </CommonPrefixes>
+</ListMultipartUploadsResult>)";
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-mp"}},
+                           std::make_shared<std::stringstream>(body)}));
+
+    auto request = models::ListMultipartUploadsRequest();
+    request.setBucket("test-bucket");
+    request.addHeader("x-h", "v");
+    request.addParameter("p", "v");
+    auto outcome = client.listMultipartUploads(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientObjectMultipartTest, ListMultipartUploads_NullBody) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}}, nullptr}));
+
+    auto request = models::ListMultipartUploadsRequest();
+    request.setBucket("test-bucket");
+    auto outcome = client.listMultipartUploads(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientObjectMultipartTest, ListMultipartUploads_InvalidXml) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}},
+                           std::make_shared<std::stringstream>("<bad")}));
+
+    auto request = models::ListMultipartUploadsRequest();
+    request.setBucket("test-bucket");
+    auto outcome = client.listMultipartUploads(request);
+    EXPECT_FALSE(outcome.has_value());
+}
+
+TEST(OSSClientObjectMultipartTest, ListMultipartUploads_MinimalResponse) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<ListMultipartUploadsResult>
+    <Upload>
+    </Upload>
+</ListMultipartUploadsResult>)";
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-lmu-min"}},
+                           std::make_shared<std::stringstream>(body)}));
+
+    auto request = models::ListMultipartUploadsRequest();
+    request.setBucket("test-bucket");
+    auto outcome = client.listMultipartUploads(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientObjectMultipartTest, ListParts_FullResponse) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<ListPartsResult>
+    <Bucket>test-bucket</Bucket>
+    <Key>test-key</Key>
+    <UploadId>upload-001</UploadId>
+    <PartNumberMarker>0</PartNumberMarker>
+    <NextPartNumberMarker>3</NextPartNumberMarker>
+    <MaxParts>100</MaxParts>
+    <IsTruncated>false</IsTruncated>
+    <EncodingType>url</EncodingType>
+    <Part>
+        <PartNumber>1</PartNumber>
+        <LastModified>2024-01-01T00:00:00.000Z</LastModified>
+        <ETag>"etag-p1"</ETag>
+        <Size>1048576</Size>
+        <HashCrc64ecma>12345678</HashCrc64ecma>
+    </Part>
+</ListPartsResult>)";
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-lp"}},
+                           std::make_shared<std::stringstream>(body)}));
+
+    auto request = models::ListPartsRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setUploadId("upload-001");
+    request.addHeader("x-h", "v");
+    request.addParameter("p", "v");
+    auto outcome = client.listParts(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientObjectMultipartTest, ListParts_MinimalResponse) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<ListPartsResult>
+    <Part>
+    </Part>
+</ListPartsResult>)";
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-lp-min"}},
+                           std::make_shared<std::stringstream>(body)}));
+
+    auto request = models::ListPartsRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setUploadId("upload-001");
+    auto outcome = client.listParts(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientObjectMultipartTest, ListParts_NullBody) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}}, nullptr}));
+
+    auto request = models::ListPartsRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setUploadId("upload-001");
+    auto outcome = client.listParts(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientObjectMultipartTest, InitiateMultipartUpload_WithCustomHeaders) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<InitiateMultipartUploadResult>
+    <Bucket>test-bucket</Bucket>
+    <Key>test-key</Key>
+    <UploadId>upload-id-999</UploadId>
+    <EncodingType>url</EncodingType>
+</InitiateMultipartUploadResult>)";
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-init"}},
+                           std::make_shared<std::stringstream>(body)}));
+
+    auto request = models::InitiateMultipartUploadRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.addHeader("x-h", "v");
+    request.addParameter("p", "v");
+    auto outcome = client.initiateMultipartUpload(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientObjectMultipartTest, InitiateMultipartUpload_MinimalResponse) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<InitiateMultipartUploadResult>
+</InitiateMultipartUploadResult>)";
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-init-min"}},
+                           std::make_shared<std::stringstream>(body)}));
+
+    auto request = models::InitiateMultipartUploadRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    auto outcome = client.initiateMultipartUpload(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientObjectMultipartTest, CompleteMultipartUpload_WithCustomHeaders) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<CompleteMultipartUploadResult>
+    <Location>http://test-bucket.oss-cn-hangzhou.aliyuncs.com/test-key</Location>
+    <Bucket>test-bucket</Bucket>
+    <Key>test-key</Key>
+    <ETag>"etag-final"</ETag>
+    <EncodingType>url</EncodingType>
+</CompleteMultipartUploadResult>)";
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK",
+                           {{"x-oss-request-id", "id-comp"},
+                            {"x-oss-version-id", "vid-comp"},
+                            {"x-oss-hash-crc64ecma", "99999"}},
+                           std::make_shared<std::stringstream>(body)}));
+
+    auto request = models::CompleteMultipartUploadRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setUploadId("upload-id-999");
+    request.addHeader("x-h", "v");
+    request.addParameter("p", "v");
+    auto outcome = client.completeMultipartUpload(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientObjectMultipartTest, CompleteMultipartUpload_WithParts) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<CompleteMultipartUploadResult>
+</CompleteMultipartUploadResult>)";
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-comp-parts"}},
+                           std::make_shared<std::stringstream>(body)}));
+
+    models::CompleteMultipartUpload cmu;
+    cmu.parts = {models::Part{"\"etag-1\"", 1}, models::Part{"", 0}};
+    auto request = models::CompleteMultipartUploadRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setUploadId("upload-id-999");
+    request.setCompleteMultipartUpload(cmu);
+    auto outcome = client.completeMultipartUpload(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientObjectMultipartTest, UploadPartCopy_MinimalResponse) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<CopyPartResult>
+</CopyPartResult>)";
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-upc-min"}},
+                           std::make_shared<std::stringstream>(body)}));
+
+    auto request = models::UploadPartCopyRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setPartNumber(1);
+    request.setUploadId("upload-id-999");
+    request.setSourceKey("source-key");
+    request.setSourceBucket("source-bucket");
+    auto outcome = client.uploadPartCopy(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
+TEST(OSSClientObjectMultipartTest, UploadPartCopy_WithCustomHeaders) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<CopyPartResult>
+    <LastModified>2024-01-01T00:00:00.000Z</LastModified>
+    <ETag>"etag-part-copy"</ETag>
+</CopyPartResult>)";
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-upc"}},
+                           std::make_shared<std::stringstream>(body)}));
+
+    auto request = models::UploadPartCopyRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setPartNumber(1);
+    request.setUploadId("upload-id-999");
+    request.setSourceKey("source-key");
+    request.setSourceBucket("source-bucket");
+    request.addHeader("x-h", "v");
+    request.addParameter("p", "v");
+    auto outcome = client.uploadPartCopy(request);
+    EXPECT_TRUE(outcome.has_value());
+}
+
 } // namespace alibabacloud::oss2
