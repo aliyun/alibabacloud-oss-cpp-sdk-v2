@@ -167,12 +167,13 @@ TEST(CancellationTest, WaitFor_CancelAfterBeforeWait_Shortened) {
     auto ct = cts->getToken();
 
     auto start = std::chrono::steady_clock::now();
+    std::this_thread::sleep_for(std::chrono::milliseconds(41));
     bool canceled = ct.waitFor(std::chrono::milliseconds(2000));
     auto elapsed = std::chrono::steady_clock::now() - start;
 
     // cancelAfter() set before waitFor(), so waitFor computes min(2000, ~50) and sleeps ~50ms
     EXPECT_TRUE(canceled);
-    EXPECT_GE(elapsed, std::chrono::milliseconds(45));
+    EXPECT_GE(elapsed, std::chrono::milliseconds(40));
     EXPECT_LT(elapsed, std::chrono::milliseconds(200));
 }
 

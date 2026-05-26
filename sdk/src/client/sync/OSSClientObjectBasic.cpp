@@ -1,10 +1,15 @@
 
 #include "alibabacloud/oss2/OSSClient.h"
+#include "alibabacloud/oss2/io/ByteWriter.h"
 #include "src/internal/ByteStreamUtils.h"
+#include "src/internal/SelectFrameDecoder.h"
 #include "src/internal/sync/ClientImpl.h"
 #include "src/transform/SerdeObjectBasic.h"
+#include "src/transform/SerdeObjectSelect.h"
 #include "src/utils/Utils.h"
 #include "OSSClientUtils.h"
+
+#include <sstream>
 
 namespace alibabacloud {
 namespace oss2 {
@@ -212,6 +217,71 @@ CleanRestoredObjectOutcome OSSClient::cleanRestoredObject(const models::CleanRes
         return makeUnexpected(std::get<OperationError>(result));
     }
     return transform::toCleanRestoredObject(std::move(std::get<OperationOutput>(result)));
+}
+
+
+// Object Select
+SelectObjectOutcome OSSClient::selectObject(const models::SelectObjectRequest& request, const OperationOptions* options) {
+    requiredField(Bucket);
+    requiredField(Key);
+    requiredField(Process);
+    requiredHasField(SelectRequest);
+
+    auto input = transform::fromSelectObject(request);
+
+    internal::OperationInnerOptions innerOpts;
+
+    auto userFactory = request.getSinkFactory();
+    std::shared_ptr<std::stringstream> defaultStream;
+    if (!userFactory.has_value()) {
+        defaultStream = std::make_shared<std::stringstream>();
+    }
+
+    SinkFactory factory;
+    factory.isOneShot = userFactory.has_value() ? userFactory->isOneShot : false;
+    factory.supplier = [userFactory, defaultStream](std::int64_t size, const HeaderCollection& headers)
+            -> std::shared_ptr<ByteWriter> {
+        std::shared_ptr<ByteWriter> userSink;
+        if (userFactory.has_value()) {
+            userSink = userFactory.value()(size, headers);
+        } else {
+            defaultStream->str("");
+            defaultStream->clear();
+            userSink = std::make_shared<OStreamWriter>(defaultStream);
+        }
+
+        auto it = headers.find("x-oss-select-output-raw");
+        if (it != headers.end() && it->second == "true") {
+            return userSink;
+        }
+        return std::make_shared<internal::SelectFrameDecodingWriter>(userSink);
+    };
+    innerOpts.sinkFactory = factory;
+
+    auto result = client_->Execute(input, options, &innerOpts);
+    if (std::holds_alternative<OperationError>(result)) {
+        return makeUnexpected(std::get<OperationError>(result));
+    }
+    auto outcome = transform::toSelectObject(std::move(std::get<OperationOutput>(result)));
+    if (outcome.has_value() && defaultStream) {
+        outcome.value().setBody(defaultStream);
+    }
+    return outcome;
+}
+
+CreateSelectObjectMetaOutcome OSSClient::createSelectObjectMeta(const models::CreateSelectObjectMetaRequest& request,
+                                                                const OperationOptions* options) {
+    requiredField(Bucket);
+    requiredField(Key);
+    requiredField(Process);
+    requiredHasField(SelectMetaRequest);
+
+    auto input = transform::fromCreateSelectObjectMeta(request);
+    auto result = client_->Execute(input, options);
+    if (std::holds_alternative<OperationError>(result)) {
+        return makeUnexpected(std::get<OperationError>(result));
+    }
+    return transform::toCreateSelectObjectMeta(std::move(std::get<OperationOutput>(result)));
 }
 
 } // namespace oss2

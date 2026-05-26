@@ -1,10 +1,15 @@
 
 #include "alibabacloud/oss2/OSSAsyncClient.h"
+#include "alibabacloud/oss2/io/ByteWriter.h"
 #include "src/internal/ByteStreamUtils.h"
+#include "src/internal/SelectFrameDecoder.h"
 #include "src/internal/async/AsyncClientImpl.h"
 #include "src/transform/SerdeObjectBasic.h"
+#include "src/transform/SerdeObjectSelect.h"
 #include "src/utils/Utils.h"
 #include "OSSAsyncClientUtils.h"
+
+#include <sstream>
 
 namespace alibabacloud {
 namespace oss2 {
@@ -244,6 +249,79 @@ void OSSAsyncClient::cleanRestoredObjectAsync(const models::CleanRestoredObjectR
             return;
         }
         callback(transform::toCleanRestoredObject(std::move(std::get<OperationOutput>(result))));
+    }, options);
+}
+
+
+// Object Select
+
+void OSSAsyncClient::selectObjectAsync(const models::SelectObjectRequest& request,
+                                        const SelectObjectAsyncCallback& callback,
+                                        const OperationOptions* options) {
+    requiredFieldAsync(Bucket);
+    requiredFieldAsync(Key);
+    requiredFieldAsync(Process);
+    requiredHasFieldAsync(SelectRequest);
+
+    auto input = transform::fromSelectObject(request);
+
+    internal::OperationInnerOptions innerOpts;
+
+    auto userFactory = request.getSinkFactory();
+    std::shared_ptr<std::stringstream> defaultStream;
+    if (!userFactory.has_value()) {
+        defaultStream = std::make_shared<std::stringstream>();
+    }
+
+    SinkFactory factory;
+    factory.isOneShot = userFactory.has_value() ? userFactory->isOneShot : false;
+    factory.supplier = [userFactory, defaultStream](std::int64_t size, const HeaderCollection& headers)
+            -> std::shared_ptr<ByteWriter> {
+        std::shared_ptr<ByteWriter> userSink;
+        if (userFactory.has_value()) {
+            userSink = userFactory.value()(size, headers);
+        } else {
+            defaultStream->str("");
+            defaultStream->clear();
+            userSink = std::make_shared<OStreamWriter>(defaultStream);
+        }
+
+        auto it = headers.find("x-oss-select-output-raw");
+        if (it != headers.end() && it->second == "true") {
+            return userSink;
+        }
+        return std::make_shared<internal::SelectFrameDecodingWriter>(userSink);
+    };
+    innerOpts.sinkFactory = factory;
+
+    client_->ExecuteAsync(input, [callback, defaultStream](OperationResult result) {
+        if (std::holds_alternative<OperationError>(result)) {
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
+            return;
+        }
+        auto outcome = transform::toSelectObject(std::move(std::get<OperationOutput>(result)));
+        if (outcome.has_value() && defaultStream) {
+            outcome.value().setBody(defaultStream);
+        }
+        callback(std::move(outcome));
+    }, options, &innerOpts);
+}
+
+void OSSAsyncClient::createSelectObjectMetaAsync(const models::CreateSelectObjectMetaRequest& request,
+                                                  const CreateSelectObjectMetaAsyncCallback& callback,
+                                                  const OperationOptions* options) {
+    requiredFieldAsync(Bucket);
+    requiredFieldAsync(Key);
+    requiredFieldAsync(Process);
+    requiredHasFieldAsync(SelectMetaRequest);
+
+    auto input = transform::fromCreateSelectObjectMeta(request);
+    client_->ExecuteAsync(input, [callback](OperationResult result) {
+        if (std::holds_alternative<OperationError>(result)) {
+            callback(makeUnexpected(std::get<OperationError>(std::move(result))));
+            return;
+        }
+        callback(transform::toCreateSelectObjectMeta(std::move(std::get<OperationOutput>(result))));
     }, options);
 }
 

@@ -37,6 +37,7 @@ target_compile_options(${PROJECT_NAME}
     PRIVATE "${SDK_COMPILER_FLAGS}"
 )
 target_compile_definitions(${PROJECT_NAME} PRIVATE CPPHTTPLIB_NO_EXCEPTIONS)
+target_compile_definitions(${PROJECT_NAME} PRIVATE TEST_DATA_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../data/")
 
 add_test(NAME cpp-sdk-itegtest COMMAND ${PROJECT_NAME})
 
