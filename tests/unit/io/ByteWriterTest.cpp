@@ -348,18 +348,16 @@ TEST(MemoryWriterTest, WithSinkFactory) {
     std::uint8_t buf[64] = {};
     std::size_t bufSize = sizeof(buf);
 
-    SinkFactory factory;
-    factory.supplier = [ptr = buf, bufSize](std::int64_t) -> std::shared_ptr<ByteWriter> {
+    auto factory = makeSinkFactory([ptr = buf, bufSize](std::int64_t) -> std::shared_ptr<ByteWriter> {
         return std::make_shared<MemoryWriter>(ptr, bufSize);
-    };
-    factory.isOneShot = false;
+    });
 
-    auto writer1 = factory(0);
+    auto writer1 = factory(0, HeaderCollection{});
     ASSERT_NE(nullptr, writer1);
     writer1->write(u8("hello"), 5);
     EXPECT_EQ(0, std::memcmp(buf, "hello", 5));
 
-    auto writer2 = factory(0);
+    auto writer2 = factory(0, HeaderCollection{});
     ASSERT_NE(nullptr, writer2);
     writer2->write(u8("world"), 5);
     EXPECT_EQ(0, std::memcmp(buf, "world", 5));

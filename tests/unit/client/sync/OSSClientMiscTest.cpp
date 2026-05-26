@@ -412,7 +412,7 @@ class WritingMockTransport : public HttpTransport {
         bool isError = (r.statusCode / 100 != 2) || (r.statusCode == 203);
 
         if (!isError && options.sinkFactory.has_value()) {
-            auto sink = options.sinkFactory.value()(static_cast<std::int64_t>(r.body.size()));
+            auto sink = options.sinkFactory.value()(static_cast<std::int64_t>(r.body.size()), response->headers);
             if (sink) {
                 auto* data = reinterpret_cast<const std::uint8_t*>(r.body.data());
                 sink->write(data, r.body.size());
@@ -469,7 +469,7 @@ TEST(OSSClientMiscTest, GetObject_ObservableWriter_Success) {
     auto sink = std::make_shared<ObservableWriter>(writer, progressObs, crc);
 
     SinkFactory factory;
-    factory.supplier = [sink](std::int64_t) -> std::shared_ptr<ByteWriter> { return sink; };
+    factory.supplier = [sink](std::int64_t, const HeaderCollection&) -> std::shared_ptr<ByteWriter> { return sink; };
     factory.isOneShot = false;
 
     auto outcome = client.getObject(
@@ -524,7 +524,7 @@ TEST(OSSClientMiscTest, GetObject_ObservableWriter_RetryWithReset) {
 
     SinkFactory factory;
     factory.isOneShot = false;
-    factory.supplier = [&](std::int64_t) -> std::shared_ptr<ByteWriter> {
+    factory.supplier = [&](std::int64_t, const HeaderCollection&) -> std::shared_ptr<ByteWriter> {
         supplierCallCount++;
         if (supplierCallCount == 1) {
             auto failWriter = std::make_shared<FailingWriter>(5);
@@ -588,7 +588,7 @@ TEST(OSSClientMiscTest, GetObject_ObservableWriter_LargeBody) {
     auto sink = std::make_shared<ObservableWriter>(writer, progressObs, crc);
 
     SinkFactory factory;
-    factory.supplier = [sink](std::int64_t) -> std::shared_ptr<ByteWriter> { return sink; };
+    factory.supplier = [sink](std::int64_t, const HeaderCollection&) -> std::shared_ptr<ByteWriter> { return sink; };
 
     auto outcome = client.getObject(
             models::GetObjectRequest()
@@ -629,7 +629,7 @@ TEST(OSSClientMiscTest, GetObject_ObservableWriter_ErrorResponse_SinkNotInvoked)
     auto crc = std::make_shared<CRC64WriteObserver>();
 
     SinkFactory factory;
-    factory.supplier = [&](std::int64_t) -> std::shared_ptr<ByteWriter> {
+    factory.supplier = [&](std::int64_t, const HeaderCollection&) -> std::shared_ptr<ByteWriter> {
         supplierCallCount++;
         auto output = std::make_shared<std::ostringstream>();
         auto writer = std::make_shared<OStreamWriter>(output);

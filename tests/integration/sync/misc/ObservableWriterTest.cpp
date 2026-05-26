@@ -62,7 +62,7 @@ TEST_F(ObservableWriterTest, GetObject_WithProgressAndCRC) {
     auto sink = std::make_shared<ObservableWriter>(writer, progressObs, crc);
 
     SinkFactory factory;
-    factory.supplier = [sink](std::int64_t) -> std::shared_ptr<ByteWriter> { return sink; };
+    factory.supplier = [sink](std::int64_t, const HeaderCollection&) -> std::shared_ptr<ByteWriter> { return sink; };
     factory.isOneShot = false;
 
     auto outcome = client->getObject(
@@ -109,7 +109,7 @@ TEST_F(ObservableWriterTest, GetObject_RetryWithObserverReset) {
     int supplierCallCount = 0;
     SinkFactory factory;
     factory.isOneShot = false;
-    factory.supplier = [&](std::int64_t) -> std::shared_ptr<ByteWriter> {
+    factory.supplier = [&](std::int64_t, const HeaderCollection&) -> std::shared_ptr<ByteWriter> {
         supplierCallCount++;
         if (supplierCallCount > 1) {
             progressObs->reset();
@@ -142,7 +142,7 @@ TEST_F(ObservableWriterTest, GetObject_ErrorResponse_SinkNotInvoked) {
     auto crc = std::make_shared<CRC64WriteObserver>();
 
     SinkFactory factory;
-    factory.supplier = [&](std::int64_t) -> std::shared_ptr<ByteWriter> {
+    factory.supplier = [&](std::int64_t, const HeaderCollection&) -> std::shared_ptr<ByteWriter> {
         supplierCallCount++;
         auto output = std::make_shared<std::stringstream>();
         auto writer = std::make_shared<OStreamWriter>(output);
@@ -180,7 +180,7 @@ TEST_F(ObservableWriterTest, GetObject_CRCOnly) {
     auto sink = std::make_shared<ObservableWriter>(writer, crc);
 
     SinkFactory factory;
-    factory.supplier = [sink](std::int64_t) -> std::shared_ptr<ByteWriter> { return sink; };
+    factory.supplier = [sink](std::int64_t, const HeaderCollection&) -> std::shared_ptr<ByteWriter> { return sink; };
 
     auto outcome = client->getObject(
             models::GetObjectRequest()

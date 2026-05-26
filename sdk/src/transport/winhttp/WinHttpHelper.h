@@ -76,11 +76,9 @@ struct ResponseSink {
     std::shared_ptr<std::stringstream> defaultSink;
 };
 
-int64_t parseResponseContentLength(const HeaderCollection& headers);
-
 ResponseSink createResponseSink(long statusCode,
                                  const std::optional<SinkFactory>& factory,
-                                 int64_t contentLength);
+                                 const HeaderCollection& headers);
 
 void finalizeResponseBody(ResponseMessage& response, long statusCode,
                            const std::optional<SinkFactory>& factory,

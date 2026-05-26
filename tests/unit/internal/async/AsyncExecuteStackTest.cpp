@@ -241,7 +241,7 @@ TEST(AsyncExecuteStackTest, TransportResponsePreservesOstreamFactory) {
     state->request = std::make_unique<RequestMessage>();
     state->request->uri = "https://example.com";
     state->context.transportContext.sinkFactory = SinkFactory{
-        [&factoryCalled](int64_t) -> std::shared_ptr<ByteWriter> {
+        [&factoryCalled](int64_t, const HeaderCollection&) -> std::shared_ptr<ByteWriter> {
             factoryCalled = true;
             return std::make_shared<OStreamWriter>(std::make_shared<std::stringstream>());
         },
@@ -251,7 +251,7 @@ TEST(AsyncExecuteStackTest, TransportResponsePreservesOstreamFactory) {
     helper.wait();
 
     EXPECT_TRUE(helper.finalState->context.transportContext.sinkFactory.has_value());
-    helper.finalState->context.transportContext.sinkFactory.value()(0);
+    helper.finalState->context.transportContext.sinkFactory.value()(0, HeaderCollection{});
     EXPECT_TRUE(factoryCalled);
 }
 
@@ -277,7 +277,7 @@ TEST(AsyncExecuteStackTest, TransportErrorPreservesSinkFactory) {
     state->request = std::make_unique<RequestMessage>();
     state->request->uri = "https://example.com";
     state->context.transportContext.sinkFactory = SinkFactory{
-        [&factoryCalled](int64_t) -> std::shared_ptr<ByteWriter> {
+        [&factoryCalled](int64_t, const HeaderCollection&) -> std::shared_ptr<ByteWriter> {
             factoryCalled = true;
             return std::make_shared<OStreamWriter>(std::make_shared<std::stringstream>());
         },
@@ -287,7 +287,7 @@ TEST(AsyncExecuteStackTest, TransportErrorPreservesSinkFactory) {
     helper.wait();
 
     EXPECT_TRUE(helper.finalState->context.transportContext.sinkFactory.has_value());
-    helper.finalState->context.transportContext.sinkFactory.value()(0);
+    helper.finalState->context.transportContext.sinkFactory.value()(0, HeaderCollection{});
     EXPECT_TRUE(factoryCalled);
 }
 

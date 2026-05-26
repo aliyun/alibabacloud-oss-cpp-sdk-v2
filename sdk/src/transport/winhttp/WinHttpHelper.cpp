@@ -301,27 +301,24 @@ void readResponseStatusAndHeaders(HINTERNET hRequest, ResponseMessage& response)
     }
 }
 
-int64_t parseResponseContentLength(const HeaderCollection& headers) {
-    auto it = headers.find("Content-Length");
-    if (it != headers.end()) {
-        long long val = 0;
-        auto [ptr, ec] = std::from_chars(it->second.data(),
-            it->second.data() + it->second.size(), val);
-        if (ec == std::errc()) {
-            return val;
-        }
-    }
-    return -1;
-}
-
 ResponseSink createResponseSink(long statusCode,
                                  const std::optional<SinkFactory>& factory,
-                                 int64_t contentLength) {
+                                 const HeaderCollection& headers) {
     ResponseSink rs;
     bool isError = (statusCode / 100 != 2) || (statusCode == 203);
 
     if (!isError && factory.has_value()) {
-        rs.sink = factory.value()(contentLength);
+        int64_t contentLength = -1;
+        auto it = headers.find("Content-Length");
+        if (it != headers.end()) {
+            long long val = 0;
+            auto [ptr, ec] = std::from_chars(it->second.data(),
+                it->second.data() + it->second.size(), val);
+            if (ec == std::errc()) {
+                contentLength = val;
+            }
+        }
+        rs.sink = factory.value()(contentLength, headers);
     }
     if (!rs.sink) {
         rs.defaultSink = std::make_shared<std::stringstream>();

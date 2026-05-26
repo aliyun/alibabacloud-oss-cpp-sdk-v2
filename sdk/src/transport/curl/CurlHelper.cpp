@@ -47,7 +47,7 @@ size_t recvBodyCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
             io->userSink = std::make_shared<OStreamWriter>(io->defaultSink);
             io->sink = io->userSink.get();
         } else {
-            io->userSink = io->sinkFactory->value()(io->recvDataLength);
+            io->userSink = io->sinkFactory->value()(io->recvDataLength, io->response->headers);
             io->sink = io->userSink.get();
         }
         io->recvFirstData = false;

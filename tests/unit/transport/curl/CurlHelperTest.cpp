@@ -511,7 +511,7 @@ TEST(RecvBodyCallbackTest, FirstData2xxWithSinkFactoryUsesUserSink) {
     ResponseMessage resp{};
     auto userStream = std::make_shared<std::stringstream>();
     SinkFactory factory;
-    factory.supplier = [&](int64_t) -> std::shared_ptr<ByteWriter> {
+    factory.supplier = [&](int64_t, const HeaderCollection&) -> std::shared_ptr<ByteWriter> {
         return std::make_shared<OStreamWriter>(userStream);
     };
     std::optional<SinkFactory> optFactory = factory;

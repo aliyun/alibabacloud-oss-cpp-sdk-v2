@@ -55,7 +55,7 @@ GetObjectOutcome OSSClient::getObjectToFile(const models::GetObjectRequest& requ
         SinkFactory factory;
         factory.isOneShot = true;
         factory.supplier = [&fileStream, &filePath, offset, crcObserver, progressObs](
-                std::int64_t contentLength) -> std::shared_ptr<ByteWriter> {
+                std::int64_t contentLength, const HeaderCollection&) -> std::shared_ptr<ByteWriter> {
             if (offset == 0) {
                 fileStream = std::make_shared<std::ofstream>(filePath, std::ios::binary | std::ios::trunc);
             } else {

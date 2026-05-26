@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<oss::MemoryWriter> memWriter;
     oss::SinkFactory factory;
     factory.isOneShot = false;
-    factory.supplier = [&](std::int64_t) -> std::shared_ptr<oss::ByteWriter> {
+    factory.supplier = [&](std::int64_t, const oss::HeaderCollection&) -> std::shared_ptr<oss::ByteWriter> {
         memWriter = std::make_shared<oss::MemoryWriter>(buffer.data(), buffer.size());
         return memWriter;
     };

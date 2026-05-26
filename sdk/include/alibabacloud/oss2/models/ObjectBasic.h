@@ -849,7 +849,7 @@ class ALIBABACLOUD_OSS_API GetObjectRequest final : public RequestModel {
     //   std::uint8_t buf[4 * 1024 * 1024];
     //   std::size_t bufSize = sizeof(buf);
     //   SinkFactory factory;
-    //   factory.supplier = [ptr = buf, bufSize](std::int64_t) -> std::shared_ptr<ByteWriter> {
+    //   factory.supplier = [ptr = buf, bufSize](std::int64_t, const HeaderCollection&) -> std::shared_ptr<ByteWriter> {
     //       return std::make_shared<MemoryWriter>(ptr, bufSize);
     //   };
     //   factory.isOneShot = false;  // supports retry
@@ -860,7 +860,7 @@ class ALIBABACLOUD_OSS_API GetObjectRequest final : public RequestModel {
     //   auto crc = std::make_shared<CRC64WriteObserver>();
     //   SinkFactory factory;
     //   factory.isOneShot = false;
-    //   factory.supplier = [&](std::int64_t) -> std::shared_ptr<ByteWriter> {
+    //   factory.supplier = [&](std::int64_t, const HeaderCollection&) -> std::shared_ptr<ByteWriter> {
     //       progress->reset();
     //       crc->reset();
     //       auto file = std::make_shared<std::ofstream>("local.dat", std::ios::binary);

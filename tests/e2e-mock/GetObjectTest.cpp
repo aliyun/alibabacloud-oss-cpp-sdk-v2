@@ -60,7 +60,7 @@ TEST_F(GetObjectTest, GetObject_WithSinkFactory) {
 
     SinkFactory factory;
     factory.isOneShot = true;
-    factory.supplier = [sinkStream](std::int64_t) -> std::shared_ptr<ByteWriter> {
+    factory.supplier = [sinkStream](std::int64_t, const HeaderCollection&) -> std::shared_ptr<ByteWriter> {
         return std::make_shared<OStreamWriter>(sinkStream);
     };
 

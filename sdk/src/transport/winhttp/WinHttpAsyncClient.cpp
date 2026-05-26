@@ -126,9 +126,7 @@ struct AsyncRequestContext {
 
         readResponseStatusAndHeaders(handles.hRequest.get(), *response);
 
-        int64_t recvDataLength = parseResponseContentLength(response->headers);
-
-        rs = createResponseSink(response->statusCode, options.sinkFactory, recvDataLength);
+        rs = createResponseSink(response->statusCode, options.sinkFactory, response->headers);
 
         queryData();
     }

@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
         // Each SinkFactory captures by value: shared_ptr to buffer + offset + length
         oss::SinkFactory factory;
         factory.isOneShot = false;
-        factory.supplier = [buffer, offset, length](std::int64_t) -> std::shared_ptr<oss::ByteWriter> {
+        factory.supplier = [buffer, offset, length](std::int64_t, const oss::HeaderCollection&) -> std::shared_ptr<oss::ByteWriter> {
             return std::make_shared<oss::MemoryWriter>(buffer->data() + offset, length);
         };
 
