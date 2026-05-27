@@ -75,12 +75,13 @@ void OSSAsyncClient::completeMultipartUploadAsync(const models::CompleteMultipar
     requiredFieldAsync(UploadId);
 
     auto input = transform::fromCompleteMultipartUpload(request);
-    client_->ExecuteAsync(input, [callback](OperationResult result) {
+    bool hasCallback = !request.getCallback().empty();
+    client_->ExecuteAsync(input, [callback, hasCallback](OperationResult result) {
         if (std::holds_alternative<OperationError>(result)) {
             callback(makeUnexpected(std::get<OperationError>(std::move(result))));
             return;
         }
-        callback(transform::toCompleteMultipartUpload(std::move(std::get<OperationOutput>(result))));
+        callback(transform::toCompleteMultipartUpload(std::move(std::get<OperationOutput>(result)), hasCallback));
     }, options);
 }
 

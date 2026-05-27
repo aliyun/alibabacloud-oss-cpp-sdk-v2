@@ -4,6 +4,7 @@
 #include "sync/ClientHelper.h"
 #include "alibabacloud/oss2/OSSClient.h"
 #include "alibabacloud/oss2/io/ByteWriter.h"
+#include "alibabacloud/oss2/utils/Base64Utils.h"
 
 namespace alibabacloud {
 namespace oss2 {
@@ -408,6 +409,25 @@ TEST_F(ObjectBasicTest, AppendObject_CRC64CheckUpload_NoInit) {
             .setPosition(0)
             .setBody(RequestBody::FromString(content)));
     EXPECT_TRUE(outcome.has_value());
+}
+
+TEST_F(ObjectBasicTest, PutObject_WithCallback) {
+    auto client = ClientHelper::GetDefaultClient();
+    std::string key = "test-put-object-callback";
+
+    std::string callbackJson = R"({"callbackUrl":"http://223.5.5.5","callbackBody":"bucket=${bucket}&object=${object}","callbackBodyType":"application/x-www-form-urlencoded"})";
+    std::string callbackParam = utils::Base64Encode(callbackJson);
+
+    auto outcome = client->putObject(
+        models::PutObjectRequest()
+            .setBucket(bucketName_)
+            .setKey(key)
+            .setCallback(callbackParam)
+            .setBody(RequestBody::FromString("hello world")));
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(203, outcome.value().getStatusCode());
+    EXPECT_FALSE(outcome.value().getCallbackResult().empty());
+    EXPECT_NE(std::string::npos, outcome.value().getCallbackResult().find("CallbackFailed"));
 }
 
 } // namespace sync

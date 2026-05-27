@@ -4,6 +4,7 @@
 #include "Config.h"
 #include "sync/ClientHelper.h"
 #include "alibabacloud/oss2/OSSClient.h"
+#include "alibabacloud/oss2/utils/Base64Utils.h"
 #include <random>
 
 namespace alibabacloud {
@@ -355,6 +356,48 @@ TEST_F(ObjectMultipartTest, UploadPart_CRC64CheckUpload) {
             .setBucket(bucketName_)
             .setKey(key)
             .setUploadId(uploadId));
+}
+
+TEST_F(ObjectMultipartTest, CompleteMultipartUpload_WithCallback) {
+    auto client = ClientHelper::GetDefaultClient();
+    std::string key = "test-complete-multipart-callback";
+
+    auto initOutcome = client->initiateMultipartUpload(
+        models::InitiateMultipartUploadRequest()
+            .setBucket(bucketName_).setKey(key));
+    ASSERT_TRUE(initOutcome.has_value());
+    std::string uploadId = initOutcome.value().getUploadId();
+
+    std::string content = genRandomString(100 * 1024);
+    auto partOutcome = client->uploadPart(
+        models::UploadPartRequest()
+            .setBucket(bucketName_).setKey(key)
+            .setUploadId(uploadId).setPartNumber(1)
+            .setBody(RequestBody::FromString(content)));
+    ASSERT_TRUE(partOutcome.has_value());
+
+    std::string callbackJson = R"({"callbackUrl":"http://223.5.5.5","callbackBody":"bucket=${bucket}&object=${object}","callbackBodyType":"application/x-www-form-urlencoded"})";
+    std::string callbackParam = utils::Base64Encode(callbackJson);
+
+    std::vector<models::Part> parts;
+    models::Part part1;
+    part1.setPartNumber(1);
+    part1.setETag(partOutcome.value().getETag());
+    parts.push_back(part1);
+
+    models::CompleteMultipartUpload cmu;
+    cmu.setParts(parts);
+
+    auto outcome = client->completeMultipartUpload(
+        models::CompleteMultipartUploadRequest()
+            .setBucket(bucketName_).setKey(key)
+            .setUploadId(uploadId)
+            .setCallback(callbackParam)
+            .setCompleteMultipartUpload(cmu));
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(203, outcome.value().getStatusCode());
+    EXPECT_FALSE(outcome.value().getCallbackResult().empty());
+    EXPECT_NE(std::string::npos, outcome.value().getCallbackResult().find("CallbackFailed"));
 }
 
 } // namespace sync

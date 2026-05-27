@@ -530,6 +530,23 @@ class ALIBABACLOUD_OSS_API CompleteMultipartUploadRequest final : public Request
         return *this;
     }
 
+    inline const std::string& getCallback() const {
+        return getHeaderOrEmpty("x-oss-callback");
+    }
+    template <typename ValueT = std::string>
+    CompleteMultipartUploadRequest& setCallback(ValueT&& value) {
+        headers_.insert_or_assign("x-oss-callback", std::forward<ValueT>(value));
+        return *this;
+    }
+
+    inline const std::string& getCallbackVar() const {
+        return getHeaderOrEmpty("x-oss-callback-var");
+    }
+    template <typename ValueT = std::string>
+    CompleteMultipartUploadRequest& setCallbackVar(ValueT&& value) {
+        headers_.insert_or_assign("x-oss-callback-var", std::forward<ValueT>(value));
+        return *this;
+    }
 
   private:
     std::string bucket_;
@@ -611,12 +628,22 @@ class ALIBABACLOUD_OSS_API CompleteMultipartUploadResult final : public ResultMo
         return *this;
     }
 
+    inline const std::string& getCallbackResult() const {
+        return callbackResult_;
+    }
+    template <typename ValueT = std::string>
+    CompleteMultipartUploadResult& setCallbackResult(ValueT&& value) {
+        callbackResult_ = std::forward<ValueT>(value);
+        return *this;
+    }
+
   private:
     std::string location_;
     std::string bucket_;
     std::string key_;
     std::string eTag_;
     std::string encodingType_;
+    std::string callbackResult_;
 };
 
 // The request for the UploadPartCopy operation.

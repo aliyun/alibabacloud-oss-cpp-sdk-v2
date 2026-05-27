@@ -2483,4 +2483,65 @@ TEST(OSSClientObjectBasicTest, CopyObject_NullBody) {
     EXPECT_TRUE(outcome.has_value());
 }
 
+TEST(OSSClientObjectBasicTest, PutObject_WithCallback) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    std::string callbackBody = R"({"Status":"OK"})";
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK",
+            {{"x-oss-request-id", "id-1234"}},
+            std::make_shared<std::stringstream>(callbackBody)}));
+
+    auto request = models::PutObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setCallback("callback-base64-data");
+    request.setCallbackVar("callbackvar-base64-data");
+    request.setBody(std::make_shared<StringContent>("hello"));
+
+    auto outcome = client.putObject(request);
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ(200, outcome.value().getStatusCode());
+    EXPECT_EQ(callbackBody, outcome.value().getCallbackResult());
+
+    EXPECT_EQ("callback-base64-data", mockHandler->lastRequest->headers.at("x-oss-callback"));
+    EXPECT_EQ("callbackvar-base64-data", mockHandler->lastRequest->headers.at("x-oss-callback-var"));
+}
+
+TEST(OSSClientObjectBasicTest, PutObject_WithoutCallback_EmptyCallbackResult) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(
+            std::make_unique<ResponseMessage>(ResponseMessage{200,
+                                                              "OK",
+                                                              {{"x-oss-version-id", "version123"},
+                                                               {"x-oss-request-id", "id-1234"}},
+                                                              nullptr}));
+
+    auto request = models::PutObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setBody(std::make_shared<StringContent>("test data"));
+
+    auto outcome = client.putObject(request);
+    EXPECT_TRUE(outcome.has_value());
+    EXPECT_EQ("", outcome.value().getCallbackResult());
+}
+
 } // namespace alibabacloud::oss2
