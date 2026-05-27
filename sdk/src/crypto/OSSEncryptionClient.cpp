@@ -60,6 +60,24 @@ class DiscardWriter final : public ByteWriter {
     int64_t remaining_;
 };
 
+std::string adjustContentLength(int64_t contentLength, int64_t discardCount) {
+    if (contentLength < 0) return {};
+    return std::to_string(contentLength - discardCount);
+}
+
+std::string adjustContentRange(const std::string& contentRange, int64_t discardCount) {
+    if (contentRange.empty()) return {};
+    // "bytes start-end/total"
+    auto space = contentRange.find(' ');
+    if (space == std::string::npos) return {};
+    auto dash = contentRange.find('-', space);
+    if (dash == std::string::npos) return {};
+    int64_t start = std::strtoll(contentRange.c_str() + space + 1, nullptr, 10);
+    start += discardCount;
+    std::string tail = contentRange.substr(dash);
+    return "bytes " + std::to_string(start) + tail;
+}
+
 OperationError makeClientError(ClientErrorCode code, const std::string& message) {
     std::string codeStr;
     switch (code) {
@@ -289,8 +307,15 @@ GetObjectOutcome OSSEncryptionClient::getObject(const models::GetObjectRequest& 
     req.setSinkFactory(decryptFactory);
 
     auto outcome = impl_->client.getObject(req, options);
-    if (outcome.has_value() && defaultStream) {
-        outcome->setBody(defaultStream);
+    if (outcome.has_value()) {
+        if (defaultStream) {
+            outcome->setBody(defaultStream);
+        }
+        if (discardCount > 0) {
+            outcome->overwriteRange(
+                adjustContentLength(outcome->getContentLength(), discardCount),
+                adjustContentRange(outcome->getContentRange(), discardCount));
+        }
     }
     return outcome;
 }

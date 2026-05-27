@@ -182,6 +182,9 @@ TEST_F(EncryptionObjectTest, GetObject_RangeFromStart) {
                 .setRange("bytes=0-9"));
     ASSERT_TRUE(getOutcome.has_value());
 
+    EXPECT_EQ(10, getOutcome->getContentLength());
+    EXPECT_EQ("bytes 0-9/" + std::to_string(content.size()), getOutcome->getContentRange());
+
     auto got = readStream(*getOutcome.value().getBody());
     EXPECT_EQ(content.substr(0, 10), got);
 }
@@ -203,6 +206,9 @@ TEST_F(EncryptionObjectTest, GetObject_RangeCrossBlock) {
                 .setKey(key)
                 .setRange("bytes=0-19"));
     ASSERT_TRUE(getOutcome.has_value());
+
+    EXPECT_EQ(20, getOutcome->getContentLength());
+    EXPECT_EQ("bytes 0-19/" + std::to_string(content.size()), getOutcome->getContentRange());
 
     auto got = readStream(*getOutcome.value().getBody());
     EXPECT_EQ(content.substr(0, 20), got);
@@ -226,6 +232,9 @@ TEST_F(EncryptionObjectTest, GetObject_RangeMiddle) {
                 .setRange("bytes=10-19"));
     ASSERT_TRUE(getOutcome.has_value());
 
+    EXPECT_EQ(10, getOutcome->getContentLength());
+    EXPECT_EQ("bytes 10-19/" + std::to_string(content.size()), getOutcome->getContentRange());
+
     auto got = readStream(*getOutcome.value().getBody());
     EXPECT_EQ(content.substr(10, 10), got);
 }
@@ -248,6 +257,10 @@ TEST_F(EncryptionObjectTest, GetObject_RangeUnaligned) {
                 .setRange("bytes=5-"));
     ASSERT_TRUE(getOutcome.has_value());
 
+    EXPECT_EQ(static_cast<int64_t>(content.size() - 5), getOutcome->getContentLength());
+    EXPECT_EQ("bytes 5-" + std::to_string(content.size() - 1) + "/" + std::to_string(content.size()),
+              getOutcome->getContentRange());
+
     auto got = readStream(*getOutcome.value().getBody());
     EXPECT_EQ(content.substr(5), got);
 }
@@ -269,6 +282,9 @@ TEST_F(EncryptionObjectTest, GetObject_RangeAligned) {
                 .setKey(key)
                 .setRange("bytes=16-31"));
     ASSERT_TRUE(getOutcome.has_value());
+
+    EXPECT_EQ(16, getOutcome->getContentLength());
+    EXPECT_EQ("bytes 16-31/" + std::to_string(content.size()), getOutcome->getContentRange());
 
     auto got = readStream(*getOutcome.value().getBody());
     EXPECT_EQ(content.substr(16, 16), got);
