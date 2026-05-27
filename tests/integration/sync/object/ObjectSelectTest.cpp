@@ -873,8 +873,10 @@ static bool endsWith(const std::string& s, const std::string& suffix) {
 
 static double toDouble(const std::string& s) {
     if (s.empty()) return 0.0;
-    try { return std::stod(s); }
-    catch (...) { return 0.0; }
+    char* end = nullptr;
+    double val = std::strtod(s.c_str(), &end);
+    if (end == s.c_str()) return 0.0;
+    return val;
 }
 
 static std::vector<std::string> splitJsonRecords(const std::string& body, const std::string& recordDelim) {
