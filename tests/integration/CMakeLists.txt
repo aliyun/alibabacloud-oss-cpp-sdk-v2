@@ -8,11 +8,18 @@ file(GLOB test_src "*.cpp")
 file(GLOB_RECURSE test_sync_src "sync/*.cpp")
 file(GLOB_RECURSE test_async_src "async/*.cpp")
 
+if(ENABLE_ENCRYPTION)
+    file(GLOB_RECURSE test_crypto_src "crypto/*.cpp")
+else()
+    set(test_crypto_src "")
+endif()
+
 add_executable(${PROJECT_NAME}
 	${test_gtest_src}
 	${test_src}
 	${test_sync_src}
 	${test_async_src}
+	${test_crypto_src}
 )
 
 target_include_directories(${PROJECT_NAME}

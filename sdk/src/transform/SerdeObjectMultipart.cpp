@@ -329,6 +329,11 @@ OperationInput fromInitiateMultipartUpload(const models::InitiateMultipartUpload
 
     input.headers.emplace("Content-MD5", std::move(md5));
 
+    // metadata
+    for (const auto& [k, v] : request.getMetadata()) {
+        input.headers.insert_or_assign("x-oss-meta-" + k, v);
+    }
+
     input.bucket = request.getBucket();
     input.key = request.getKey();
 

@@ -1030,6 +1030,8 @@ class ALIBABACLOUD_OSS_API GetObjectResult final : public ResultModel {
         return body_;
     }
 
+    void setBody(std::shared_ptr<std::iostream> body) { body_ = std::move(body); }
+
   private:
     HeaderCollection metadata_;
     std::shared_ptr<std::iostream> body_;

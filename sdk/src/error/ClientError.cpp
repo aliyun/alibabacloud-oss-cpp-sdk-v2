@@ -36,6 +36,8 @@ class client_error_category : public std::error_category {
                 return "request method is empty";
             case ClientErrorCode::ReadDataFail:
                 return "failed to read data";
+            case ClientErrorCode::EncryptionFailure:
+                return "encryption or decryption failed";
             default:
                 return "unknown client error";
         }
@@ -61,7 +63,8 @@ class client_error_category : public std::error_category {
         if (cond == make_error_condition(ErrorCondition::NonRetryable)) {
             return ec == ClientErrorCode::RequestDisable
                 || ec == ClientErrorCode::OperationNotSupported
-                || ec == ClientErrorCode::ReadDataFail;
+                || ec == ClientErrorCode::ReadDataFail
+                || ec == ClientErrorCode::EncryptionFailure;
         }
         return false;
     }

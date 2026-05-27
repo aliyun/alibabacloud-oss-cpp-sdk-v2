@@ -24,7 +24,7 @@ class MockStreamObserver : public StreamObserver {
     std::size_t totalBytes_ = 0;
 };
 
-// Minimal observer that only implements data() — uses all base class defaults
+// Minimal observer that only implements data() - uses all base class defaults
 class MinimalStreamObserver : public StreamObserver {
   public:
     void data(std::uint8_t*, std::size_t) override {}

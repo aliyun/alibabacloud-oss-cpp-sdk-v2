@@ -9,6 +9,7 @@ if(USE_WINHTTP_TRANSPORT AND WIN32)
 endif()
 
 set(ALIBABACLOUD_OSS_USE_STD_EXPECTED ${USE_STD_EXPECTED})
+set(ALIBABACLOUD_OSS_HAS_ENCRYPTION ${ENABLE_ENCRYPTION})
 configure_file(src/Config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/alibabacloud/oss2/Config.h)
 
 #common header
@@ -29,6 +30,7 @@ file(GLOB sdk_header
     ${sdk_transport_header}
     ${sdk_utils_header}
     ${sdk_io_header}
+    ${sdk_encryption_header}
 )
 
 #common source
@@ -88,6 +90,33 @@ else()
     list(APPEND sdk_thirdparty_src ${sdk_thirdparty_hash_src})
 endif()
 
+# encryption sources (optional)
+if(ENABLE_ENCRYPTION)
+    file(GLOB sdk_encryption_src "src/crypto/*.cpp")
+    if(USE_SYSTEM_OPENSSL)
+        list(APPEND sdk_encryption_src
+            "src/crypto/rsa/RsaOpenssl.cpp"
+            "src/crypto/aes256/AesOpenssl.cpp"
+        )
+    elseif(USE_SYSTEM_MBEDTLS)
+        list(APPEND sdk_encryption_src
+            "src/crypto/rsa/RsaMbedtls.cpp"
+            "src/crypto/aes256/AesMbedtls.cpp"
+        )
+    elseif(WIN32)
+        list(APPEND sdk_encryption_src
+            "src/crypto/rsa/RsaBCrypt.cpp"
+            "src/crypto/aes256/AesBCrypt.cpp"
+        )
+    else()
+        message(FATAL_ERROR "ENABLE_ENCRYPTION requires USE_SYSTEM_OPENSSL, USE_SYSTEM_MBEDTLS, or Windows platform")
+    endif()
+    file(GLOB sdk_encryption_header "include/alibabacloud/oss2/crypto/*.h")
+else()
+    set(sdk_encryption_src "")
+    set(sdk_encryption_header "")
+endif()
+
 #all source
 file(GLOB sdk_src
     ${sdk_base_src}
@@ -107,6 +136,7 @@ file(GLOB sdk_src
     ${sdk_models_src}
     ${sdk_transform_src}
     ${sdk_thirdparty_src}
+    ${sdk_encryption_src}
 )
 
 if(BUILD_SHARED_LIBS)
@@ -143,6 +173,8 @@ if(USE_SYSTEM_OPENSSL)
     target_link_libraries(${PROJECT_NAME} PRIVATE OpenSSL::Crypto)
 elseif(USE_SYSTEM_MBEDTLS)
     target_link_libraries(${PROJECT_NAME} PRIVATE MbedTLS::mbedcrypto)
+elseif(ENABLE_ENCRYPTION AND WIN32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE bcrypt crypt32 ncrypt)
 endif()
 
 find_package(Threads REQUIRED)
