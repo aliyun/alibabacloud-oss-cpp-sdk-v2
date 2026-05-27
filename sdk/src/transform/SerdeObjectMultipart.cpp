@@ -430,12 +430,21 @@ OperationInput fromCompleteMultipartUpload(const models::CompleteMultipartUpload
     return input;
 }
 
-Outcome<models::CompleteMultipartUploadResult, OperationError> toCompleteMultipartUpload(OperationOutput&& output) {
+Outcome<models::CompleteMultipartUploadResult, OperationError> toCompleteMultipartUpload(OperationOutput&& output, bool hasCallback) {
     if (output.body != nullptr) {
-        thirdparty::tinyxml2::XMLDocument doc;
-        thirdparty::tinyxml2::XMLError xml_err;
         std::istreambuf_iterator<char> isb(*output.body.get()), end;
         std::string str(isb, end);
+
+        if (hasCallback) {
+            auto result = models::CompleteMultipartUploadResult(output.statusCode, std::move(output.headers));
+            if (!str.empty()) {
+                result.setCallbackResult(std::move(str));
+            }
+            return result;
+        }
+
+        thirdparty::tinyxml2::XMLDocument doc;
+        thirdparty::tinyxml2::XMLError xml_err;
         if ((xml_err = doc.Parse(str.c_str(), str.size())) == thirdparty::tinyxml2::XML_SUCCESS) {
             const auto* root = doc.RootElement();
             if (root == nullptr) {

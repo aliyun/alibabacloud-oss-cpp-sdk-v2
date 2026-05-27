@@ -72,7 +72,7 @@ CompleteMultipartUploadOutcome OSSClient::completeMultipartUpload(const models::
     if (std::holds_alternative<OperationError>(result)) {
         return makeUnexpected(std::get<OperationError>(result));
     }
-    return transform::toCompleteMultipartUpload(std::move(std::get<OperationOutput>(result)));
+    return transform::toCompleteMultipartUpload(std::move(std::get<OperationOutput>(result)), !request.getCallback().empty());
 }
 
 UploadPartCopyOutcome OSSClient::uploadPartCopy(const models::UploadPartCopyRequest& request,

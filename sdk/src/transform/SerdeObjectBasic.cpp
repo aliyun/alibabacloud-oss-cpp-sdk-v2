@@ -137,7 +137,15 @@ OperationInput fromPutObject(const models::PutObjectRequest& request) {
 }
 
 Outcome<models::PutObjectResult, OperationError> toPutObject(OperationOutput&& output) {
-    return models::PutObjectResult(output.statusCode, std::move(output.headers));
+    auto result = models::PutObjectResult(output.statusCode, std::move(output.headers));
+    if (output.body) {
+        std::istreambuf_iterator<char> isb(*output.body), end;
+        std::string body(isb, end);
+        if (!body.empty()) {
+            result.setCallbackResult(std::move(body));
+        }
+    }
+    return result;
 }
 
 

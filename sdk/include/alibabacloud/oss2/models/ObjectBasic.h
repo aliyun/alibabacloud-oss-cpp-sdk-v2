@@ -305,6 +305,24 @@ class ALIBABACLOUD_OSS_API PutObjectRequest final : public RequestModel {
         return *this;
     }
 
+    inline const std::string& getCallback() const {
+        return getHeaderOrEmpty("x-oss-callback");
+    }
+    template <typename ValueT = std::string>
+    PutObjectRequest& setCallback(ValueT&& value) {
+        headers_.insert_or_assign("x-oss-callback", std::forward<ValueT>(value));
+        return *this;
+    }
+
+    inline const std::string& getCallbackVar() const {
+        return getHeaderOrEmpty("x-oss-callback-var");
+    }
+    template <typename ValueT = std::string>
+    PutObjectRequest& setCallbackVar(ValueT&& value) {
+        headers_.insert_or_assign("x-oss-callback-var", std::forward<ValueT>(value));
+        return *this;
+    }
+
   private:
     std::string bucket_;
     std::string key_;
@@ -335,8 +353,17 @@ class ALIBABACLOUD_OSS_API PutObjectResult final : public ResultModel {
         return getHeaderOrEmpty("x-oss-version-id");
     }
 
+    inline const std::string& getCallbackResult() const {
+        return callbackResult_;
+    }
+    template <typename ValueT = std::string>
+    PutObjectResult& setCallbackResult(ValueT&& value) {
+        callbackResult_ = std::forward<ValueT>(value);
+        return *this;
+    }
 
   private:
+    std::string callbackResult_;
 };
 
 // The request for the CopyObject operation.
