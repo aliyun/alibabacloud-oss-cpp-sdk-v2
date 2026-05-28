@@ -207,6 +207,10 @@ Both `OSSClient` and `OSSAsyncClient` instances are thread-safe and can be share
 
 More examples can be found in the [`samples`](samples/INDEX.md) directory, including sync/async API usage, paginators, and scenario samples (progress callback, transport customization, retry strategies, request cancellation, credential providers, etc.).
 
+## Migration Guide
+
+If you are upgrading from V1 ([aliyun-oss-cpp-sdk](https://github.com/aliyun/aliyun-oss-cpp-sdk)), see the [Migration Guide](MIGRATION.md) for a detailed comparison of API changes, configuration, error handling, and more.
+
 ## License
 
 > - Apache-2.0, see [license file](LICENSE)

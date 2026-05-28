@@ -55,7 +55,7 @@ struct ALIBABACLOUD_OSS_API ClientConfiguration {
     // ---- Signing ----
 
     /// Authentication with OSS Signature Version (e.g., "v1" or "v4").
-    /// If not set, defaults to "v1".
+    /// If not set, defaults to "v4".
     std::optional<std::string> signatureVersion;
 
     /// Custom signer instance. When set, overrides @c signatureVersion.
