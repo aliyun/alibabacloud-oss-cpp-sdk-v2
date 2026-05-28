@@ -105,7 +105,7 @@ Configuration parameters
 | `verifySSL` | `insecureSkipVerify` | Inverted logic: v1 true=verify, v2 true=skip |
 | `isCname` | `useCName` | Same |
 | `isPathStyle` | `usePathStyle` | Same |
-| `enableCrc64` | `disableUploadCRC64Check` / `disableDownloadCRC64Check` | Inverted; v2 has separate upload/download flags |
+| `enableCrc64` | `disableUploadCRC64Check` / `disableDownloadCRC64Check` | Inverted; V2 enables CRC64 by default, use these flags to explicitly disable for upload/download separately |
 | `enableDateSkewAdjustment` | `disableClockSkewCorrection` | Inverted |
 | `signatureVersion` | `signatureVersion` | V1 defaults to "v1", V2 defaults to "v4" (requires `region`) |
 | `retryStrategy` | `retryer` / `retryMaxAttempts` | V2 has built-in retry with backoff |
@@ -344,6 +344,49 @@ auto outcome2 = client.getObject(
         .setSinkFactory(factory));
 ```
 
+## Request cancellation
+
+V1 only supports client-level cancellation. V2 adds per-request cancellation via `CancellationToken`.
+
+| Level | V1 | V2 |
+|:------|:---|:---|
+| Per-request | -- | `CancellationToken` via `OperationOptions` |
+| Client-level | `client.DisableRequest()` / `client.EnableRequest()` | `client.disableRequest()` / `client.enableRequest()` |
+
+Per-request cancellation uses `CancellationTokenSource` to create a token. The token can be canceled immediately or after a deadline.
+
+```cpp
+// v2 -- cancel a single request from another thread
+auto cts = oss::CancellationTokenSource::create();
+
+oss::OperationOptions opts;
+opts.cancellationToken = cts->getToken();
+
+// launch request in another thread
+auto future = std::async([&]() {
+    return client.getObject(request, &opts);
+});
+
+// cancel from the current thread
+cts->cancel();
+
+// or set a deadline-based cancellation
+auto cts2 = oss::CancellationTokenSource::create();
+cts2->cancelAfter(std::chrono::seconds(30));
+opts.cancellationToken = cts2->getToken();
+```
+
+Client-level cancellation disables all requests on a client instance. New requests fail immediately until re-enabled. Note that `disableRequest()` only prevents new HTTP calls from being sent; if you are also using per-request `CancellationToken`, you must cancel those tokens explicitly to abort requests that are already in-flight.
+
+```cpp
+// v2 -- cancel all requests on a client (including those with CancellationToken)
+client.disableRequest();       // prevent new requests and abort pending ones
+cts->cancel();                 // also cancel any in-flight request holding this token
+
+// ... later re-enable
+client.enableRequest();
+```
+
 ## Pre-signed URLs
 
 V1 uses `GeneratePresignedUrl()` that returns a URL string. V2 uses `presign()` with typed request overloads that return a `PresignResult` containing the URL, HTTP method, expiration time, and signed headers.
@@ -492,14 +535,14 @@ Supported paginators: `ListBucketsRequest`, `ListObjectsRequest`, `ListObjectsV2
 
 ## Resumable transfer
 
-V1 provides `ResumableUploadObject()`, `ResumableDownloadObject()`, and `ResumableCopyObject()`. V2 provides `putObjectFromFile()` and `getObjectToFile()` as extension methods. `getObjectToFile()` supports automatic resume on network failure using Range requests.
+V1 provides `ResumableUploadObject()`, `ResumableDownloadObject()`, and `ResumableCopyObject()`. V2 will provide `Uploader`, `Downloader`, and `Copier` to support these capabilities in the future. Currently, `getObjectToFile()` supports automatic resume on network failure using Range requests.
 
 | Scenario | V1 | V2 |
 |:---------|:---|:---|
 | Upload file | `PutObject(bucket, key, filePath)` | `putObjectFromFile(request, filePath)` |
 | Download to file | `GetObject(bucket, key, filePath)` | `getObjectToFile(request, filePath)` |
-| Upload large file (resumable) | `ResumableUploadObject(request)` | TBD |
-| Download large file (resumable) | `ResumableDownloadObject(request)` | TBD |
+| Upload large file (resumable) | `ResumableUploadObject(request)` | `Uploader` (TBD) |
+| Download large file (resumable) | `ResumableDownloadObject(request)` | `Downloader` (TBD); currently `getObjectToFile()` auto-resumes via Range requests |
 
 ## Convenience methods
 
@@ -532,7 +575,7 @@ auto outcome = eclient.PutObject(request);
 ```cpp
 // v2
 #include "alibabacloud/oss2/crypto/OSSEncryptionClient.h"
-#include "alibabacloud/oss2/crypto/MasterRsaCipher.h"
+#include "alibabacloud/oss2/crypto/RsaMasterCipher.h"
 
 auto masterCipher = oss::crypto::makeRsaMasterCipher(publicKeyPem, privateKeyPem, description);
 oss::crypto::EncryptionConfiguration encConfig;
@@ -550,9 +593,15 @@ V2 `OSSEncryptionClient` supports: `putObject`, `getObject`, `headObject`, `getO
 
 ## Retry
 
-V2 enables automatic retry with exponential backoff by default (max 3 attempts). When migrating from V1, remove any manual retry logic to avoid amplifying retry counts.
+Both V1 and V2 enable automatic retry by default (max 3 attempts). V2 uses `FullJitterBackoff` for exponential backoff with jitter.
 
-V1 retry was controlled via `ClientConfiguration::retryStrategy`. V2 uses `ClientConfiguration::retryer` and `ClientConfiguration::retryMaxAttempts`.
+| | V1 | V2 |
+|:---|:---|:---|
+| Default max attempts | 3 | 3 |
+| Backoff strategy | `scaleFactor` based | `FullJitterBackoff` (exponential with jitter) |
+| Configuration | `ClientConfiguration::retryStrategy` | `ClientConfiguration::retryer` / `retryMaxAttempts` |
+| Per-request override | -- | `OperationOptions::retryMaxAttempts` |
+| Interface | `RetryStrategy` (inherit `shouldRetry` + `calcDelayTimeMs`) | `Retryer` |
 
 ## Credentials
 
@@ -606,7 +655,7 @@ V1 only supports libcurl. V2 supports libcurl and WinHTTP (Windows only), and pr
 | WinHTTP (sync) | -- | `USE_WINHTTP_TRANSPORT=ON` (Windows only) |
 | libcurl async (curl_multi) | -- | Supported (`CurlMultiTransport`) |
 | WinHTTP async | -- | Supported (`WinHttpAsyncTransport`) |
-| Custom sync transport | -- | Implement `HttpTransport` interface, set `conf.httpTransport` |
+| Custom sync transport | Implement `HttpClient` interface, set `conf.httpClient` | Implement `HttpTransport` interface, set `conf.httpTransport` |
 | Custom async transport | -- | Implement `AsyncHttpTransport` interface, set `conf.asyncHttpTransport` |
 | CMake option | -- | `USE_CURL_TRANSPORT` / `USE_WINHTTP_TRANSPORT` |
 | vcpkg feature | -- | `curl` (default) / `winhttp` |
@@ -651,7 +700,7 @@ Transport-specific parameters (`CurlTransportOptions`)
 | `proxyUserName` | `proxyUserName` | Proxy auth username |
 | `proxyPassword` | `proxyPassword` | Proxy auth password |
 | -- | `enableVerbose` | Enable curl verbose debug output |
-| -- | `requestInterceptor` | Callback to set arbitrary curl options via `curl_easy_setopt` |
+| `httpInterceptor` | `requestInterceptor` | V1 uses `HttpInterceptor` interface; V2 uses a callback to set arbitrary curl options via `curl_easy_setopt` |
 
 ```cpp
 // v1 -- all in ClientConfiguration

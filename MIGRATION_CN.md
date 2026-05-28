@@ -105,7 +105,7 @@ oss::OSSClient client(conf);
 | `verifySSL` | `insecureSkipVerify` | 逻辑取反：v1 true=校验, v2 true=跳过 |
 | `isCname` | `useCName` | 相同 |
 | `isPathStyle` | `usePathStyle` | 相同 |
-| `enableCrc64` | `disableUploadCRC64Check` / `disableDownloadCRC64Check` | 逻辑取反；V2 区分上传和下载 |
+| `enableCrc64` | `disableUploadCRC64Check` / `disableDownloadCRC64Check` | 逻辑取反；V2 默认启用 CRC64，可通过这两个字段分别关闭上传和下载的校验 |
 | `enableDateSkewAdjustment` | `disableClockSkewCorrection` | 逻辑取反 |
 | `signatureVersion` | `signatureVersion` | V1 默认 "v1"，V2 默认 "v4"（需要设置 `region`） |
 | `retryStrategy` | `retryer` / `retryMaxAttempts` | V2 内置重试和退避 |
@@ -344,6 +344,49 @@ auto outcome2 = client.getObject(
         .setSinkFactory(factory));
 ```
 
+## 请求取消
+
+V1 版本仅支持客户端级别的取消。V2 版本新增了基于 `CancellationToken` 的单请求取消。
+
+| 层级 | V1 | V2 |
+|:-----|:---|:---|
+| 单个请求 | -- | 通过 `OperationOptions` 设置 `CancellationToken` |
+| 客户端级别 | `client.DisableRequest()` / `client.EnableRequest()` | `client.disableRequest()` / `client.enableRequest()` |
+
+单请求取消使用 `CancellationTokenSource` 创建 token，支持立即取消或基于截止时间的取消。
+
+```cpp
+// v2 -- 从另一个线程取消单个请求
+auto cts = oss::CancellationTokenSource::create();
+
+oss::OperationOptions opts;
+opts.cancellationToken = cts->getToken();
+
+// 在另一个线程中发起请求
+auto future = std::async([&]() {
+    return client.getObject(request, &opts);
+});
+
+// 从当前线程取消
+cts->cancel();
+
+// 或设置基于截止时间的取消
+auto cts2 = oss::CancellationTokenSource::create();
+cts2->cancelAfter(std::chrono::seconds(30));
+opts.cancellationToken = cts2->getToken();
+```
+
+客户端级别取消会禁用该客户端实例上的所有请求。新请求会立即失败，直到重新启用。注意 `disableRequest()` 仅阻止新的 HTTP 调用发出；如果同时使用了 per-request 的 `CancellationToken`，需要显式取消这些 token 才能打断已经在进行中的请求。
+
+```cpp
+// v2 -- 取消客户端上的所有请求（包括使用了 CancellationToken 的请求）
+client.disableRequest();       // 阻止新请求并中止等待中的请求
+cts->cancel();                 // 同时取消持有该 token 的进行中的请求
+
+// ... 之后重新启用
+client.enableRequest();
+```
+
 ## 预签名 URL
 
 V1 版本使用 `GeneratePresignedUrl()` 返回 URL 字符串。V2 版本使用 `presign()` 的类型化请求重载，返回 `PresignResult`，包含 URL、HTTP 方法、过期时间和签名请求头。
@@ -492,14 +535,14 @@ while (paginator.hasNext()) {
 
 ## 断点续传
 
-V1 版本提供 `ResumableUploadObject()`、`ResumableDownloadObject()` 和 `ResumableCopyObject()`。V2 版本提供 `putObjectFromFile()` 和 `getObjectToFile()` 扩展方法。`getObjectToFile()` 支持网络失败后通过 Range 请求自动恢复下载。
+V1 版本提供 `ResumableUploadObject()`、`ResumableDownloadObject()` 和 `ResumableCopyObject()`。V2 版本未来将提供 `Uploader`、`Downloader` 和 `Copier` 来支持该能力。当前 `getObjectToFile()` 支持网络失败后通过 Range 请求自动恢复下载。
 
 | 场景 | V1 | V2 |
 |:-----|:---|:---|
 | 上传文件 | `PutObject(bucket, key, filePath)` | `putObjectFromFile(request, filePath)` |
 | 下载到文件 | `GetObject(bucket, key, filePath)` | `getObjectToFile(request, filePath)` |
-| 上传大文件（断点续传） | `ResumableUploadObject(request)` | TBD |
-| 下载大文件（断点续传） | `ResumableDownloadObject(request)` | TBD |
+| 上传大文件（断点续传） | `ResumableUploadObject(request)` | `Uploader`（TBD） |
+| 下载大文件（断点续传） | `ResumableDownloadObject(request)` | `Downloader`（TBD）；当前 `getObjectToFile()` 支持通过 Range 请求自动恢复 |
 
 ## 便捷方法
 
@@ -532,7 +575,7 @@ auto outcome = eclient.PutObject(request);
 ```cpp
 // v2
 #include "alibabacloud/oss2/crypto/OSSEncryptionClient.h"
-#include "alibabacloud/oss2/crypto/MasterRsaCipher.h"
+#include "alibabacloud/oss2/crypto/RsaMasterCipher.h"
 
 auto masterCipher = oss::crypto::makeRsaMasterCipher(publicKeyPem, privateKeyPem, description);
 oss::crypto::EncryptionConfiguration encConfig;
@@ -550,9 +593,15 @@ V2 版本的 `OSSEncryptionClient` 支持：`putObject`、`getObject`、`headObj
 
 ## 重试
 
-V2 版本 默认开启对 HTTP 请求的自动重试（最大尝试 3 次，带指数退避）。从 V1 版本迁移到 V2 时，请移除原有的手动重试代码，避免放大重试次数。
+V1 和 V2 均默认开启自动重试（最大尝试 3 次）。V2 使用 `FullJitterBackoff` 实现带抖动的指数退避。
 
-V1 版本通过 `ClientConfiguration::retryStrategy` 控制重试。V2 版本使用 `ClientConfiguration::retryer` 和 `ClientConfiguration::retryMaxAttempts`。
+| | V1 | V2 |
+|:---|:---|:---|
+| 默认最大尝试次数 | 3 | 3 |
+| 退避策略 | 基于 `scaleFactor` | `FullJitterBackoff`（带抖动的指数退避） |
+| 配置方式 | `ClientConfiguration::retryStrategy` | `ClientConfiguration::retryer` / `retryMaxAttempts` |
+| 单请求覆盖 | -- | `OperationOptions::retryMaxAttempts` |
+| 接口 | `RetryStrategy`（继承 `shouldRetry` + `calcDelayTimeMs`） | `Retryer` |
 
 ## 凭证
 
@@ -606,7 +655,7 @@ V1 版本仅支持 libcurl。V2 版本支持 libcurl 和 WinHTTP（仅 Windows�
 | WinHTTP（同步） | -- | `USE_WINHTTP_TRANSPORT=ON`（仅 Windows） |
 | libcurl 异步（curl_multi） | -- | 支持（`CurlMultiTransport`） |
 | WinHTTP 异步 | -- | 支持（`WinHttpAsyncTransport`） |
-| 自定义同步传输 | -- | 实现 `HttpTransport` 接口，设置 `conf.httpTransport` |
+| 自定义同步传输 | 实现 `HttpClient` 接口，设置 `conf.httpClient` | 实现 `HttpTransport` 接口，设置 `conf.httpTransport` |
 | 自定义异步传输 | -- | 实现 `AsyncHttpTransport` 接口，设置 `conf.asyncHttpTransport` |
 | CMake 选项 | -- | `USE_CURL_TRANSPORT` / `USE_WINHTTP_TRANSPORT` |
 | vcpkg 特性 | -- | `curl`（默认）/ `winhttp` |
@@ -651,7 +700,7 @@ V1 版本将所有网络参数直接放在 `ClientConfiguration` 中。V2 版本
 | `proxyUserName` | `proxyUserName` | 代理认证用户名 |
 | `proxyPassword` | `proxyPassword` | 代理认证密码 |
 | -- | `enableVerbose` | 开启 curl 详细调试输出 |
-| -- | `requestInterceptor` | 回调函数，可通过 `curl_easy_setopt` 设置任意 curl 选项 |
+| `httpInterceptor` | `requestInterceptor` | V1 使用 `HttpInterceptor` 接口；V2 使用回调函数，可通过 `curl_easy_setopt` 设置任意 curl 选项 |
 
 ```cpp
 // v1 -- 全部在 ClientConfiguration 中
