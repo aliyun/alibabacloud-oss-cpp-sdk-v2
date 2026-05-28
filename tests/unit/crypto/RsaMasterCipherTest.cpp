@@ -1,6 +1,10 @@
 #include <gtest/gtest.h>
 
-#include "alibabacloud/oss2/crypto/MasterRsaCipher.h"
+#include "alibabacloud/oss2/crypto/RsaMasterCipher.h"
+
+#include <thread>
+#include <vector>
+#include <atomic>
 
 namespace alibabacloud::oss2 {
 
@@ -95,117 +99,254 @@ VBIJ/MGrJ+PpwOjY0Y/v8jE=
 
 } // namespace
 
-TEST(MasterRsaCipherTest, EncryptDecrypt) {
-    crypto::MasterRsaCipher cipher(kPublicKey, kPrivateKey);
+TEST(RsaMasterCipherTest, EncryptDecrypt) {
+    auto cipher = crypto::makeRsaMasterCipher(kPublicKey, kPrivateKey);
 
     std::string plaintext = "test key material 32 bytes long!";
-    auto encResult = cipher.encrypt(plaintext);
+    auto encResult = cipher->encrypt(plaintext);
     ASSERT_TRUE(std::holds_alternative<std::string>(encResult));
     auto& encrypted = std::get<std::string>(encResult);
     EXPECT_NE(plaintext, encrypted);
 
-    auto decResult = cipher.decrypt(encrypted);
+    auto decResult = cipher->decrypt(encrypted);
     ASSERT_TRUE(std::holds_alternative<std::string>(decResult));
     EXPECT_EQ(plaintext, std::get<std::string>(decResult));
 }
 
-TEST(MasterRsaCipherTest, EncryptDecrypt_2048bit) {
-    crypto::MasterRsaCipher cipher(kPublicKey2048, kPrivateKey2048);
+TEST(RsaMasterCipherTest, EncryptDecrypt_2048bit) {
+    auto cipher = crypto::makeRsaMasterCipher(kPublicKey2048, kPrivateKey2048);
 
     std::string plaintext = "test key material 32 bytes long!";
-    auto encResult = cipher.encrypt(plaintext);
+    auto encResult = cipher->encrypt(plaintext);
     ASSERT_TRUE(std::holds_alternative<std::string>(encResult));
     auto& encrypted = std::get<std::string>(encResult);
     EXPECT_GT(encrypted.size(), plaintext.size());
 
-    auto decResult = cipher.decrypt(encrypted);
+    auto decResult = cipher->decrypt(encrypted);
     ASSERT_TRUE(std::holds_alternative<std::string>(decResult));
     EXPECT_EQ(plaintext, std::get<std::string>(decResult));
 }
 
-TEST(MasterRsaCipherTest, WrapAlgorithm) {
-    crypto::MasterRsaCipher cipher(kPublicKey, kPrivateKey);
-    EXPECT_EQ("RSA/NONE/PKCS1Padding", cipher.getWrapAlgorithm());
+TEST(RsaMasterCipherTest, WrapAlgorithm) {
+    auto cipher = crypto::makeRsaMasterCipher(kPublicKey, kPrivateKey);
+    EXPECT_EQ("RSA/NONE/PKCS1Padding", cipher->getWrapAlgorithm());
 }
 
-TEST(MasterRsaCipherTest, MatDesc_WithDescription) {
+TEST(RsaMasterCipherTest, MatDesc_WithDescription) {
     std::map<std::string, std::string> desc{{"provider", "test"}, {"version", "1"}};
-    crypto::MasterRsaCipher cipher(kPublicKey, kPrivateKey, desc);
-    EXPECT_EQ(R"({"provider":"test","version":"1"})", cipher.getMatDesc());
+    auto cipher = crypto::makeRsaMasterCipher(kPublicKey, kPrivateKey, desc);
+    EXPECT_EQ(R"({"provider":"test","version":"1"})", cipher->getMatDesc());
 }
 
-TEST(MasterRsaCipherTest, MatDesc_Empty) {
-    crypto::MasterRsaCipher cipher(kPublicKey, kPrivateKey);
-    EXPECT_EQ("{}", cipher.getMatDesc());
+TEST(RsaMasterCipherTest, MatDesc_Empty) {
+    auto cipher = crypto::makeRsaMasterCipher(kPublicKey, kPrivateKey);
+    EXPECT_EQ("{}", cipher->getMatDesc());
 }
 
-TEST(MasterRsaCipherTest, DifferentKeys_CannotCrossDecrypt) {
-    crypto::MasterRsaCipher cipher1(kPublicKey, kPrivateKey);
-    crypto::MasterRsaCipher cipher2(kPublicKey2, kPrivateKey2);
+TEST(RsaMasterCipherTest, DifferentKeys_CannotCrossDecrypt) {
+    auto cipher1 = crypto::makeRsaMasterCipher(kPublicKey, kPrivateKey);
+    auto cipher2 = crypto::makeRsaMasterCipher(kPublicKey2, kPrivateKey2);
 
     std::string plaintext = "cross-key decryption test data!!";
 
-    auto enc1 = cipher1.encrypt(plaintext);
-    auto enc2 = cipher2.encrypt(plaintext);
+    auto enc1 = cipher1->encrypt(plaintext);
+    auto enc2 = cipher2->encrypt(plaintext);
     ASSERT_TRUE(std::holds_alternative<std::string>(enc1));
     ASSERT_TRUE(std::holds_alternative<std::string>(enc2));
 
-    auto dec1 = cipher1.decrypt(std::get<std::string>(enc1));
+    auto dec1 = cipher1->decrypt(std::get<std::string>(enc1));
     ASSERT_TRUE(std::holds_alternative<std::string>(dec1));
     EXPECT_EQ(plaintext, std::get<std::string>(dec1));
 
-    auto dec2 = cipher2.decrypt(std::get<std::string>(enc2));
+    auto dec2 = cipher2->decrypt(std::get<std::string>(enc2));
     ASSERT_TRUE(std::holds_alternative<std::string>(dec2));
     EXPECT_EQ(plaintext, std::get<std::string>(dec2));
 
-    auto cross1 = cipher2.decrypt(std::get<std::string>(enc1));
-    auto cross2 = cipher1.decrypt(std::get<std::string>(enc2));
+    auto cross1 = cipher2->decrypt(std::get<std::string>(enc1));
+    auto cross2 = cipher1->decrypt(std::get<std::string>(enc2));
     EXPECT_TRUE(std::holds_alternative<std::error_code>(cross1) ||
                 std::get<std::string>(cross1) != plaintext);
     EXPECT_TRUE(std::holds_alternative<std::error_code>(cross2) ||
                 std::get<std::string>(cross2) != plaintext);
 }
 
-TEST(MasterRsaCipherTest, InvalidKey_EncryptReturnsError) {
-    crypto::MasterRsaCipher cipher("invalid-pem", "invalid-pem");
-    auto result = cipher.encrypt("test data");
+TEST(RsaMasterCipherTest, InvalidKey_EncryptReturnsError) {
+    auto cipher = crypto::makeRsaMasterCipher("invalid-pem", "invalid-pem");
+    auto result = cipher->encrypt("test data");
     ASSERT_TRUE(std::holds_alternative<std::error_code>(result));
     auto& ec = std::get<std::error_code>(result);
     EXPECT_FALSE(ec.message().empty());
 }
 
-TEST(MasterRsaCipherTest, InvalidKey_DecryptReturnsError) {
-    crypto::MasterRsaCipher cipher("invalid-pem", "invalid-pem");
-    auto result = cipher.decrypt("some ciphertext");
+TEST(RsaMasterCipherTest, InvalidKey_DecryptReturnsError) {
+    auto cipher = crypto::makeRsaMasterCipher("invalid-pem", "invalid-pem");
+    auto result = cipher->decrypt("some ciphertext");
     ASSERT_TRUE(std::holds_alternative<std::error_code>(result));
     auto& ec = std::get<std::error_code>(result);
     EXPECT_FALSE(ec.message().empty());
 }
 
-TEST(MasterRsaCipherTest, EncryptTwice_ProducesDifferentCiphertext) {
-    crypto::MasterRsaCipher cipher(kPublicKey, kPrivateKey);
+TEST(RsaMasterCipherTest, EncryptTwice_ProducesDifferentCiphertext) {
+    auto cipher = crypto::makeRsaMasterCipher(kPublicKey, kPrivateKey);
     std::string plaintext = "determinism test 32 bytes long!!";
 
-    auto r1 = cipher.encrypt(plaintext);
-    auto r2 = cipher.encrypt(plaintext);
+    auto r1 = cipher->encrypt(plaintext);
+    auto r2 = cipher->encrypt(plaintext);
     ASSERT_TRUE(std::holds_alternative<std::string>(r1));
     ASSERT_TRUE(std::holds_alternative<std::string>(r2));
     // PKCS1 v1.5 padding is randomized
     EXPECT_NE(std::get<std::string>(r1), std::get<std::string>(r2));
 
-    auto d1 = cipher.decrypt(std::get<std::string>(r1));
-    auto d2 = cipher.decrypt(std::get<std::string>(r2));
+    auto d1 = cipher->decrypt(std::get<std::string>(r1));
+    auto d2 = cipher->decrypt(std::get<std::string>(r2));
     ASSERT_TRUE(std::holds_alternative<std::string>(d1));
     ASSERT_TRUE(std::holds_alternative<std::string>(d2));
     EXPECT_EQ(plaintext, std::get<std::string>(d1));
     EXPECT_EQ(plaintext, std::get<std::string>(d2));
 }
 
-TEST(MasterRsaCipherTest, MatDesc_SpecialChars) {
+TEST(RsaMasterCipherTest, MatDesc_SpecialChars) {
     std::map<std::string, std::string> desc{{"key\"with\\quotes", "val\"ue"}};
-    crypto::MasterRsaCipher cipher(kPublicKey, kPrivateKey, desc);
+    auto cipher = crypto::makeRsaMasterCipher(kPublicKey, kPrivateKey, desc);
     std::string expected = R"---({"key\"with\\quotes":"val\"ue"})---";
-    EXPECT_EQ(expected, cipher.getMatDesc());
+    EXPECT_EQ(expected, cipher->getMatDesc());
+}
+
+TEST(RsaMasterCipherTest, ValidatePublicKey_Valid) {
+    auto result = crypto::validateRsaPublicKey(kPublicKey);
+    EXPECT_FALSE(result.has_value());
+}
+
+TEST(RsaMasterCipherTest, ValidatePublicKey_Invalid) {
+    auto result = crypto::validateRsaPublicKey("invalid-pem");
+    ASSERT_TRUE(result.has_value());
+    EXPECT_FALSE(result->empty());
+}
+
+TEST(RsaMasterCipherTest, ValidatePrivateKey_Valid) {
+    auto result = crypto::validateRsaPrivateKey(kPrivateKey);
+    EXPECT_FALSE(result.has_value());
+}
+
+TEST(RsaMasterCipherTest, ValidatePrivateKey_Invalid) {
+    auto result = crypto::validateRsaPrivateKey("invalid-pem");
+    ASSERT_TRUE(result.has_value());
+    EXPECT_FALSE(result->empty());
+}
+
+TEST(RsaMasterCipherTest, PublicKeyOnly_EncryptSucceeds) {
+    auto cipher = crypto::makeRsaMasterCipher(kPublicKey, "");
+    auto result = cipher->encrypt("test data for encrypt only!");
+    ASSERT_TRUE(std::holds_alternative<std::string>(result));
+    EXPECT_FALSE(std::get<std::string>(result).empty());
+}
+
+TEST(RsaMasterCipherTest, PublicKeyOnly_DecryptFails) {
+    auto cipher = crypto::makeRsaMasterCipher(kPublicKey, "");
+    auto result = cipher->decrypt("some ciphertext");
+    ASSERT_TRUE(std::holds_alternative<std::error_code>(result));
+}
+
+TEST(RsaMasterCipherTest, ConcurrentEncryptDecrypt) {
+    auto cipher = crypto::makeRsaMasterCipher(kPublicKey2048, kPrivateKey2048);
+    std::string plaintext = "concurrent roundtrip test data!!";
+
+    constexpr int kThreads = 8;
+    constexpr int kIterations = 10;
+    std::atomic<int> failures{0};
+    std::vector<std::thread> threads;
+
+    for (int t = 0; t < kThreads; t++) {
+        threads.emplace_back([&]() {
+            for (int i = 0; i < kIterations; i++) {
+                auto encResult = cipher->encrypt(plaintext);
+                if (!std::holds_alternative<std::string>(encResult)) {
+                    failures++;
+                    continue;
+                }
+                auto decResult = cipher->decrypt(std::get<std::string>(encResult));
+                if (!std::holds_alternative<std::string>(decResult) ||
+                    std::get<std::string>(decResult) != plaintext) {
+                    failures++;
+                }
+            }
+        });
+    }
+    for (auto& t : threads) {
+        t.join();
+    }
+    EXPECT_EQ(0, failures.load());
+}
+
+TEST(RsaMasterCipherTest, ConcurrentEncryptOnly) {
+    auto cipher = crypto::makeRsaMasterCipher(kPublicKey2048, kPrivateKey2048);
+    std::string plaintext = "concurrent encrypt test data!!!!";
+
+    constexpr int kThreads = 8;
+    constexpr int kIterations = 10;
+    std::atomic<int> failures{0};
+    std::vector<std::string> results(kThreads * kIterations);
+    std::vector<std::thread> threads;
+
+    for (int t = 0; t < kThreads; t++) {
+        threads.emplace_back([&, t]() {
+            for (int i = 0; i < kIterations; i++) {
+                auto encResult = cipher->encrypt(plaintext);
+                if (!std::holds_alternative<std::string>(encResult)) {
+                    failures++;
+                    continue;
+                }
+                results[t * kIterations + i] = std::get<std::string>(encResult);
+            }
+        });
+    }
+    for (auto& t : threads) {
+        t.join();
+    }
+    EXPECT_EQ(0, failures.load());
+
+    for (size_t i = 0; i < results.size(); i++) {
+        for (size_t j = i + 1; j < results.size(); j++) {
+            if (!results[i].empty() && !results[j].empty()) {
+                EXPECT_NE(results[i], results[j]);
+            }
+        }
+    }
+}
+
+TEST(RsaMasterCipherTest, ConcurrentDecryptOnly) {
+    auto cipher = crypto::makeRsaMasterCipher(kPublicKey2048, kPrivateKey2048);
+    std::string plaintext = "concurrent decrypt test data!!!!";
+
+    constexpr int kCount = 32;
+    std::vector<std::string> ciphertexts(kCount);
+    for (int i = 0; i < kCount; i++) {
+        auto r = cipher->encrypt(plaintext);
+        ASSERT_TRUE(std::holds_alternative<std::string>(r));
+        ciphertexts[i] = std::get<std::string>(r);
+    }
+
+    constexpr int kThreads = 8;
+    int perThread = kCount / kThreads;
+    std::atomic<int> failures{0};
+    std::vector<std::thread> threads;
+
+    for (int t = 0; t < kThreads; t++) {
+        threads.emplace_back([&, t]() {
+            for (int i = 0; i < perThread; i++) {
+                int idx = t * perThread + i;
+                auto decResult = cipher->decrypt(ciphertexts[idx]);
+                if (!std::holds_alternative<std::string>(decResult) ||
+                    std::get<std::string>(decResult) != plaintext) {
+                    failures++;
+                }
+            }
+        });
+    }
+    for (auto& t : threads) {
+        t.join();
+    }
+    EXPECT_EQ(0, failures.load());
 }
 
 } // namespace alibabacloud::oss2

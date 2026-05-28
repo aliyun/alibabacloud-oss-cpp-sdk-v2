@@ -4,7 +4,7 @@
 #include "alibabacloud/oss2/ClientOptions.h"
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
 #include "alibabacloud/oss2/crypto/OSSEncryptionClient.h"
-#include "alibabacloud/oss2/crypto/MasterRsaCipher.h"
+#include "alibabacloud/oss2/crypto/RsaMasterCipher.h"
 #include "alibabacloud/oss2/io/ByteStream.h"
 #include "alibabacloud/oss2/io/ByteWriter.h"
 #include "alibabacloud/oss2/utils/Base64Utils.h"

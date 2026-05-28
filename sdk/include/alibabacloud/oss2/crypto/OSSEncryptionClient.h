@@ -11,7 +11,7 @@ class MasterCipher;
 
 // Encryption-specific configuration, orthogonal to ClientConfiguration.
 struct ALIBABACLOUD_OSS_API EncryptionConfiguration {
-    // Master cipher for key wrapping (e.g. MasterRsaCipher).
+    // Master cipher for key wrapping (e.g. RsaMasterCipher).
     std::shared_ptr<MasterCipher> masterCipher;
 };
 

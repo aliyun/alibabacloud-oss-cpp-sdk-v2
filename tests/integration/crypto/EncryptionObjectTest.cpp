@@ -9,7 +9,7 @@
 #include "alibabacloud/oss2/ClientConfiguration.h"
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
 #include "alibabacloud/oss2/crypto/OSSEncryptionClient.h"
-#include "alibabacloud/oss2/crypto/MasterRsaCipher.h"
+#include "alibabacloud/oss2/crypto/RsaMasterCipher.h"
 #include "alibabacloud/oss2/io/ByteWriter.h"
 
 namespace alibabacloud {
@@ -70,7 +70,7 @@ protected:
         config.endpoint = Config::Endpoint;
         config.credentialsProvider = provider;
 
-        auto masterCipher = std::make_shared<crypto::MasterRsaCipher>(kPublicKey, kPrivateKey);
+        auto masterCipher = crypto::makeRsaMasterCipher(kPublicKey, kPrivateKey);
         crypto::EncryptionConfiguration encConfig;
         encConfig.masterCipher = masterCipher;
         encClient_ = std::make_shared<OSSEncryptionClient>(config, std::move(encConfig));
@@ -414,7 +414,7 @@ TEST_F(EncryptionObjectTest, PutObject_InvalidRsaKey) {
     config.endpoint = Config::Endpoint;
     config.credentialsProvider = provider;
 
-    auto badMaster = std::make_shared<crypto::MasterRsaCipher>("invalid", "invalid");
+    auto badMaster = crypto::makeRsaMasterCipher("invalid", "invalid");
     crypto::EncryptionConfiguration badEncConfig;
     badEncConfig.masterCipher = badMaster;
     OSSEncryptionClient badClient(config, std::move(badEncConfig));
@@ -471,7 +471,7 @@ TEST_F(EncryptionObjectTest, GetObject_DifferentKey) {
     config.endpoint = Config::Endpoint;
     config.credentialsProvider = provider;
 
-    auto otherMaster = std::make_shared<crypto::MasterRsaCipher>(kOtherPublicKey, kOtherPrivateKey);
+    auto otherMaster = crypto::makeRsaMasterCipher(kOtherPublicKey, kOtherPrivateKey);
     crypto::EncryptionConfiguration otherEncConfig;
     otherEncConfig.masterCipher = otherMaster;
     OSSEncryptionClient otherClient(config, std::move(otherEncConfig));
@@ -601,7 +601,7 @@ TEST_F(EncryptionObjectTest, CrossSdk_DecryptPreEncryptedData) {
     config.endpoint = Config::Endpoint;
     config.credentialsProvider = provider;
 
-    auto compatMaster = std::make_shared<crypto::MasterRsaCipher>("", kCompatPrivateKey);
+    auto compatMaster = crypto::makeRsaMasterCipher("", kCompatPrivateKey);
     crypto::EncryptionConfiguration compatEncConfig;
     compatEncConfig.masterCipher = compatMaster;
     OSSEncryptionClient compatClient(config, std::move(compatEncConfig));
