@@ -43,6 +43,31 @@ foreach(SAMPLE_SRC ${SAMPLE_SRCS})
         PRIVATE "${SDK_COMPILER_FLAGS}")
 endforeach()
 
+# ── Encryption samples (require ENABLE_ENCRYPTION) ─────────────────
+if(ENABLE_ENCRYPTION)
+    file(GLOB_RECURSE ENCRYPTION_SAMPLE_SRCS "encryption/*.cpp")
+    foreach(SAMPLE_SRC ${ENCRYPTION_SAMPLE_SRCS})
+        file(RELATIVE_PATH REL_PATH ${CMAKE_CURRENT_SOURCE_DIR} ${SAMPLE_SRC})
+        if(SAMPLE_FILTER AND NOT REL_PATH MATCHES "^${SAMPLE_FILTER}")
+            continue()
+        endif()
+        get_filename_component(REL_DIR ${REL_PATH} DIRECTORY)
+        get_filename_component(BASE_NAME ${REL_PATH} NAME_WE)
+        string(REPLACE "/" "_" DIR_PREFIX "${REL_DIR}")
+        set(TARGET_NAME "sample_${DIR_PREFIX}_${BASE_NAME}")
+        add_executable(${TARGET_NAME} ${SAMPLE_SRC})
+        target_include_directories(${TARGET_NAME}
+            PRIVATE ${CMAKE_SOURCE_DIR}/sdk/include
+            PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/common)
+        target_link_libraries(${TARGET_NAME} PRIVATE cpp-sdk-v2)
+        if(USE_CURL_TRANSPORT)
+            target_link_libraries(${TARGET_NAME} PRIVATE ${CURL_LIB})
+        endif()
+        target_compile_options(${TARGET_NAME}
+            PRIVATE "${SDK_COMPILER_FLAGS}")
+    endforeach()
+endif()
+
 # ── Scenario samples (samples/scenario/*) are independent projects ──
 # They use find_package() for SDK and external dependencies,
 # and must be built separately from their own directory.

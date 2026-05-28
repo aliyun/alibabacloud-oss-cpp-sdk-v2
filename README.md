@@ -31,6 +31,7 @@ alibabacloud-oss-cpp-sdk-v2 is the developer preview for the v2 of the OSS SDK f
 - **Progress Callback** -- track upload/download progress
 - **Flexible Request Body** -- construct from String, File, Stream, or Memory buffer
 - **Multiple Credential Providers** -- environment variables, static credentials, STS, ECS RAM role, custom providers
+- **Client-Side Encryption** -- `OSSEncryptionClient` for transparent encrypt-on-upload and decrypt-on-download
 - **Customizable Transport** -- plug in custom Curl or WinHTTP configurations
 - **`std::expected` Support** -- optional C++23 mode with monadic error handling
 
@@ -71,6 +72,7 @@ sudo cmake --install .
 | `USE_SYSTEM_OPENSSL` | `OFF` | Use system-installed OpenSSL |
 | `USE_SYSTEM_MBEDTLS` | `OFF` | Use system-installed mbedTLS |
 | `USE_STD_EXPECTED` | `OFF` | Use `std::expected` instead of custom `Outcome` (requires C++23) |
+| `ENABLE_ENCRYPTION` | `OFF` | Enable client-side encryption (requires OpenSSL, mbedTLS, or Windows) |
 | `ENABLE_RTTI` | `OFF` | Enable/disable building code with RTTI information |
 | `ENABLE_COVERAGE` | `OFF` | Generate coverage reports |
 | `ENABLE_CPPCHECK` | `OFF` | Enable Cppcheck static analysis |
@@ -89,7 +91,7 @@ cmake --build build
 vcpkg install alibabacloud-oss-cpp-sdk-v2
 ```
 
-Available features: `curl` (default), `winhttp`, `openssl`, `mbedtls`, `rtti`.
+Available features: `curl` (default), `winhttp`, `openssl`, `mbedtls`, `rtti`, `encryption`.
 
 ### Using CMake in your project
 

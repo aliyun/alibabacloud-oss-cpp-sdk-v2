@@ -31,6 +31,7 @@ alibabacloud-oss-cpp-sdk-v2 是 OSS 在 C++ 编程语言下的第二版 SDK
 - **进度回调** -- 跟踪上传/下载进度
 - **灵活的请求体** -- 从 String、File、Stream、Memory buffer 构造
 - **多种凭证提供者** -- 环境变量、静态凭证、STS、ECS RAM Role、自定义提供者
+- **客户端加密** -- `OSSEncryptionClient` 透明地在上传时加密、下载时解密
 - **可定制传输层** -- 自定义 Curl 或 WinHTTP 配置
 - **`std::expected` 支持** -- 可选的 C++23 模式，支持一元错误处理
 
@@ -71,6 +72,7 @@ sudo cmake --install .
 | `USE_SYSTEM_OPENSSL` | `OFF` | 使用系统已安装的 OpenSSL |
 | `USE_SYSTEM_MBEDTLS` | `OFF` | 使用系统已安装的 mbedTLS |
 | `USE_STD_EXPECTED` | `OFF` | 使用 `std::expected` 替代自定义 `Outcome`（需要 C++23） |
+| `ENABLE_ENCRYPTION` | `OFF` | 启用客户端加密（需要 OpenSSL、mbedTLS 或 Windows 平台） |
 | `ENABLE_RTTI` | `OFF` | 启用/禁用 RTTI 信息 |
 | `ENABLE_COVERAGE` | `OFF` | 生成代码覆盖率报告 |
 | `ENABLE_CPPCHECK` | `OFF` | 启用 Cppcheck 静态分析 |
@@ -89,7 +91,7 @@ cmake --build build
 vcpkg install alibabacloud-oss-cpp-sdk-v2
 ```
 
-可用 features: `curl` (默认), `winhttp`, `openssl`, `mbedtls`, `rtti`.
+可用 features: `curl` (默认), `winhttp`, `openssl`, `mbedtls`, `rtti`, `encryption`.
 
 ### 在您的项目中使用 CMake
 
