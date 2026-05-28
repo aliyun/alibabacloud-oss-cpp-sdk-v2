@@ -12,6 +12,7 @@ vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
         winhttp   USE_WINHTTP_TRANSPORT
         openssl   USE_SYSTEM_OPENSSL
         mbedtls   USE_SYSTEM_MBEDTLS
+        encryption ENABLE_ENCRYPTION
         rtti      ENABLE_RTTI
 )
 
