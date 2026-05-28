@@ -46,6 +46,9 @@
         "mbedtls"
       ]
     },
+    "encryption": {
+      "description": "Enable client-side encryption (on non-Windows, also enable openssl or mbedtls)"
+    },
     "rtti": {
       "description": "Build with run-time type information"
     }

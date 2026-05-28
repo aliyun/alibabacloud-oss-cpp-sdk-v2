@@ -10,7 +10,7 @@ namespace utils {
 
 void HmacSha1(const void* data, size_t numDataBytes, const void* key, size_t numKeyBytes, unsigned char out[20]) {
     unsigned int outLen = 20;
-    unsigned char* ret = HMAC(EVP_sha1(),
+    const unsigned char* ret = HMAC(EVP_sha1(),
         key, static_cast<int>(numKeyBytes),
         static_cast<const unsigned char*>(data), numDataBytes,
         out, &outLen);
@@ -21,7 +21,7 @@ void HmacSha1(const void* data, size_t numDataBytes, const void* key, size_t num
 
 void HmacSh256(const void* data, size_t numDataBytes, const void* key, size_t numKeyBytes, unsigned char out[32]) {
     unsigned int outLen = 32;
-    unsigned char* ret = HMAC(EVP_sha256(),
+    const unsigned char* ret = HMAC(EVP_sha256(),
         key, static_cast<int>(numKeyBytes),
         static_cast<const unsigned char*>(data), numDataBytes,
         out, &outLen);

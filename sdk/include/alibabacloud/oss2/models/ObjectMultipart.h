@@ -11,6 +11,7 @@
 
 namespace alibabacloud {
 namespace oss2 {
+namespace crypto { class EncryptionMultiPartContext; }
 namespace models {
 
 
@@ -275,10 +276,33 @@ class ALIBABACLOUD_OSS_API InitiateMultipartUploadRequest final : public Request
         return *this;
     }
 
+    inline const HeaderCollection& getMetadata() const {
+        return metadata_;
+    }
+    template <typename ValueT = HeaderCollection>
+    InitiateMultipartUploadRequest& setMetadata(ValueT&& value) {
+        metadata_ = std::forward<ValueT>(value);
+        return *this;
+    }
+
+    inline std::optional<int64_t> getCsePartSize() const { return csePartSize_; }
+    InitiateMultipartUploadRequest& setCsePartSize(int64_t value) {
+        csePartSize_ = value;
+        return *this;
+    }
+
+    inline std::optional<int64_t> getCseDataSize() const { return cseDataSize_; }
+    InitiateMultipartUploadRequest& setCseDataSize(int64_t value) {
+        cseDataSize_ = value;
+        return *this;
+    }
 
   private:
     std::string bucket_;
     std::string key_;
+    HeaderCollection metadata_;
+    std::optional<int64_t> csePartSize_;
+    std::optional<int64_t> cseDataSize_;
 };
 
 /*
@@ -324,8 +348,16 @@ class ALIBABACLOUD_OSS_API InitiateMultipartUploadResult final : public ResultMo
         return body_.bucket;
     }
 
+    inline const std::shared_ptr<crypto::EncryptionMultiPartContext>& getCseMultiPartContext() const {
+        return cseMultiPartContext_;
+    }
+    void setCseMultiPartContext(std::shared_ptr<crypto::EncryptionMultiPartContext> ctx) {
+        cseMultiPartContext_ = std::move(ctx);
+    }
+
   private:
     InitiateMultipartUploadResultXml body_;
+    std::shared_ptr<crypto::EncryptionMultiPartContext> cseMultiPartContext_;
 };
 
 // The request for the UploadPart operation.
@@ -402,11 +434,20 @@ class ALIBABACLOUD_OSS_API UploadPartRequest final : public RequestModel {
         return *this;
     }
 
+    inline const std::shared_ptr<crypto::EncryptionMultiPartContext>& getCseMultiPartContext() const {
+        return cseMultiPartContext_;
+    }
+    UploadPartRequest& setCseMultiPartContext(std::shared_ptr<crypto::EncryptionMultiPartContext> ctx) {
+        cseMultiPartContext_ = std::move(ctx);
+        return *this;
+    }
+
   private:
     std::string bucket_;
     std::string key_;
     std::shared_ptr<ByteContent> body_;
     std::optional<ProgressCallback> progressCallback_;
+    std::shared_ptr<crypto::EncryptionMultiPartContext> cseMultiPartContext_;
 };
 
 /// The result for the UploadPart operation.

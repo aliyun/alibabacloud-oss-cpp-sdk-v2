@@ -996,6 +996,11 @@ class ALIBABACLOUD_OSS_API GetObjectResult final : public ResultModel {
     }
 
     // <no value>
+    inline const std::string& getContentRange() const {
+        return getHeaderOrEmpty("Content-Range");
+    }
+
+    // <no value>
     inline const std::string& getETag() const {
         return getHeaderOrEmpty("ETag");
     }
@@ -1028,6 +1033,14 @@ class ALIBABACLOUD_OSS_API GetObjectResult final : public ResultModel {
     // <no value>
     inline const std::shared_ptr<std::iostream>& getBody() {
         return body_;
+    }
+
+    void setBody(std::shared_ptr<std::iostream> body) { body_ = std::move(body); }
+
+    // Used by OSSEncryptionClient to fix Content-Length/Content-Range after range realignment.
+    void overwriteRange(std::string contentLength, std::string contentRange) {
+        if (!contentLength.empty()) headers_["Content-Length"] = std::move(contentLength);
+        if (!contentRange.empty()) headers_["Content-Range"] = std::move(contentRange);
     }
 
   private:

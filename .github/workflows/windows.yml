@@ -32,7 +32,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # x64: Static library build + unit tests
+      # x64: Static library build + unit tests (with client-side encryption)
       - name: Configure CMake (static, x64)
         shell: bash
         run: |
@@ -43,7 +43,8 @@ jobs:
             -DBUILD_SAMPLES=ON \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_CXX_STANDARD=${{ matrix.std == 'c++17' && '17' || '20' }} \
-            -DBUILD_SHARED_LIBS=OFF
+            -DBUILD_SHARED_LIBS=OFF \
+            -DENABLE_ENCRYPTION=ON
 
       - name: Build (static, x64)
         shell: bash
@@ -71,7 +72,7 @@ jobs:
         shell: bash
         run: cmake --build build-shared-x64 --config Release --target ALL_BUILD
 
-      # x86: Static library build + unit tests (msvc only)
+      # x86: Static library build + unit tests (with client-side encryption, msvc only)
       - name: Configure CMake (static, x86)
         if: matrix.compiler == 'msvc'
         shell: bash
@@ -82,7 +83,8 @@ jobs:
             -DBUILD_SAMPLES=ON \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_CXX_STANDARD=${{ matrix.std == 'c++17' && '17' || '20' }} \
-            -DBUILD_SHARED_LIBS=OFF
+            -DBUILD_SHARED_LIBS=OFF \
+            -DENABLE_ENCRYPTION=ON
 
       - name: Build (static, x86)
         if: matrix.compiler == 'msvc'

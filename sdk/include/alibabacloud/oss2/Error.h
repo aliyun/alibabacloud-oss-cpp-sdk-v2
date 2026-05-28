@@ -39,6 +39,7 @@ enum class ClientErrorCode {
     OperationNotSupported,
     RequestMethodEmpty,
     ReadDataFail,
+    EncryptionFailure,
 };
 
 ALIBABACLOUD_OSS_API std::error_code make_error_code(ClientErrorCode e);

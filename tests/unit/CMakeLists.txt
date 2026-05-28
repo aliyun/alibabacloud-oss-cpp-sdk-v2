@@ -24,6 +24,11 @@ if(USE_WINHTTP_TRANSPORT AND WIN32)
     file(GLOB_RECURSE test_unit_transport_winhttp_src "transport/winhttp/*.cpp")
     list(APPEND test_unit_transport_src ${test_unit_transport_winhttp_src})
 endif()
+if(ENABLE_ENCRYPTION)
+    file(GLOB_RECURSE test_unit_encryption_src "crypto/*.cpp")
+else()
+    set(test_unit_encryption_src "")
+endif()
 
 add_executable(${PROJECT_NAME}
 	${test_gtest_src}
@@ -39,6 +44,7 @@ add_executable(${PROJECT_NAME}
 	${test_unit_transform_src}
 	${test_unit_error_src}
 	${test_unit_transport_src}
+	${test_unit_encryption_src}
 )
 
 target_include_directories(${PROJECT_NAME}

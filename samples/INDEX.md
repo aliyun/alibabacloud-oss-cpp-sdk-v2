@@ -7,6 +7,7 @@
 | [api/sync/](api/sync/INDEX.md) | Sync API samples using `OSSClient` |
 | [api/async/](api/async/INDEX.md) | Async API samples using `OSSAsyncClient` |
 | [paginator/](paginator/INDEX.md) | Paginator samples using `makePaginator()` |
+| [encryption/](encryption/INDEX.md) | Client-side encryption samples using `OSSEncryptionClient` |
 | common/ | Shared helpers (`SampleConfig.h`) |
 | [scenario/sync-client-async/](scenario/sync-client-async/README.md) | Using `asyncCall()` / `asyncCallback()` on `OSSClient` |
 | [scenario/credentials/](scenario/credentials/README.md) | Various credential providers and credentials-cpp integration |
@@ -19,6 +20,7 @@
 | [scenario/endpoint-config/](scenario/endpoint-config/README.md) | Endpoint modes (dual-stack, internal, accelerate, CName, path-style) |
 | [scenario/sink-factory/](scenario/sink-factory/README.md) | Download with SinkFactory (progress, CRC-64, zero-copy MemoryWriter) |
 | [scenario/presign-url/](scenario/presign-url/README.md) | Presigned URL upload, multipart upload, and download |
+| [scenario/encryption/](scenario/encryption/README.md) | Custom MasterCipher implementation for client-side encryption |
 
 ## Build
 
