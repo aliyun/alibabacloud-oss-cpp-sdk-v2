@@ -49,7 +49,7 @@ TEST(OSSAsyncClientObjectBasicTest, PutObjectAsync_Success) {
 
     auto request = models::PutObjectRequest();
     request.setBucket("test-bucket").setKey("test-key");
-    request.setBody(RequestBody::FromString("hello"));
+    request.setBody(RequestBody::fromString("hello"));
     auto future = client.asyncCall(request);
     auto outcome = future.get();
 
@@ -442,7 +442,7 @@ TEST(OSSAsyncClientObjectBasicTest, PutObjectAsync_CRC64Check_Success) {
 
     auto request = models::PutObjectRequest();
     request.setBucket("test-bucket").setKey("test-key");
-    request.setBody(RequestBody::FromString(data));
+    request.setBody(RequestBody::fromString(data));
 
     auto future = client.asyncCall(request);
     auto outcome = future.get();
@@ -469,7 +469,7 @@ TEST(OSSAsyncClientObjectBasicTest, PutObjectAsync_CRC64Check_Mismatch) {
 
     auto request = models::PutObjectRequest();
     request.setBucket("test-bucket").setKey("test-key");
-    request.setBody(RequestBody::FromString(data));
+    request.setBody(RequestBody::fromString(data));
 
     auto future = client.asyncCall(request);
     auto outcome = future.get();
@@ -501,7 +501,7 @@ TEST(OSSAsyncClientObjectBasicTest, AppendObjectAsync_CRC64Check_Success) {
     request.setBucket("test-bucket").setKey("test-key");
     request.setPosition(0);
     request.setInitHashCRC64(0);
-    request.setBody(RequestBody::FromString(data));
+    request.setBody(RequestBody::fromString(data));
 
     auto future = client.asyncCall(request);
     auto outcome = future.get();
@@ -529,7 +529,7 @@ TEST(OSSAsyncClientObjectBasicTest, AppendObjectAsync_CRC64Check_Mismatch) {
     request.setBucket("test-bucket").setKey("test-key");
     request.setPosition(0);
     request.setInitHashCRC64(0);
-    request.setBody(RequestBody::FromString(data));
+    request.setBody(RequestBody::fromString(data));
 
     auto future = client.asyncCall(request);
     auto outcome = future.get();

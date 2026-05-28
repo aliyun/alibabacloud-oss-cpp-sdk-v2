@@ -42,15 +42,15 @@ static void ensureFixtureObjects() {
     auto client = perf::GetSyncClient();
     auto& cfg = perf::GetConfig();
 
-    auto body1k = RequestBody::FromString(std::string(1024, 'R'));
+    auto body1k = RequestBody::fromString(std::string(1024, 'R'));
     client->putObject(
         models::PutObjectRequest().setBucket(cfg.bucket).setKey(kGetKey1KB).setBody(body1k));
 
-    auto body1m = RequestBody::FromString(std::string(1024 * 1024, 'S'));
+    auto body1m = RequestBody::fromString(std::string(1024 * 1024, 'S'));
     client->putObject(
         models::PutObjectRequest().setBucket(cfg.bucket).setKey(kGetKey1MB).setBody(body1m));
 
-    auto body4m = RequestBody::FromString(std::string(4 * 1024 * 1024, 'T'));
+    auto body4m = RequestBody::fromString(std::string(4 * 1024 * 1024, 'T'));
     client->putObject(
         models::PutObjectRequest().setBucket(cfg.bucket).setKey(kGetKey4MB).setBody(body4m));
 
@@ -208,7 +208,7 @@ static std::string ensureCustomFixture() {
     auto& cfg = perf::GetConfig();
     key = std::string(perf::kKeyPrefix) + "perf-get-fixture-custom.dat";
     std::string data(cfg.objectSize, 'U');
-    auto body = RequestBody::FromMemory(data.data(), data.size());
+    auto body = RequestBody::fromMemory(data.data(), data.size());
     perf::GetSyncClient()->putObject(
         models::PutObjectRequest().setBucket(cfg.bucket).setKey(key).setBody(body));
     return key;

@@ -32,7 +32,7 @@ TEST_F(AsyncObjectSymlinkTest, Symlink_Normal) {
     std::string targetKey = "test-target-object";
     std::string symlinkKey = "test-symlink";
 
-    auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(targetKey).setBody(RequestBody::FromString("target content")));
+    auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(targetKey).setBody(RequestBody::fromString("target content")));
     EXPECT_TRUE(putFuture.get().has_value());
 
     auto putSymFuture = client->asyncCall(models::PutSymlinkRequest().setBucket(bucketName_).setKey(symlinkKey).setSymlinkTarget(targetKey));

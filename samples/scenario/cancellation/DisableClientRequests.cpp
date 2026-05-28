@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
             oss::models::PutObjectRequest()
                 .setBucket(bucket)
                 .setKey(key)
-                .setBody(oss::RequestBody::FromString(data))));
+                .setBody(oss::RequestBody::fromString(data))));
     }
 
     // Step 2: Disable requests while some may still be in-flight
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
         oss::models::PutObjectRequest()
             .setBucket(bucket)
             .setKey("disable-demo/rejected.txt")
-            .setBody(oss::RequestBody::FromString("rejected")));
+            .setBody(oss::RequestBody::fromString("rejected")));
     if (!outcome.has_value()) {
         std::cout << "  Expected failure"
                   << ", code: " << outcome.error().getCode() << std::endl;
@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
         oss::models::PutObjectRequest()
             .setBucket(bucket)
             .setKey("disable-demo/resumed.txt")
-            .setBody(oss::RequestBody::FromString("resumed")));
+            .setBody(oss::RequestBody::fromString("resumed")));
     if (!outcome.has_value()) {
         std::cerr << "  Unexpected failure after re-enable"
                   << ", code: " << outcome.error().getCode()

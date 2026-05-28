@@ -751,7 +751,7 @@ TEST(OSSClientObjectBasicTest, AppendObject_Success) {
     request.setBucket("dest-bucket");
     request.setKey("dest-key");
     request.setPosition(11);
-    request.setBody(RequestBody::FromString("hello"));
+    request.setBody(RequestBody::fromString("hello"));
 
     auto outcome = client.appendObject(request);
     EXPECT_TRUE(outcome.has_value());
@@ -793,7 +793,7 @@ TEST(OSSClientObjectBasicTest, AppendObject_WithHeaders) {
     HeaderCollection metadata;
     metadata["custom"] = "custom-value";
     request.setMetadata(metadata);
-    request.setBody(RequestBody::FromString("hello"));
+    request.setBody(RequestBody::fromString("hello"));
 
     auto outcome = client.appendObject(request);
     EXPECT_TRUE(outcome.has_value());
@@ -1946,7 +1946,7 @@ TEST(OSSClientObjectBasicTest, PutObject_CRC64Check_Success) {
     auto request = models::PutObjectRequest();
     request.setBucket("test-bucket");
     request.setKey("test-key");
-    request.setBody(RequestBody::FromString(data));
+    request.setBody(RequestBody::fromString(data));
 
     auto outcome = client.putObject(request);
     EXPECT_TRUE(outcome.has_value());
@@ -1983,7 +1983,7 @@ TEST(OSSClientObjectBasicTest, PutObject_CRC64Check_Mismatch) {
     auto request = models::PutObjectRequest();
     request.setBucket("test-bucket");
     request.setKey("test-key");
-    request.setBody(RequestBody::FromString(data));
+    request.setBody(RequestBody::fromString(data));
 
     auto outcome = client.putObject(request);
     EXPECT_FALSE(outcome.has_value());
@@ -2010,7 +2010,7 @@ TEST(OSSClientObjectBasicTest, PutObject_CRC64Check_Disabled) {
     auto request = models::PutObjectRequest();
     request.setBucket("test-bucket");
     request.setKey("test-key");
-    request.setBody(RequestBody::FromString(data));
+    request.setBody(RequestBody::fromString(data));
 
     auto outcome = client.putObject(request);
     EXPECT_TRUE(outcome.has_value());
@@ -2034,7 +2034,7 @@ TEST(OSSClientObjectBasicTest, PutObject_CRC64Check_NoServerCRC) {
     auto request = models::PutObjectRequest();
     request.setBucket("test-bucket");
     request.setKey("test-key");
-    request.setBody(RequestBody::FromString(data));
+    request.setBody(RequestBody::fromString(data));
 
     auto outcome = client.putObject(request);
     EXPECT_TRUE(outcome.has_value());
@@ -2086,7 +2086,7 @@ TEST(OSSClientObjectBasicTest, AppendObject_CRC64Check_Success) {
     request.setKey("test-key");
     request.setPosition(0);
     request.setInitHashCRC64(0);
-    request.setBody(RequestBody::FromString(data));
+    request.setBody(RequestBody::fromString(data));
 
     auto outcome = client.appendObject(request);
     EXPECT_TRUE(outcome.has_value());
@@ -2115,7 +2115,7 @@ TEST(OSSClientObjectBasicTest, AppendObject_CRC64Check_Mismatch) {
     request.setKey("test-key");
     request.setPosition(0);
     request.setInitHashCRC64(0);
-    request.setBody(RequestBody::FromString(data));
+    request.setBody(RequestBody::fromString(data));
 
     auto outcome = client.appendObject(request);
     EXPECT_FALSE(outcome.has_value());
@@ -2144,7 +2144,7 @@ TEST(OSSClientObjectBasicTest, AppendObject_CRC64Check_NoInitCRC) {
     request.setBucket("test-bucket");
     request.setKey("test-key");
     request.setPosition(0);
-    request.setBody(RequestBody::FromString(data));
+    request.setBody(RequestBody::fromString(data));
 
     auto outcome = client.appendObject(request);
     EXPECT_TRUE(outcome.has_value());
@@ -2174,7 +2174,7 @@ TEST(OSSClientObjectBasicTest, AppendObject_CRC64Check_Disabled) {
     request.setKey("test-key");
     request.setPosition(0);
     request.setInitHashCRC64(0);
-    request.setBody(RequestBody::FromString(data));
+    request.setBody(RequestBody::fromString(data));
 
     auto outcome = client.appendObject(request);
     EXPECT_TRUE(outcome.has_value());

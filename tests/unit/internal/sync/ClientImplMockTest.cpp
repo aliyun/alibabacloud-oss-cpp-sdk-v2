@@ -506,7 +506,7 @@ TEST(ClientImplMockTest, configSeekableStream) {
     input.parameters = {{"acl", ""}};
     input.bucket = "bucket";
     input.bucket = "key";
-    input.body = RequestBody::FromString("hello world");
+    input.body = RequestBody::fromString("hello world");
 
     auto result = client.Execute(input);
     EXPECT_EQ(3, mockHandler->requests.size());
@@ -1501,7 +1501,7 @@ TEST(ClientImplMockTest, testUploadObserverNormal_useCRCObserver) {
     input.headers = {{"Content-Type", "text/plain"}};
     input.bucket = "bucket";
     input.key = "key";
-    input.body = RequestBody::FromString("Hello, OSS!");
+    input.body = RequestBody::fromString("Hello, OSS!");
 
     auto result = client.Execute(input);
     EXPECT_EQ(1ULL, mockHandler->requests.size());
@@ -1522,7 +1522,7 @@ TEST(ClientImplMockTest, testUploadObserverNormal_useCRCObserver) {
     input.headers = {{"Content-Type", "text/plain"}};
     input.bucket = "bucket";
     input.key = "key";
-    input.body = RequestBody::FromString("Hello, OSS!");
+    input.body = RequestBody::fromString("Hello, OSS!");
 
     OperationInnerOptions innerOpts{};
     result = client.Execute(input, nullptr, &innerOpts);
@@ -1544,7 +1544,7 @@ TEST(ClientImplMockTest, testUploadObserverNormal_useCRCObserver) {
     input.headers = {{"Content-Type", "text/plain"}};
     input.bucket = "bucket";
     input.key = "key";
-    input.body = RequestBody::FromString("Hello, OSS!");
+    input.body = RequestBody::fromString("Hello, OSS!");
 
     auto crc64Observer = std::make_shared<CRC64Observer>();
     innerOpts.uploadObserver.emplace_back(crc64Observer);
@@ -1571,7 +1571,7 @@ TEST(ClientImplMockTest, testUploadObserverNormal_useCRCObserver) {
     input.headers = {{"Content-Type", "text/plain"}};
     input.bucket = "bucket";
     input.key = "key";
-    input.body = RequestBody::FromString("Hello, OSS!");
+    input.body = RequestBody::fromString("Hello, OSS!");
 
     crc64Observer->reset();
     EXPECT_EQ("0", std::to_string(crc64Observer->crc()));
@@ -1612,7 +1612,7 @@ TEST(ClientImplMockTest, testUploadObserver_useMultiObserver) {
     input.headers = {{"Content-Type", "text/plain"}};
     input.bucket = "bucket";
     input.key = "key";
-    input.body = RequestBody::FromString(data);
+    input.body = RequestBody::fromString(data);
 
     std::size_t _transferred = 0;
     std::int64_t _total = 0;
@@ -1671,7 +1671,7 @@ TEST(ClientImplMockTest, testUploadObserverRetryable_useCRCObserver) {
     input.headers = {{"Content-Type", "text/plain"}};
     input.bucket = "bucket";
     input.key = "key";
-    input.body = RequestBody::FromString("Hello, OSS!");
+    input.body = RequestBody::fromString("Hello, OSS!");
 
     innerOpts = {};
     auto crc64Observer = std::make_shared<CRC64Observer>();
@@ -1716,7 +1716,7 @@ TEST(ClientImplMockTest, testUploadObserverRetryable_useProgObserver) {
     input.headers = {{"Content-Type", "text/plain"}};
     input.bucket = "bucket";
     input.key = "key";
-    input.body = RequestBody::FromString("Hello, OSS!");
+    input.body = RequestBody::fromString("Hello, OSS!");
 
     innerOpts = {};
     std::size_t _transferred = 0;
@@ -1781,7 +1781,7 @@ TEST(ClientImplMockTest, testUploadDataAndCheckResponseCrc) {
     input.headers = {{"Content-Type", "text/plain"}};
     input.bucket = "bucket";
     input.key = "key";
-    input.body = RequestBody::FromString("Hello, OSS!");
+    input.body = RequestBody::fromString("Hello, OSS!");
 
     innerOpts = {};
     auto crc64Observer = std::make_shared<CRC64Observer>();
@@ -1845,7 +1845,7 @@ TEST(ClientImplMockTest, testUploadDataAndCheckResponseCrc_throwInconsistentExce
     input.headers = {{"Content-Type", "text/plain"}};
     input.bucket = "bucket";
     input.key = "key";
-    input.body = RequestBody::FromString("Hello, OSS!");
+    input.body = RequestBody::fromString("Hello, OSS!");
 
     innerOpts = {};
     auto crc64Observer = std::make_shared<CRC64Observer>();

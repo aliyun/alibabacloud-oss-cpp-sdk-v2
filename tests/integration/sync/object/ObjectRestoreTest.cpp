@@ -42,7 +42,7 @@ TEST_F(ObjectRestoreTest, RestoreObject_Normal) {
     std::string content = "Archive content to restore";
 
     // Put an archive object
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
 
     auto putOutcome = client->putObject(
             models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body).setStorageClass("Archive"));
@@ -81,7 +81,7 @@ TEST_F(ObjectRestoreTest, CleanRestoredObject_Normal) {
     std::string content = "Content to clean";
 
     // Put an archive object
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
     auto putOutcome = client->putObject(
             models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body).setStorageClass("Archive"));
     EXPECT_TRUE(putOutcome.has_value());

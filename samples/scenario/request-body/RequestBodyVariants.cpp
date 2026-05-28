@@ -1,10 +1,10 @@
 // Demonstrates: Use different RequestBody factories to upload data via PutObject.
 //
 // The SDK provides four ways to construct a request body:
-//   RequestBody::FromString  — owns a copy of the data
-//   RequestBody::FromFile    — reads from a file path, re-opens on retry
-//   RequestBody::FromStream  — shared_ptr<istream>, caller manages lifetime
-//   RequestBody::FromMemory  — zero-copy from a raw buffer, caller keeps data alive
+//   RequestBody::fromString  — owns a copy of the data
+//   RequestBody::fromFile    — reads from a file path, re-opens on retry
+//   RequestBody::fromStream  — shared_ptr<istream>, caller manages lifetime
+//   RequestBody::fromMemory  — zero-copy from a raw buffer, caller keeps data alive
 //
 // Usage:
 //   ./RequestBodyVariants --region <region> --bucket <bucket>
@@ -65,12 +65,12 @@ int main(int argc, char* argv[]) {
     auto client = oss::OSSClient(conf);
     const std::string prefix = "request-body-demo/";
 
-    // --- 1. FromString: data is copied/moved into the body ---
+    // --- 1. fromString: data is copied/moved into the body ---
     upload(client, bucket, prefix + "from-string.txt",
-           oss::RequestBody::FromString("Hello from FromString!"),
+           oss::RequestBody::fromString("Hello from FromString!"),
            "FromString");
 
-    // --- 2. FromFile: reads from a local file path ---
+    // --- 2. fromFile: reads from a local file path ---
     {
         std::string tmpFile = "request-body-demo-tmp.txt";
         std::ofstream ofs(tmpFile);
@@ -78,26 +78,26 @@ int main(int argc, char* argv[]) {
         ofs.close();
 
         upload(client, bucket, prefix + "from-file.txt",
-               oss::RequestBody::FromFile(tmpFile),
+               oss::RequestBody::fromFile(tmpFile),
                "FromFile");
 
         std::remove(tmpFile.c_str());
     }
 
-    // --- 3. FromStream: shared_ptr<istream> ---
+    // --- 3. fromStream: shared_ptr<istream> ---
     {
         auto ss = std::make_shared<std::stringstream>("Hello from FromStream!");
         upload(client, bucket, prefix + "from-stream.txt",
-               oss::RequestBody::FromStream(ss),
+               oss::RequestBody::fromStream(ss),
                "FromStream");
     }
 
-    // --- 4. FromMemory: zero-copy from a raw buffer ---
+    // --- 4. fromMemory: zero-copy from a raw buffer ---
     {
         const char* data = "Hello from FromMemory!";
         std::size_t len = std::strlen(data);
         upload(client, bucket, prefix + "from-memory.txt",
-               oss::RequestBody::FromMemory(data, len),
+               oss::RequestBody::fromMemory(data, len),
                "FromMemory");
     }
 

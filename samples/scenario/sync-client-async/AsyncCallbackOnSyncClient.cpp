@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
             oss::models::PutObjectRequest()
                 .setBucket(bucket)
                 .setKey(key)
-                .setBody(oss::RequestBody::FromString(data)));
+                .setBody(oss::RequestBody::fromString(data)));
         if (!outcome.has_value()) {
             std::cerr << "Setup PutObject failed for " << key << std::endl;
             return 1;

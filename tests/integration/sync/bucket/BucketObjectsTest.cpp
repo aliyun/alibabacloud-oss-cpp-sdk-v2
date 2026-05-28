@@ -27,7 +27,7 @@ class BucketObjectsTest : public ::testing::Test {
                     client->putObject(models::PutObjectRequest()
                                               .setBucket(bucketName_)
                                               .setKey(key)
-                                              .setBody(RequestBody::FromString("content-" + std::to_string(i))));
+                                              .setBody(RequestBody::fromString("content-" + std::to_string(i))));
             EXPECT_TRUE(putOutcome.has_value());
         }
     }
@@ -126,7 +126,7 @@ TEST_F(BucketObjectsTest, DeleteMultipleObjects_Normal) {
         auto putOutcome = client->putObject(models::PutObjectRequest()
                                                     .setBucket(bucketName_)
                                                     .setKey(key)
-                                                    .setBody(RequestBody::FromString("content-" + std::to_string(i))));
+                                                    .setBody(RequestBody::fromString("content-" + std::to_string(i))));
         EXPECT_TRUE(putOutcome.has_value());
 
         models::ObjectIdentifier obj;

@@ -96,7 +96,7 @@ TEST(OSSAsyncClientMiscTest, TransportCanceled_NoRetry) {
             models::PutObjectRequest()
                     .setBucket("bucket")
                     .setKey("key")
-                    .setBody(RequestBody::FromString("data")));
+                    .setBody(RequestBody::fromString("data")));
     auto outcome = future.get();
 
     EXPECT_FALSE(outcome.has_value());
@@ -123,7 +123,7 @@ TEST(OSSAsyncClientMiscTest, TransportCanceled_OperationErrorFields) {
             models::PutObjectRequest()
                     .setBucket("bucket")
                     .setKey("key")
-                    .setBody(RequestBody::FromString("data")));
+                    .setBody(RequestBody::fromString("data")));
     auto outcome = future.get();
 
     EXPECT_FALSE(outcome.has_value());
@@ -159,7 +159,7 @@ TEST(OSSAsyncClientMiscTest, CancelToken_AlreadyCanceled) {
             models::PutObjectRequest()
                     .setBucket("bucket")
                     .setKey("key")
-                    .setBody(RequestBody::FromString("data")),
+                    .setBody(RequestBody::fromString("data")),
             &opts);
     auto outcome = future.get();
 
@@ -191,7 +191,7 @@ TEST(OSSAsyncClientMiscTest, CancelToken_CancelDuringRequest) {
             models::PutObjectRequest()
                     .setBucket("bucket")
                     .setKey("key")
-                    .setBody(RequestBody::FromString("data")),
+                    .setBody(RequestBody::fromString("data")),
             &opts);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -228,7 +228,7 @@ TEST(OSSAsyncClientMiscTest, CancelToken_CancelAfterTimeout) {
             models::PutObjectRequest()
                     .setBucket("bucket")
                     .setKey("key")
-                    .setBody(RequestBody::FromString("data")),
+                    .setBody(RequestBody::fromString("data")),
             &opts);
     auto outcome = future.get();
 

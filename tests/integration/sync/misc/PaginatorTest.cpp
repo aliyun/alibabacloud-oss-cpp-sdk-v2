@@ -22,7 +22,7 @@ class PaginatorTest : public ::testing::Test {
                     models::PutObjectRequest()
                             .setBucket(bucketName_)
                             .setKey(key)
-                            .setBody(RequestBody::FromString("data-" + std::to_string(i))));
+                            .setBody(RequestBody::fromString("data-" + std::to_string(i))));
             EXPECT_TRUE(putOutcome.has_value());
         }
     }

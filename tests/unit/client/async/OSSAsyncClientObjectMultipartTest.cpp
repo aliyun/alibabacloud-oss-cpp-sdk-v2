@@ -266,7 +266,7 @@ TEST(OSSAsyncClientObjectMultipartTest, UploadPartAsync_CRC64Check_Success) {
     request.setBucket("test-bucket").setKey("test-key");
     request.setPartNumber(1);
     request.setUploadId("upload-123");
-    request.setBody(RequestBody::FromString(data));
+    request.setBody(RequestBody::fromString(data));
 
     auto future = client.asyncCall(request);
     auto outcome = future.get();
@@ -295,7 +295,7 @@ TEST(OSSAsyncClientObjectMultipartTest, UploadPartAsync_CRC64Check_Mismatch) {
     request.setBucket("test-bucket").setKey("test-key");
     request.setPartNumber(1);
     request.setUploadId("upload-123");
-    request.setBody(RequestBody::FromString(data));
+    request.setBody(RequestBody::fromString(data));
 
     auto future = client.asyncCall(request);
     auto outcome = future.get();

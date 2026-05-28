@@ -75,7 +75,7 @@ TEST(OSSClientMiscTest, TransportCanceled_NoRetry) {
             models::PutObjectRequest()
                     .setBucket("bucket")
                     .setKey("key")
-                    .setBody(RequestBody::FromString("data")));
+                    .setBody(RequestBody::fromString("data")));
 
     EXPECT_FALSE(outcome.has_value());
     EXPECT_EQ(1ULL, mock->requests.size());
@@ -101,7 +101,7 @@ TEST(OSSClientMiscTest, TransportCanceled_OperationErrorFields) {
             models::PutObjectRequest()
                     .setBucket("bucket")
                     .setKey("key")
-                    .setBody(RequestBody::FromString("data")));
+                    .setBody(RequestBody::fromString("data")));
 
     EXPECT_FALSE(outcome.has_value());
     auto& error = outcome.error();
@@ -136,7 +136,7 @@ TEST(OSSClientMiscTest, CancelToken_AlreadyCanceled) {
             models::PutObjectRequest()
                     .setBucket("bucket")
                     .setKey("key")
-                    .setBody(RequestBody::FromString("data")),
+                    .setBody(RequestBody::fromString("data")),
             &opts);
 
     EXPECT_FALSE(outcome.has_value());
@@ -172,7 +172,7 @@ TEST(OSSClientMiscTest, CancelToken_CancelDuringRequest) {
             models::PutObjectRequest()
                     .setBucket("bucket")
                     .setKey("key")
-                    .setBody(RequestBody::FromString("data")),
+                    .setBody(RequestBody::fromString("data")),
             &opts);
     canceller.join();
 
@@ -205,7 +205,7 @@ TEST(OSSClientMiscTest, CancelToken_CancelAfterTimeout) {
             models::PutObjectRequest()
                     .setBucket("bucket")
                     .setKey("key")
-                    .setBody(RequestBody::FromString("data")),
+                    .setBody(RequestBody::fromString("data")),
             &opts);
 
     EXPECT_FALSE(outcome.has_value());
@@ -232,7 +232,7 @@ TEST(OSSClientMiscTest, DisableRequestProcessing_BeforeRequest) {
             models::PutObjectRequest()
                     .setBucket("bucket")
                     .setKey("key")
-                    .setBody(RequestBody::FromString("data")));
+                    .setBody(RequestBody::fromString("data")));
 
     EXPECT_FALSE(outcome.has_value());
     EXPECT_EQ("RequestDisabled", outcome.error().getCode());
@@ -261,7 +261,7 @@ TEST(OSSClientMiscTest, DisableRequestProcessing_EnableThenRequest) {
             models::PutObjectRequest()
                     .setBucket("bucket")
                     .setKey("key")
-                    .setBody(RequestBody::FromString("data")));
+                    .setBody(RequestBody::fromString("data")));
 
     EXPECT_TRUE(outcome.has_value());
 }
@@ -293,7 +293,7 @@ TEST(OSSClientMiscTest, DisableRequestProcessing_DuringRequest) {
             models::PutObjectRequest()
                     .setBucket("bucket")
                     .setKey("key")
-                    .setBody(RequestBody::FromString("data")));
+                    .setBody(RequestBody::fromString("data")));
     disabler.join();
 
     EXPECT_FALSE(outcome.has_value());
@@ -329,7 +329,7 @@ TEST(OSSClientMiscTest, DisableRequestProcessing_DuringRetryWait) {
             models::PutObjectRequest()
                     .setBucket("bucket")
                     .setKey("key")
-                    .setBody(RequestBody::FromString("data")));
+                    .setBody(RequestBody::fromString("data")));
     disabler.join();
 
     EXPECT_FALSE(outcome.has_value());
@@ -360,7 +360,7 @@ TEST(OSSClientMiscTest, DisableRequestProcessing_RepeatedDisableEnable) {
             models::PutObjectRequest()
                     .setBucket("bucket")
                     .setKey("key")
-                    .setBody(RequestBody::FromString("data")));
+                    .setBody(RequestBody::fromString("data")));
 
     EXPECT_TRUE(outcome.has_value());
 }

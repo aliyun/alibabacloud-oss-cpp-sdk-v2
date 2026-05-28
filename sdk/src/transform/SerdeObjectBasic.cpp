@@ -390,7 +390,7 @@ OperationInput fromDeleteMultipleObjects(const models::DeleteMultipleObjectsRequ
     if (request.hasDelete()) {
         auto str = toXmlText(request.getDelete(), "Delete");
         md5 = utils::CalcContentMD5(str);
-        input.body = RequestBody::FromString(std::move(str));
+        input.body = RequestBody::fromString(std::move(str));
     }
 
     input.headers.emplace("Content-MD5", std::move(md5));
@@ -540,7 +540,7 @@ OperationInput fromRestoreObject(const models::RestoreObjectRequest& request) {
     if (request.hasRestoreRequest()) {
         auto str = toXmlText(request.getRestoreRequest(), "RestoreRequest");
         md5 = utils::CalcContentMD5(str);
-        input.body = RequestBody::FromString(std::move(str));
+        input.body = RequestBody::fromString(std::move(str));
     }
 
     input.headers.emplace("Content-MD5", std::move(md5));

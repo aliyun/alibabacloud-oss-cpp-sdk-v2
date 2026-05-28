@@ -83,7 +83,7 @@ TEST_F(BucketVersioningTest, ListObjectVersions_Normal) {
             models::PutObjectRequest()
                     .setBucket(bucketName_)
                     .setKey(key)
-                    .setBody(RequestBody::FromString("version1")));
+                    .setBody(RequestBody::fromString("version1")));
     EXPECT_TRUE(putOutcome.has_value());
 
     // Upload again to create a second version
@@ -91,7 +91,7 @@ TEST_F(BucketVersioningTest, ListObjectVersions_Normal) {
             models::PutObjectRequest()
                     .setBucket(bucketName_)
                     .setKey(key)
-                    .setBody(RequestBody::FromString("version2")));
+                    .setBody(RequestBody::fromString("version2")));
     EXPECT_TRUE(putOutcome2.has_value());
 
     // List versions
@@ -119,14 +119,14 @@ TEST_F(BucketVersioningTest, ListObjectVersions_WithDelimiter) {
             models::PutObjectRequest()
                     .setBucket(bucketName_)
                     .setKey("versioning-dir/obj1")
-                    .setBody(RequestBody::FromString("content1")));
+                    .setBody(RequestBody::fromString("content1")));
     EXPECT_TRUE(putOutcome1.has_value());
 
     auto putOutcome2 = client->putObject(
             models::PutObjectRequest()
                     .setBucket(bucketName_)
                     .setKey("versioning-dir/obj2")
-                    .setBody(RequestBody::FromString("content2")));
+                    .setBody(RequestBody::fromString("content2")));
     EXPECT_TRUE(putOutcome2.has_value());
 
     // List with delimiter

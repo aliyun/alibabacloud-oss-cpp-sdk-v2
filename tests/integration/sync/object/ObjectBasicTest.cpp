@@ -42,7 +42,7 @@ TEST_F(ObjectBasicTest, PutObject_Normal) {
     auto client = ClientHelper::GetDefaultClient();
     std::string key = "test-put-object";
     std::string content = "Hello, OSS!";
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
 
     auto outcome = client->putObject(
         models::PutObjectRequest()
@@ -56,7 +56,7 @@ TEST_F(ObjectBasicTest, PutObject_WithMetadata) {
     auto client = ClientHelper::GetDefaultClient();
     std::string key = "test-put-object-metadata";
     std::string content = "Hello with metadata!";
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
 
 
     auto outcome = client->putObject(
@@ -73,7 +73,7 @@ TEST_F(ObjectBasicTest, PutObject_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     std::string key = "test-put-object-fail";
     std::string content = "Hello!";
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
 
 
     auto outcome = client->putObject(
@@ -93,7 +93,7 @@ TEST_F(ObjectBasicTest, GetObject_Normal) {
     std::string content = "Hello, GetObject!";
 
     // Put object first
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
 
     auto putOutcome = client->putObject(
         models::PutObjectRequest()
@@ -138,7 +138,7 @@ TEST_F(ObjectBasicTest, GetObject_WithSinkFactory) {
     std::string key = "test-get-object-sinkfactory";
     std::string content = "Hello, SinkFactory!";
 
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
     auto putOutcome = client->putObject(
         models::PutObjectRequest()
             .setBucket(bucketName_)
@@ -167,7 +167,7 @@ TEST_F(ObjectBasicTest, GetObject_WithSinkFactory_OneShot) {
     std::string key = "test-get-object-sinkfactory-oneshot";
     std::string content = "OneShot content!";
 
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
     auto putOutcome = client->putObject(
         models::PutObjectRequest()
             .setBucket(bucketName_)
@@ -199,7 +199,7 @@ TEST_F(ObjectBasicTest, CopyObject_Normal) {
     std::string content = "Copy me!";
 
     // Put source object
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
 
     auto putOutcome = client->putObject(
         models::PutObjectRequest()
@@ -240,7 +240,7 @@ TEST_F(ObjectBasicTest, DeleteObject_Normal) {
     std::string content = "Delete me!";
 
     // Put object first
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
 
     auto putOutcome = client->putObject(
         models::PutObjectRequest()
@@ -275,7 +275,7 @@ TEST_F(ObjectBasicTest, HeadObject_Normal) {
     std::string content = "Head me!";
 
     // Put object first
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
 
     auto putOutcome = client->putObject(
         models::PutObjectRequest()
@@ -322,7 +322,7 @@ TEST_F(ObjectBasicTest, GetObjectMeta_Normal) {
     std::string content = "Meta me!";
 
     // Put object first
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
 
     auto putOutcome = client->putObject(
         models::PutObjectRequest()
@@ -359,7 +359,7 @@ TEST_F(ObjectBasicTest, PutObject_CRC64CheckUpload) {
     auto client = ClientHelper::GetDefaultClient();
     std::string key = "test-put-object-crc64";
     std::string content = "Hello, OSS CRC64 upload check!";
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
 
     auto outcome = client->putObject(
         models::PutObjectRequest()
@@ -382,7 +382,7 @@ TEST_F(ObjectBasicTest, AppendObject_CRC64CheckUpload) {
             .setKey(key)
             .setPosition(0)
             .setInitHashCRC64(0)
-            .setBody(RequestBody::FromString(content1)));
+            .setBody(RequestBody::fromString(content1)));
     EXPECT_TRUE(outcome1.has_value());
     EXPECT_FALSE(outcome1.value().getHashCrc64ecma().empty());
 
@@ -392,7 +392,7 @@ TEST_F(ObjectBasicTest, AppendObject_CRC64CheckUpload) {
             .setKey(key)
             .setPosition(outcome1.value().getNextAppendPosition())
             .setInitHashCRC64(outcome1.value().getHashCrc64ecmaAsUint64())
-            .setBody(RequestBody::FromString(content2)));
+            .setBody(RequestBody::fromString(content2)));
     EXPECT_TRUE(outcome2.has_value());
     EXPECT_FALSE(outcome2.value().getHashCrc64ecma().empty());
 }
@@ -407,7 +407,7 @@ TEST_F(ObjectBasicTest, AppendObject_CRC64CheckUpload_NoInit) {
             .setBucket(bucketName_)
             .setKey(key)
             .setPosition(0)
-            .setBody(RequestBody::FromString(content)));
+            .setBody(RequestBody::fromString(content)));
     EXPECT_TRUE(outcome.has_value());
 }
 
@@ -423,7 +423,7 @@ TEST_F(ObjectBasicTest, PutObject_WithCallback) {
             .setBucket(bucketName_)
             .setKey(key)
             .setCallback(callbackParam)
-            .setBody(RequestBody::FromString("hello world")));
+            .setBody(RequestBody::fromString("hello world")));
     EXPECT_TRUE(outcome.has_value());
     EXPECT_EQ(203, outcome.value().getStatusCode());
     EXPECT_FALSE(outcome.value().getCallbackResult().empty());

@@ -103,7 +103,7 @@ TEST_F(EncryptionObjectTest, PutGet_SmallObject) {
             models::PutObjectRequest()
                 .setBucket(bucketName_)
                 .setKey(key)
-                .setBody(RequestBody::FromString(content)));
+                .setBody(RequestBody::fromString(content)));
     ASSERT_TRUE(putOutcome.has_value());
 
     auto getOutcome = encClient_->getObject(
@@ -124,7 +124,7 @@ TEST_F(EncryptionObjectTest, PutGet_LargeObject) {
             models::PutObjectRequest()
                 .setBucket(bucketName_)
                 .setKey(key)
-                .setBody(RequestBody::FromString(content)));
+                .setBody(RequestBody::fromString(content)));
     ASSERT_TRUE(putOutcome.has_value());
 
     auto getOutcome = encClient_->getObject(
@@ -148,7 +148,7 @@ TEST_F(EncryptionObjectTest, PutGet_VariousSizes) {
                 models::PutObjectRequest()
                     .setBucket(bucketName_)
                     .setKey(key)
-                    .setBody(RequestBody::FromString(content)));
+                    .setBody(RequestBody::fromString(content)));
         ASSERT_TRUE(putOutcome.has_value()) << "put failed for size=" << sz;
 
         auto getOutcome = encClient_->getObject(
@@ -172,7 +172,7 @@ TEST_F(EncryptionObjectTest, GetObject_RangeFromStart) {
             models::PutObjectRequest()
                 .setBucket(bucketName_)
                 .setKey(key)
-                .setBody(RequestBody::FromString(content)));
+                .setBody(RequestBody::fromString(content)));
     ASSERT_TRUE(putOutcome.has_value());
 
     auto getOutcome = encClient_->getObject(
@@ -197,7 +197,7 @@ TEST_F(EncryptionObjectTest, GetObject_RangeCrossBlock) {
             models::PutObjectRequest()
                 .setBucket(bucketName_)
                 .setKey(key)
-                .setBody(RequestBody::FromString(content)));
+                .setBody(RequestBody::fromString(content)));
     ASSERT_TRUE(putOutcome.has_value());
 
     auto getOutcome = encClient_->getObject(
@@ -222,7 +222,7 @@ TEST_F(EncryptionObjectTest, GetObject_RangeMiddle) {
             models::PutObjectRequest()
                 .setBucket(bucketName_)
                 .setKey(key)
-                .setBody(RequestBody::FromString(content)));
+                .setBody(RequestBody::fromString(content)));
     ASSERT_TRUE(putOutcome.has_value());
 
     auto getOutcome = encClient_->getObject(
@@ -247,7 +247,7 @@ TEST_F(EncryptionObjectTest, GetObject_RangeUnaligned) {
             models::PutObjectRequest()
                 .setBucket(bucketName_)
                 .setKey(key)
-                .setBody(RequestBody::FromString(content)));
+                .setBody(RequestBody::fromString(content)));
     ASSERT_TRUE(putOutcome.has_value());
 
     auto getOutcome = encClient_->getObject(
@@ -273,7 +273,7 @@ TEST_F(EncryptionObjectTest, GetObject_RangeAligned) {
             models::PutObjectRequest()
                 .setBucket(bucketName_)
                 .setKey(key)
-                .setBody(RequestBody::FromString(content)));
+                .setBody(RequestBody::fromString(content)));
     ASSERT_TRUE(putOutcome.has_value());
 
     auto getOutcome = encClient_->getObject(
@@ -325,7 +325,7 @@ TEST_F(EncryptionObjectTest, MultipartUpload_Normal) {
                     .setKey(key)
                     .setUploadId(uploadId)
                     .setPartNumber(i + 1)
-                    .setBody(RequestBody::FromString(partData))
+                    .setBody(RequestBody::fromString(partData))
                     .setCseMultiPartContext(ctx));
         ASSERT_TRUE(partOutcome.has_value()) << "uploadPart failed for part " << (i + 1);
 
@@ -391,7 +391,7 @@ TEST_F(EncryptionObjectTest, GetObject_UnencryptedPassthrough) {
             models::PutObjectRequest()
                 .setBucket(bucketName_)
                 .setKey(key)
-                .setBody(RequestBody::FromString(content)));
+                .setBody(RequestBody::fromString(content)));
     ASSERT_TRUE(putOutcome.has_value());
 
     auto getOutcome = encClient_->getObject(
@@ -423,7 +423,7 @@ TEST_F(EncryptionObjectTest, PutObject_InvalidRsaKey) {
             models::PutObjectRequest()
                 .setBucket(bucketName_)
                 .setKey("enc-test-bad-key")
-                .setBody(RequestBody::FromString("test")));
+                .setBody(RequestBody::fromString("test")));
     EXPECT_FALSE(putOutcome.has_value());
     EXPECT_EQ("EncryptionFailure", putOutcome.error().getCode());
 }
@@ -436,7 +436,7 @@ TEST_F(EncryptionObjectTest, GetObject_DifferentKey) {
             models::PutObjectRequest()
                 .setBucket(bucketName_)
                 .setKey(key)
-                .setBody(RequestBody::FromString(content)));
+                .setBody(RequestBody::fromString(content)));
     ASSERT_TRUE(putOutcome.has_value());
 
     static const char* kOtherPrivateKey =
@@ -496,7 +496,7 @@ TEST_F(EncryptionObjectTest, GetObject_WithSinkFactory) {
             models::PutObjectRequest()
                 .setBucket(bucketName_)
                 .setKey(key)
-                .setBody(RequestBody::FromString(content)));
+                .setBody(RequestBody::fromString(content)));
     ASSERT_TRUE(putOutcome.has_value());
 
     auto userStream = std::make_shared<std::stringstream>();
@@ -529,7 +529,7 @@ TEST_F(EncryptionObjectTest, PutGet_UserMetadataPreserved) {
             models::PutObjectRequest()
                 .setBucket(bucketName_)
                 .setKey(key)
-                .setBody(RequestBody::FromString(content))
+                .setBody(RequestBody::fromString(content))
                 .setMetadata(meta));
     ASSERT_TRUE(putOutcome.has_value());
 
@@ -625,7 +625,7 @@ TEST_F(EncryptionObjectTest, CrossSdk_DecryptPreEncryptedData) {
                 models::PutObjectRequest()
                     .setBucket(bucketName_)
                     .setKey(key)
-                    .setBody(RequestBody::FromString(encData))
+                    .setBody(RequestBody::fromString(encData))
                     .setMetadata(meta));
         ASSERT_TRUE(putOutcome.has_value()) << "upload failed for " << tc.encFile;
 

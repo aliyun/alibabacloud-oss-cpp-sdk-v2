@@ -31,7 +31,7 @@ TEST_F(AsyncObjectTaggingTest, ObjectTagging_Normal) {
     auto client = ClientHelper::GetDefaultClient();
     std::string key = "test-tagging-object";
 
-    auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::FromString("tagging content")));
+    auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::fromString("tagging content")));
     EXPECT_TRUE(putFuture.get().has_value());
 
     std::vector<models::Tag> tags;

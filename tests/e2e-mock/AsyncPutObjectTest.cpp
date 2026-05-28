@@ -33,7 +33,7 @@ TEST_F(AsyncPutObjectTest, AsyncPutObject_Success) {
     auto request = models::PutObjectRequest()
         .setBucket("bucket")
         .setKey("test-key")
-        .setBody(RequestBody::FromString("async hello"));
+        .setBody(RequestBody::fromString("async hello"));
 
     client.putObjectAsync(request, [&promise](PutObjectOutcome outcome) {
         promise.set_value(std::move(outcome));
@@ -54,7 +54,7 @@ TEST_F(AsyncPutObjectTest, AsyncPutObject_BodyReceived) {
     auto request = models::PutObjectRequest()
         .setBucket("bucket")
         .setKey("test-key")
-        .setBody(RequestBody::FromString(content));
+        .setBody(RequestBody::fromString(content));
 
     client.putObjectAsync(request, [&promise](PutObjectOutcome outcome) {
         promise.set_value(std::move(outcome));
@@ -73,7 +73,7 @@ TEST_F(AsyncPutObjectTest, AsyncPutObject_ServerError) {
     auto request = models::PutObjectRequest()
         .setBucket("bucket")
         .setKey("error-key")
-        .setBody(RequestBody::FromString("data"));
+        .setBody(RequestBody::fromString("data"));
 
     client.putObjectAsync(request, [&promise](PutObjectOutcome outcome) {
         promise.set_value(std::move(outcome));

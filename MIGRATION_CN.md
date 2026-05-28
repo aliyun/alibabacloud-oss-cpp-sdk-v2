@@ -174,7 +174,7 @@ auto outcome = client.putObject(
     oss::models::PutObjectRequest()
         .setBucket("mybucket")
         .setKey("mykey")
-        .setBody(oss::RequestBody::FromString("hello")));
+        .setBody(oss::RequestBody::fromString("hello")));
 if (outcome.has_value()) {
     // 使用 outcome.value() 或 *outcome
 } else {
@@ -250,10 +250,10 @@ V1 版本所有操作统一使用 `std::shared_ptr<std::iostream>` 作为上传�
 
 | 工厂方法 | 底层类型 | 所有权 | 说明 |
 |:---------|:---------|:-------|:-----|
-| `RequestBody::FromString(data)` | `StringContent` | 拥有（拷贝/移动） | 拷贝或移动 `std::string` 到请求体中，适用于所有场景 |
-| `RequestBody::FromFile(path)` | `FileContent` | 拥有（路径） | 从文件路径读取数据，重试时自动重新打开文件 |
-| `RequestBody::FromStream(stream)` | `StreamContent` | 共享（`shared_ptr`） | 包装 `std::shared_ptr<std::istream>`，传入 null 时返回 `EmptyContent` |
-| `RequestBody::FromMemory(data, len)` | `MemoryContent` | 非拥有（零拷贝） | 直接引用已有内存，不做拷贝。调用方必须确保数据在请求完成前有效 |
+| `RequestBody::fromString(data)` | `StringContent` | 拥有（拷贝/移动） | 拷贝或移动 `std::string` 到请求体中，适用于所有场景 |
+| `RequestBody::fromFile(path)` | `FileContent` | 拥有（路径） | 从文件路径读取数据，重试时自动重新打开文件 |
+| `RequestBody::fromStream(stream)` | `StreamContent` | 共享（`shared_ptr`） | 包装 `std::shared_ptr<std::istream>`，传入 null 时返回 `EmptyContent` |
+| `RequestBody::fromMemory(data, len)` | `MemoryContent` | 非拥有（零拷贝） | 直接引用已有内存，不做拷贝。调用方必须确保数据在请求完成前有效 |
 
 ```cpp
 // v1
@@ -265,36 +265,36 @@ auto outcome2 = client.PutObject("bucket", "key", "/path/to/file");
 ```
 
 ```cpp
-// v2 -- FromString: 拥有数据的拷贝
+// v2 -- fromString: 拥有数据的拷贝
 auto outcome = client.putObject(
     oss::models::PutObjectRequest()
         .setBucket("bucket")
         .setKey("key")
-        .setBody(oss::RequestBody::FromString("hello world")));
+        .setBody(oss::RequestBody::fromString("hello world")));
 
-// v2 -- FromFile: 从文件路径读取，重试时自动重新打开
+// v2 -- fromFile: 从文件路径读取，重试时自动重新打开
 auto outcome2 = client.putObject(
     oss::models::PutObjectRequest()
         .setBucket("bucket")
         .setKey("key")
-        .setBody(oss::RequestBody::FromFile("/path/to/data.bin")));
+        .setBody(oss::RequestBody::fromFile("/path/to/data.bin")));
 
-// v2 -- FromStream: 包装共享的 istream
+// v2 -- fromStream: 包装共享的 istream
 auto ifs = std::make_shared<std::ifstream>("data.bin", std::ios::binary);
 auto outcome3 = client.putObject(
     oss::models::PutObjectRequest()
         .setBucket("bucket")
         .setKey("key")
-        .setBody(oss::RequestBody::FromStream(ifs)));
+        .setBody(oss::RequestBody::fromStream(ifs)));
 
-// v2 -- FromMemory: 零拷贝，非拥有引用
+// v2 -- fromMemory: 零拷贝，非拥有引用
 const char* buf = getBuffer();
 size_t bufLen = getBufferSize();
 auto outcome4 = client.putObject(
     oss::models::PutObjectRequest()
         .setBucket("bucket")
         .setKey("key")
-        .setBody(oss::RequestBody::FromMemory(buf, bufLen)));
+        .setBody(oss::RequestBody::fromMemory(buf, bufLen)));
 ```
 
 V2 版本还提供了 `putObjectFromFile()` 便捷方法，可直接传入文件路径：
@@ -601,7 +601,7 @@ auto outcome = eclient.putObject(
     oss::models::PutObjectRequest()
         .setBucket("bucket")
         .setKey("key")
-        .setBody(oss::RequestBody::FromString("data")));
+        .setBody(oss::RequestBody::fromString("data")));
 ```
 
 V2 版本的 `OSSEncryptionClient` 支持：`putObject`、`getObject`、`headObject`、`getObjectMeta`、`initiateMultipartUpload`、`uploadPart`、`completeMultipartUpload`、`abortMultipartUpload`、`listParts`，以及 `unwrap()` 获取底层 `OSSClient` 访问非加密操作。

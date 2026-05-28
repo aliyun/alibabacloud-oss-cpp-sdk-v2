@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
             .setKey(args.key)
             .setUploadId(uploadId)
             .setPartNumber(partNumber)
-            .setBody(oss::RequestBody::FromString(data)));
+            .setBody(oss::RequestBody::fromString(data)));
     if (!outcome.has_value()) {
         auto& e = outcome.error();
         std::cerr << "UploadPart fail"

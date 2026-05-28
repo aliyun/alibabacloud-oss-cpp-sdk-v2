@@ -75,14 +75,14 @@ TEST_F(AsyncObjectMultipartTest, MultipartUpload_Normal) {
 
     auto part1Future = client->asyncCall(models::UploadPartRequest()
             .setBucket(bucketName_).setKey(key).setUploadId(uploadId).setPartNumber(1)
-            .setBody(RequestBody::FromString(content1)));
+            .setBody(RequestBody::fromString(content1)));
     auto part1Outcome = part1Future.get();
     EXPECT_TRUE(part1Outcome.has_value());
     std::string etag1 = part1Outcome.value().getETag();
 
     auto part2Future = client->asyncCall(models::UploadPartRequest()
             .setBucket(bucketName_).setKey(key).setUploadId(uploadId).setPartNumber(2)
-            .setBody(RequestBody::FromString(content2)));
+            .setBody(RequestBody::fromString(content2)));
     auto part2Outcome = part2Future.get();
     EXPECT_TRUE(part2Outcome.has_value());
     std::string etag2 = part2Outcome.value().getETag();
@@ -162,7 +162,7 @@ TEST_F(AsyncObjectMultipartTest, UploadPartCopy_Normal) {
     std::string destKey = "test-part-copy-dest";
 
     auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(sourceKey)
-            .setBody(RequestBody::FromString("Content for part copy test.")));
+            .setBody(RequestBody::fromString("Content for part copy test.")));
     EXPECT_TRUE(putFuture.get().has_value());
 
     auto initFuture = client->asyncCall(models::InitiateMultipartUploadRequest().setBucket(bucketName_).setKey(destKey));
@@ -211,7 +211,7 @@ TEST_F(AsyncObjectMultipartTest, UploadPart_CRC64CheckUpload) {
             .setKey(key)
             .setUploadId(uploadId)
             .setPartNumber(1)
-            .setBody(RequestBody::FromString(partData)));
+            .setBody(RequestBody::fromString(partData)));
     auto partOutcome = partFuture.get();
     EXPECT_TRUE(partOutcome.has_value());
     EXPECT_FALSE(partOutcome.value().getHashCrc64ecma().empty());

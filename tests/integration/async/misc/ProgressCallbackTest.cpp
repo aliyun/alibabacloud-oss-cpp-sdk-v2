@@ -47,7 +47,7 @@ TEST_F(AsyncProgressCallbackTest, PutObject_Progress) {
             models::PutObjectRequest()
                     .setBucket(bucketName_)
                     .setKey("async-progress-test-put")
-                    .setBody(RequestBody::FromString(data))
+                    .setBody(RequestBody::fromString(data))
                     .setProgressCallback(progress));
 
     auto outcome = future.get();
@@ -89,7 +89,7 @@ TEST_F(AsyncProgressCallbackTest, UploadPart_Progress) {
                     .setKey(key)
                     .setPartNumber(1)
                     .setUploadId(uploadId)
-                    .setBody(RequestBody::FromString(data))
+                    .setBody(RequestBody::fromString(data))
                     .setProgressCallback(progress));
 
     auto uploadOutcome = uploadFuture.get();
@@ -121,7 +121,7 @@ TEST_F(AsyncProgressCallbackTest, PutObject_Progress_Fail) {
             models::PutObjectRequest()
                     .setBucket(bucketName_)
                     .setKey("async-progress-test-fail")
-                    .setBody(RequestBody::FromString(data))
+                    .setBody(RequestBody::fromString(data))
                     .setProgressCallback(progress));
 
     auto outcome = future.get();

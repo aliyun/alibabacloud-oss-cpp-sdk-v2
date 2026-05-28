@@ -50,7 +50,7 @@ TEST(OperationTest, RequestBodyFromString) {
     got.resize(32);
 
     // lvalue string
-    auto body = RequestBody::FromString(data);
+    auto body = RequestBody::fromString(data);
     EXPECT_EQ(data.length(), body->length().value());
     EXPECT_FALSE(body->isOneShot());
     EXPECT_EQ(std::nullopt, body->path());
@@ -61,7 +61,7 @@ TEST(OperationTest, RequestBodyFromString) {
     EXPECT_EQ(data, got.substr(0, data.length()));
 
     // rvalue string
-    body = RequestBody::FromString(std::string("hello world"));
+    body = RequestBody::fromString(std::string("hello world"));
     EXPECT_EQ(data.length(), body->length().value());
     EXPECT_FALSE(body->isOneShot());
     EXPECT_EQ(std::nullopt, body->path());
@@ -72,7 +72,7 @@ TEST(OperationTest, RequestBodyFromString) {
     EXPECT_EQ(data, got.substr(0, data.length()));
 
     // const string
-    body = RequestBody::FromString(constdata);
+    body = RequestBody::fromString(constdata);
     EXPECT_EQ(data.length(), body->length().value());
     EXPECT_FALSE(body->isOneShot());
     EXPECT_EQ(std::nullopt, body->path());
@@ -91,7 +91,7 @@ TEST(OperationTest, RequestBodyFromStream) {
     auto stream = std::make_shared<std::istringstream>(data);
 
     // lvalue string
-    auto body = RequestBody::FromStream(stream);
+    auto body = RequestBody::fromStream(stream);
     EXPECT_EQ(data.length(), body->length().value());
     EXPECT_FALSE(body->isOneShot());
     EXPECT_EQ(std::nullopt, body->path());
@@ -102,7 +102,7 @@ TEST(OperationTest, RequestBodyFromStream) {
     EXPECT_EQ(data, got.substr(0, data.length()));
 
     // rvalue string
-    body = RequestBody::FromStream(std::make_shared<std::istringstream>(data));
+    body = RequestBody::fromStream(std::make_shared<std::istringstream>(data));
     EXPECT_EQ(data.length(), body->length().value());
     EXPECT_FALSE(body->isOneShot());
     EXPECT_EQ(std::nullopt, body->path());
@@ -114,7 +114,7 @@ TEST(OperationTest, RequestBodyFromStream) {
 
     // const string
     const auto conststream = std::make_shared<std::istringstream>(data);
-    body = RequestBody::FromStream(conststream);
+    body = RequestBody::fromStream(conststream);
     EXPECT_EQ(data.length(), body->length().value());
     EXPECT_FALSE(body->isOneShot());
     EXPECT_EQ(std::nullopt, body->path());
@@ -125,7 +125,7 @@ TEST(OperationTest, RequestBodyFromStream) {
     EXPECT_EQ(data.substr(0, n), got.substr(0, n));
 
     // nullptr
-    body = RequestBody::FromStream(nullptr);
+    body = RequestBody::fromStream(nullptr);
     EXPECT_EQ(0, body->length().value());
     EXPECT_FALSE(body->isOneShot());
     EXPECT_EQ(std::nullopt, body->path());
@@ -147,7 +147,7 @@ TEST(OperationTest, RequestBodyFromFilePathString) {
     EXPECT_EQ(len, fileData.size());
 
     // lvalue string
-    auto body = RequestBody::FromFile(filepath);
+    auto body = RequestBody::fromFile(filepath);
     EXPECT_EQ(data.length(), body->length().value());
     EXPECT_FALSE(body->isOneShot());
     EXPECT_EQ(filepath, body->path());
@@ -159,7 +159,7 @@ TEST(OperationTest, RequestBodyFromFilePathString) {
 
     // rvalue string
     auto rfilepath = filepath;
-    body = RequestBody::FromFile(std::move(rfilepath));
+    body = RequestBody::fromFile(std::move(rfilepath));
     EXPECT_EQ(data.length(), body->length().value());
     EXPECT_FALSE(body->isOneShot());
     EXPECT_EQ(filepath, body->path());
@@ -171,7 +171,7 @@ TEST(OperationTest, RequestBodyFromFilePathString) {
 
     // const string
     const std::string constfilepath = filepath;
-    body = RequestBody::FromFile(constfilepath);
+    body = RequestBody::fromFile(constfilepath);
     EXPECT_EQ(data.length(), body->length().value());
     EXPECT_FALSE(body->isOneShot());
     EXPECT_EQ(filepath, body->path());
@@ -196,7 +196,7 @@ TEST(OperationTest, RequestBodyFromFilePath) {
 
     // lvalue string
     auto path = std::filesystem::path(filepath);
-    auto body = RequestBody::FromFile(path);
+    auto body = RequestBody::fromFile(path);
     EXPECT_EQ(data.length(), body->length().value());
     EXPECT_FALSE(body->isOneShot());
     EXPECT_EQ(filepath, body->path());
@@ -207,7 +207,7 @@ TEST(OperationTest, RequestBodyFromFilePath) {
     EXPECT_EQ(fileData, got.substr(0, data.length()));
 
     // rvalue string
-    body = RequestBody::FromFile(std::filesystem::path(filepath));
+    body = RequestBody::fromFile(std::filesystem::path(filepath));
     EXPECT_EQ(data.length(), body->length().value());
     EXPECT_FALSE(body->isOneShot());
     EXPECT_EQ(filepath, body->path());
@@ -219,7 +219,7 @@ TEST(OperationTest, RequestBodyFromFilePath) {
 
     // const string
     const auto constpath = std::filesystem::path(filepath);
-    body = RequestBody::FromFile(constpath);
+    body = RequestBody::fromFile(constpath);
     EXPECT_EQ(data.length(), body->length().value());
     EXPECT_FALSE(body->isOneShot());
     EXPECT_EQ(filepath, body->path());
@@ -239,7 +239,7 @@ TEST(OperationTest, RequestBodyFromMemory) {
     got.resize(32);
 
     // lvalue std::string_view
-    auto body = RequestBody::FromMemory(dataview);
+    auto body = RequestBody::fromMemory(dataview);
     EXPECT_EQ(data.length(), body->length().value());
     EXPECT_FALSE(body->isOneShot());
     EXPECT_EQ(std::nullopt, body->path());
@@ -251,7 +251,7 @@ TEST(OperationTest, RequestBodyFromMemory) {
 
     // rvalue std::string_view
     std::string_view rdataview = data;
-    body = RequestBody::FromMemory(std::move(rdataview));
+    body = RequestBody::fromMemory(std::move(rdataview));
     EXPECT_EQ(data.length(), body->length().value());
     EXPECT_FALSE(body->isOneShot());
     EXPECT_EQ(std::nullopt, body->path());
@@ -263,7 +263,7 @@ TEST(OperationTest, RequestBodyFromMemory) {
 
     // const string
     const std::string_view cdataview = data;
-    body = RequestBody::FromMemory(cdataview);
+    body = RequestBody::fromMemory(cdataview);
     EXPECT_EQ(data.length(), body->length().value());
     EXPECT_FALSE(body->isOneShot());
     EXPECT_EQ(std::nullopt, body->path());
@@ -275,7 +275,7 @@ TEST(OperationTest, RequestBodyFromMemory) {
 
     // const char* non-nullptr
     auto len = 3;
-    body = RequestBody::FromMemory(data.c_str(), len);
+    body = RequestBody::fromMemory(data.c_str(), len);
     EXPECT_EQ(len, body->length().value());
     EXPECT_FALSE(body->isOneShot());
     EXPECT_EQ(std::nullopt, body->path());
@@ -289,7 +289,7 @@ TEST(OperationTest, RequestBodyFromMemory) {
     EXPECT_EQ(0, n);
 
     // const char* nullptr
-    body = RequestBody::FromMemory(nullptr, 11);
+    body = RequestBody::fromMemory(nullptr, 11);
     EXPECT_EQ(0, body->length().value());
     EXPECT_FALSE(body->isOneShot());
     EXPECT_EQ(std::nullopt, body->path());

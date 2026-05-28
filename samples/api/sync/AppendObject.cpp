@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
             .setBucket(args.bucket)
             .setKey(args.key)
             .setPosition(0)
-            .setBody(oss::RequestBody::FromString(data1)));
+            .setBody(oss::RequestBody::fromString(data1)));
     if (!outcome.has_value()) {
         auto& e = outcome.error();
         std::cerr << "AppendObject fail"
@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
             .setBucket(args.bucket)
             .setKey(args.key)
             .setPosition(result1.getNextAppendPosition())
-            .setBody(oss::RequestBody::FromString(data2)));
+            .setBody(oss::RequestBody::fromString(data2)));
     if (!outcome2.has_value()) {
         auto& e = outcome2.error();
         std::cerr << "AppendObject(2) fail"

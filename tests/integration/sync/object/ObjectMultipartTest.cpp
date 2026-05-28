@@ -96,7 +96,7 @@ TEST_F(ObjectMultipartTest, MultipartUpload_Normal) {
     std::string uploadId = initiateOutcome.value().getUploadId();
 
     // Upload part 1
-    auto body1 = RequestBody::FromString(content1);
+    auto body1 = RequestBody::fromString(content1);
 
     auto part1Outcome = client->uploadPart(
         models::UploadPartRequest()
@@ -110,7 +110,7 @@ TEST_F(ObjectMultipartTest, MultipartUpload_Normal) {
     EXPECT_FALSE(etag1.empty());
 
     // Upload part 2
-    auto body2 = RequestBody::FromString(content2);
+    auto body2 = RequestBody::fromString(content2);
 
     auto part2Outcome = client->uploadPart(
         models::UploadPartRequest()
@@ -164,7 +164,7 @@ TEST_F(ObjectMultipartTest, MultipartUpload_Normal) {
 TEST_F(ObjectMultipartTest, UploadPart_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     std::string content = "Test content";
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
 
 
     auto outcome = client->uploadPart(
@@ -281,7 +281,7 @@ TEST_F(ObjectMultipartTest, UploadPartCopy_Normal) {
     std::string content = "Content for part copy test. This needs to be long enough.";
 
     // Put source object
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
 
     auto putOutcome = client->putObject(
         models::PutObjectRequest()
@@ -347,7 +347,7 @@ TEST_F(ObjectMultipartTest, UploadPart_CRC64CheckUpload) {
             .setKey(key)
             .setUploadId(uploadId)
             .setPartNumber(1)
-            .setBody(RequestBody::FromString(partData)));
+            .setBody(RequestBody::fromString(partData)));
     EXPECT_TRUE(partOutcome.has_value());
     EXPECT_FALSE(partOutcome.value().getHashCrc64ecma().empty());
 
@@ -373,7 +373,7 @@ TEST_F(ObjectMultipartTest, CompleteMultipartUpload_WithCallback) {
         models::UploadPartRequest()
             .setBucket(bucketName_).setKey(key)
             .setUploadId(uploadId).setPartNumber(1)
-            .setBody(RequestBody::FromString(content)));
+            .setBody(RequestBody::fromString(content)));
     ASSERT_TRUE(partOutcome.has_value());
 
     std::string callbackJson = R"({"callbackUrl":"http://223.5.5.5","callbackBody":"bucket=${bucket}&object=${object}","callbackBodyType":"application/x-www-form-urlencoded"})";

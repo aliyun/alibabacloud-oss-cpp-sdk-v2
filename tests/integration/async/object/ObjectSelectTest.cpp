@@ -67,7 +67,7 @@ TEST_F(AsyncObjectSelectTest, SelectObject_Csv) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(csvData())));
+            .setBody(RequestBody::fromString(csvData())));
     ASSERT_TRUE(putFuture.get().has_value());
 
     auto future = client->asyncCall(
@@ -128,7 +128,7 @@ TEST_F(AsyncObjectSelectTest, SelectObject_Json) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(jsonData())));
+            .setBody(RequestBody::fromString(jsonData())));
     ASSERT_TRUE(putFuture.get().has_value());
 
     auto future = client->asyncCall(
@@ -175,7 +175,7 @@ TEST_F(AsyncObjectSelectTest, SelectObject_WithSinkFactory) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(csvData())));
+            .setBody(RequestBody::fromString(csvData())));
     ASSERT_TRUE(putFuture.get().has_value());
 
     auto userStream = std::make_shared<std::stringstream>();
@@ -243,7 +243,7 @@ TEST_F(AsyncObjectSelectTest, CreateSelectObjectMeta_Csv) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(data)));
+            .setBody(RequestBody::fromString(data)));
     ASSERT_TRUE(putFuture.get().has_value());
 
     auto future = client->asyncCall(

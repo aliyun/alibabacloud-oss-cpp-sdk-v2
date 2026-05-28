@@ -30,7 +30,7 @@ TEST_F(PutObjectTest, PutObject_Success) {
     auto request = models::PutObjectRequest()
         .setBucket("bucket")
         .setKey("test-key")
-        .setBody(RequestBody::FromString("hello world"));
+        .setBody(RequestBody::fromString("hello world"));
 
     auto outcome = client.putObject(request);
     ASSERT_TRUE(outcome.has_value());
@@ -44,7 +44,7 @@ TEST_F(PutObjectTest, PutObject_BodyReceived) {
     auto request = models::PutObjectRequest()
         .setBucket("bucket")
         .setKey("test-key")
-        .setBody(RequestBody::FromString(content));
+        .setBody(RequestBody::fromString(content));
 
     auto outcome = client.putObject(request);
     ASSERT_TRUE(outcome.has_value());
@@ -56,7 +56,7 @@ TEST_F(PutObjectTest, PutObject_HeadersForwarded) {
     auto request = models::PutObjectRequest()
         .setBucket("bucket")
         .setKey("test-key")
-        .setBody(RequestBody::FromString("data"))
+        .setBody(RequestBody::fromString("data"))
         .setMetadata({{"Content-Type", "text/plain"}, {"custom", "value1"}});
 
     auto outcome = client.putObject(request);
@@ -71,7 +71,7 @@ TEST_F(PutObjectTest, PutObject_ServerError) {
     auto request = models::PutObjectRequest()
         .setBucket("bucket")
         .setKey("error-key")
-        .setBody(RequestBody::FromString("data"));
+        .setBody(RequestBody::fromString("data"));
 
     auto outcome = client.putObject(request);
     ASSERT_FALSE(outcome.has_value());

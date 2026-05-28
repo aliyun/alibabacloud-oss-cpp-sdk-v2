@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
                 .setBucket(args.bucket)
                 .setKey(args.key + "-callback")
                 .setPosition(0)
-                .setBody(oss::RequestBody::FromString(data)),
+                .setBody(oss::RequestBody::fromString(data)),
             oss::AppendObjectAsyncCallback([&](oss::AppendObjectOutcome outcome) {
                 if (!outcome.has_value()) {
                     auto& e = outcome.error();
@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
                 .setBucket(args.bucket)
                 .setKey(args.key + "-future")
                 .setPosition(0)
-                .setBody(oss::RequestBody::FromString(data)));
+                .setBody(oss::RequestBody::fromString(data)));
 
         auto outcome = future.get();
         if (!outcome.has_value()) {

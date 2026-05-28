@@ -38,7 +38,7 @@ TEST_F(AsyncObservableWriterTest, GetObject_WithProgressAndCRC) {
             models::PutObjectRequest()
                     .setBucket(bucketName_)
                     .setKey(key)
-                    .setBody(RequestBody::FromString(content)));
+                    .setBody(RequestBody::fromString(content)));
     ASSERT_TRUE(putFuture.get().has_value());
 
     auto output = std::make_shared<std::stringstream>();
@@ -92,7 +92,7 @@ TEST_F(AsyncObservableWriterTest, GetObject_RetryWithObserverReset) {
             models::PutObjectRequest()
                     .setBucket(bucketName_)
                     .setKey(key)
-                    .setBody(RequestBody::FromString(content)));
+                    .setBody(RequestBody::fromString(content)));
     ASSERT_TRUE(putFuture.get().has_value());
 
     auto crc = std::make_shared<CRC64WriteObserver>();
@@ -173,7 +173,7 @@ TEST_F(AsyncObservableWriterTest, GetObject_CRCOnly) {
             models::PutObjectRequest()
                     .setBucket(bucketName_)
                     .setKey(key)
-                    .setBody(RequestBody::FromString(content)));
+                    .setBody(RequestBody::fromString(content)));
     ASSERT_TRUE(putFuture.get().has_value());
 
     auto output = std::make_shared<std::stringstream>();

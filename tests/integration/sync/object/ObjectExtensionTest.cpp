@@ -89,7 +89,7 @@ TEST_F(ObjectExtensionTest, GetObjectToFile_Normal) {
 
     client->putObject(
             models::PutObjectRequest().setBucket(bucketName_).setKey(key)
-                    .setBody(RequestBody::FromString(content)));
+                    .setBody(RequestBody::fromString(content)));
 
     auto filePath = Config::GenRandomFileName();
 
@@ -112,7 +112,7 @@ TEST_F(ObjectExtensionTest, GetObjectToFile_LargeObject) {
 
     client->putObject(
             models::PutObjectRequest().setBucket(bucketName_).setKey(key)
-                    .setBody(RequestBody::FromString(content)));
+                    .setBody(RequestBody::fromString(content)));
 
     auto filePath = Config::GenRandomFileName();
 
@@ -147,7 +147,7 @@ TEST_F(ObjectExtensionTest, GetObjectToFile_TruncatesExisting) {
 
     client->putObject(
             models::PutObjectRequest().setBucket(bucketName_).setKey(key)
-                    .setBody(RequestBody::FromString(content)));
+                    .setBody(RequestBody::fromString(content)));
 
     auto filePath = Config::GenRandomFileName();
     {
@@ -174,7 +174,7 @@ TEST_F(ObjectExtensionTest, GetObjectToFile_WithRange) {
 
     client->putObject(
             models::PutObjectRequest().setBucket(bucketName_).setKey(key)
-                    .setBody(RequestBody::FromString(content)));
+                    .setBody(RequestBody::fromString(content)));
 
     auto filePath = Config::GenRandomFileName();
 
@@ -197,7 +197,7 @@ TEST_F(ObjectExtensionTest, GetObjectToFile_WithOpenEndRange) {
 
     client->putObject(
             models::PutObjectRequest().setBucket(bucketName_).setKey(key)
-                    .setBody(RequestBody::FromString(content)));
+                    .setBody(RequestBody::fromString(content)));
 
     auto filePath = Config::GenRandomFileName();
 
@@ -247,7 +247,7 @@ TEST_F(ObjectExtensionTest, IsObjectExist_True) {
 
     client->putObject(
             models::PutObjectRequest().setBucket(bucketName_).setKey(key)
-                    .setBody(RequestBody::FromString("data")));
+                    .setBody(RequestBody::fromString("data")));
 
     auto outcome = client->isObjectExist(bucketName_, key);
     EXPECT_TRUE(outcome.has_value());

@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
                 .setKey(key)
                 .setUploadId(uploadId)
                 .setPartNumber(i + 1)
-                .setBody(oss::RequestBody::FromString(partData))
+                .setBody(oss::RequestBody::fromString(partData))
                 .setCseMultiPartContext(ctx));
         if (!partOutcome.has_value()) {
             auto& e = partOutcome.error();
