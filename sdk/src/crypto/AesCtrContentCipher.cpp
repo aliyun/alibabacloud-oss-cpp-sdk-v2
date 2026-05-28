@@ -19,16 +19,21 @@ class CryptoByteSource final : public ByteSource {
   private:
     std::size_t onRead(std::uint8_t* buffer, std::size_t count) override {
         std::size_t bytesRead = inner_->read(buffer, count);
-        if (bytesRead > 0) {
-            cipher_->process(buffer, buffer, bytesRead);
+        if (bytesRead > 0 && cipher_->process(buffer, buffer, bytesRead) != bytesRead) {
+            cipherError_ = true;
+            return 0;
         }
         return bytesRead;
     }
 
-    int iostate() override { return inner_->state(); }
+    int iostate() override {
+        if (cipherError_) return std::ios_base::badbit;
+        return inner_->state();
+    }
 
     std::unique_ptr<ByteSource> inner_;
     std::unique_ptr<AesCtrCipher> cipher_;
+    bool cipherError_{false};
 };
 
 class CryptoByteContent final : public ByteContent {
@@ -56,16 +61,24 @@ class DecryptingWriter final : public ByteWriter {
 
   private:
     std::size_t onWrite(const std::uint8_t* data, std::size_t n) override {
+        if (n == 0) return 0;
         if (buffer_.size() < n) buffer_.resize(n);
-        cipher_->process(data, buffer_.data(), n);
+        if (cipher_->process(data, buffer_.data(), n) != n) {
+            cipherError_ = true;
+            return 0;
+        }
         return inner_->write(buffer_.data(), n);
     }
 
-    int iostate() const override { return inner_->state(); }
+    int iostate() const override {
+        if (cipherError_) return std::ios_base::badbit;
+        return inner_->state();
+    }
 
     std::shared_ptr<ByteWriter> inner_;
     std::unique_ptr<AesCtrCipher> cipher_;
     std::vector<uint8_t> buffer_;
+    bool cipherError_{false};
 };
 
 static void seekIV(std::string& iv, uint64_t offset) {

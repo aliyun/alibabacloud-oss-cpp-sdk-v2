@@ -28,7 +28,7 @@ std::string serializeMatDesc(const std::map<std::string, std::string>& desc) {
     std::ostringstream oss;
     oss << "{";
     bool first = true;
-    for (auto& kv : desc) {
+    for (const auto& kv : desc) {
         if (!first) oss << ",";
         oss << "\"" << jsonEscape(kv.first) << "\":\"" << jsonEscape(kv.second) << "\"";
         first = false;

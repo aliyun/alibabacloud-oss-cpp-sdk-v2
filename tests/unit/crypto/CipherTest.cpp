@@ -506,4 +506,155 @@ TEST(CipherTest, AesCtr_KnownVector_DifferentKeyIV) {
     EXPECT_EQ("io0Tu+Y/w0lOuICPqXL7o95ra2eymWZcE+l2vFjySoYZ+g==", encBase64);
 }
 
+// -- Cipher failure propagation tests --
+
+TEST(CipherTest, ContentCipher_EncryptFailure_BadKey) {
+    crypto::CipherData cd;
+    cd.key = "bad";
+    cd.iv.resize(16, '\0');
+
+    crypto::AesCtrContentCipher cc(cd);
+    auto body = std::make_shared<StringContent>("hello world12345");
+    auto encrypted = cc.encryptContent(body);
+
+    auto src = encrypted->spanSource();
+    uint8_t buf[16];
+    EXPECT_EQ(0u, src->read(buf, 16));
+    EXPECT_NE(0, src->state() & std::ios_base::badbit);
+}
+
+TEST(CipherTest, ContentCipher_DecryptFailure_BadKey) {
+    crypto::CipherData cd;
+    cd.key = "bad";
+    cd.iv.resize(16, '\0');
+
+    crypto::AesCtrContentCipher cc(cd);
+    auto userStream = std::make_shared<std::stringstream>();
+    auto writer = std::make_shared<OStreamWriter>(userStream);
+    auto decWriter = cc.decryptContent(writer, 16);
+
+    const uint8_t data[16] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+    EXPECT_EQ(0u, decWriter->write(data, 16));
+    EXPECT_NE(0, decWriter->state() & std::ios_base::badbit);
+    EXPECT_TRUE(userStream->str().empty());
+}
+
+TEST(CipherTest, ContentCipher_Encrypt_ZeroAndMixedSizes) {
+    crypto::CipherData cd;
+    cd.key.resize(32);
+    cd.iv.resize(16);
+    std::memcpy(cd.key.data(), kKey32, 32);
+    std::memcpy(cd.iv.data(), kIV16, 16);
+
+    std::string data(48, '\0');
+    for (size_t i = 0; i < 48; i++) data[i] = static_cast<char>((i % 26) + 'a');
+
+    // total = 0+16+0+32+5+27+16 = 96
+    const size_t total = 96;
+    std::string data96(total, '\0');
+    for (size_t i = 0; i < total; i++) data96[i] = static_cast<char>((i % 26) + 'a');
+
+    // reference: encrypt all at once
+    std::vector<uint8_t> refEnc(total);
+    {
+        crypto::AesCtrCipher cipher(cd.key, cd.iv);
+        ASSERT_EQ(total, cipher.process(reinterpret_cast<const uint8_t*>(data96.data()), refEnc.data(), total));
+    }
+
+    // streaming: 0 / 16 / 0 / 32 / 5(not cross block) / 27(cross block) / 16
+    crypto::AesCtrContentCipher cc(cd);
+    auto body = std::make_shared<StringContent>(data96);
+    auto encrypted = cc.encryptContent(body);
+    auto src = encrypted->spanSource();
+
+    uint8_t buf[total];
+    size_t off = 0;
+
+    EXPECT_EQ(0u, src->read(buf, 0));
+    EXPECT_EQ(0, src->state() & std::ios_base::badbit);
+
+    EXPECT_EQ(16u, src->read(buf + off, 16)); off += 16;
+    EXPECT_EQ(0, src->state() & std::ios_base::badbit);
+
+    EXPECT_EQ(0u, src->read(buf + off, 0));
+    EXPECT_EQ(0, src->state() & std::ios_base::badbit);
+
+    EXPECT_EQ(32u, src->read(buf + off, 32)); off += 32;
+    EXPECT_EQ(0, src->state() & std::ios_base::badbit);
+
+    // 5 bytes, within current block (off=48, block-aligned, stays in one block)
+    EXPECT_EQ(5u, src->read(buf + off, 5)); off += 5;
+    EXPECT_EQ(0, src->state() & std::ios_base::badbit);
+
+    // 27 bytes, crosses block boundary (off=53, next boundary at 64, so 11+16)
+    EXPECT_EQ(27u, src->read(buf + off, 27)); off += 27;
+    EXPECT_EQ(0, src->state() & std::ios_base::badbit);
+
+    // 16 bytes, aligned
+    EXPECT_EQ(16u, src->read(buf + off, 16)); off += 16;
+    EXPECT_EQ(0, src->state() & std::ios_base::badbit);
+
+    ASSERT_EQ(total, off);
+    EXPECT_EQ(std::vector<uint8_t>(refEnc.begin(), refEnc.end()),
+              std::vector<uint8_t>(buf, buf + total));
+}
+
+TEST(CipherTest, ContentCipher_Decrypt_ZeroAndMixedSizes) {
+    crypto::CipherData cd;
+    cd.key.resize(32);
+    cd.iv.resize(16);
+    std::memcpy(cd.key.data(), kKey32, 32);
+    std::memcpy(cd.iv.data(), kIV16, 16);
+
+    std::string plain(48, '\0');
+    for (size_t i = 0; i < 48; i++) plain[i] = static_cast<char>((i % 26) + 'a');
+
+    // total = 0+16+32+7+0+41+16 = 112
+    const size_t total = 112;
+    std::string plain112(total, '\0');
+    for (size_t i = 0; i < total; i++) plain112[i] = static_cast<char>((i % 26) + 'a');
+
+    // encrypt
+    std::vector<uint8_t> enc(total);
+    {
+        crypto::AesCtrCipher cipher(cd.key, cd.iv);
+        cipher.process(reinterpret_cast<const uint8_t*>(plain112.data()), enc.data(), total);
+    }
+
+    // decrypt via writer: 0 / 16 / 32 / 7(not cross block) / 0 / 41(cross block) / 16
+    crypto::AesCtrContentCipher cc(cd);
+    auto userStream = std::make_shared<std::stringstream>();
+    auto writer = std::make_shared<OStreamWriter>(userStream);
+    auto decWriter = cc.decryptContent(writer, static_cast<int64_t>(total));
+
+    size_t off = 0;
+
+    EXPECT_EQ(0u, decWriter->write(enc.data(), 0));
+    EXPECT_EQ(0, decWriter->state() & std::ios_base::badbit);
+
+    EXPECT_EQ(16u, decWriter->write(enc.data() + off, 16)); off += 16;
+    EXPECT_EQ(0, decWriter->state() & std::ios_base::badbit);
+
+    EXPECT_EQ(32u, decWriter->write(enc.data() + off, 32)); off += 32;
+    EXPECT_EQ(0, decWriter->state() & std::ios_base::badbit);
+
+    // 7 bytes, within current block (off=48, block-aligned, stays in one block)
+    EXPECT_EQ(7u, decWriter->write(enc.data() + off, 7)); off += 7;
+    EXPECT_EQ(0, decWriter->state() & std::ios_base::badbit);
+
+    EXPECT_EQ(0u, decWriter->write(enc.data() + off, 0));
+    EXPECT_EQ(0, decWriter->state() & std::ios_base::badbit);
+
+    // 41 bytes, crosses block boundary (off=55, next boundary at 64, so 9+32)
+    EXPECT_EQ(41u, decWriter->write(enc.data() + off, 41)); off += 41;
+    EXPECT_EQ(0, decWriter->state() & std::ios_base::badbit);
+
+    // 16 bytes, aligned
+    EXPECT_EQ(16u, decWriter->write(enc.data() + off, 16)); off += 16;
+    EXPECT_EQ(0, decWriter->state() & std::ios_base::badbit);
+
+    ASSERT_EQ(total, off);
+    EXPECT_EQ(plain112, userStream->str());
+}
+
 } // namespace alibabacloud::oss2

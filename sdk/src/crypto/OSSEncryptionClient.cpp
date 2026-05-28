@@ -98,7 +98,7 @@ void addCryptoHeaders(HeaderCollection& meta,
                       const std::unique_ptr<crypto::ContentCipher>& cc,
                       const crypto::CipherMetadata& cm,
                       const CryptoHeaderOptions& opts = {}) {
-    auto& cd = cc->getCipherData();
+    const auto& cd = cc->getCipherData();
     meta["client-side-encryption-key"] = utils::Base64Encode(cd.encryptedKey);
     meta["client-side-encryption-start"] = utils::Base64Encode(cd.encryptedIV);
     meta["client-side-encryption-cek-alg"] = cm.cekAlgorithm;

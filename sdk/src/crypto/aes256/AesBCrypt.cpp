@@ -59,7 +59,10 @@ AesCtrCipher::AesCtrCipher(const std::string& key, const std::string& iv) : ctx_
 
 AesCtrCipher::~AesCtrCipher() {
     if (ctx_) {
-        delete static_cast<BcryptAesCtrContext*>(ctx_);
+        auto* ctx = static_cast<BcryptAesCtrContext*>(ctx_);
+        SecureZeroMemory(ctx->counter, 16);
+        SecureZeroMemory(ctx->keystreamBlock, 16);
+        delete ctx;
     }
 }
 
