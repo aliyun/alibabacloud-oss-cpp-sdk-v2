@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
     // --- Callback pattern ---
     {
         std::string data = "hello world (callback)";
-        auto body = oss::RequestBody::FromString(data);
+        auto body = oss::RequestBody::fromString(data);
 
         std::mutex mtx;
         std::condition_variable cv;
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
     // --- Future pattern (asyncCall) ---
     {
         std::string data = "hello world (future)";
-        auto body = oss::RequestBody::FromString(data);
+        auto body = oss::RequestBody::fromString(data);
 
         auto future = client->asyncCall(
             oss::models::PutObjectRequest()

@@ -132,7 +132,7 @@ int main() {
         oss::models::PutObjectRequest()
             .setBucket("your-bucket-name")
             .setKey("your-object-key")
-            .setBody(oss::RequestBody::FromString("Hello, OSS!")));
+            .setBody(oss::RequestBody::fromString("Hello, OSS!")));
     if (!putOutcome.has_value()) {
         auto& err = putOutcome.error();
         std::cerr << "Error Code: " << err.getCode() << std::endl;

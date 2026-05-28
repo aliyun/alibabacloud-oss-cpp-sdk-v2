@@ -96,7 +96,7 @@ TEST(OSSAsyncClientTest, InvokeOperation_Future_Success) {
     input.method = "PUT";
     input.bucket = "test-bucket";
     input.key = "test-key";
-    input.body = RequestBody::FromString("hello world");
+    input.body = RequestBody::fromString("hello world");
 
     auto future = invokeAsync(client, input);
     auto result = future.get();

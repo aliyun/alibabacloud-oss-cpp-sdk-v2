@@ -265,7 +265,7 @@ TEST(OSSClientObjectMultipartTest, UploadPart_Success) {
     request.setPartNumber(1);
     request.setUploadId("test-upload-id");
 
-    request.setBody(RequestBody::FromString("test data for upload part"));
+    request.setBody(RequestBody::fromString("test data for upload part"));
 
     auto outcome = client.uploadPart(request);
     EXPECT_TRUE(outcome.has_value());
@@ -303,7 +303,7 @@ TEST(OSSClientObjectMultipartTest, UploadPart_ErrorResponse) {
     request.setPartNumber(1);
     request.setUploadId("test-upload-id");
 
-    request.setBody(RequestBody::FromString("too small data"));
+    request.setBody(RequestBody::fromString("too small data"));
 
     auto outcome = client.uploadPart(request);
     EXPECT_FALSE(outcome.has_value());
@@ -1616,7 +1616,7 @@ TEST(OSSClientObjectMultipartTest, UploadPart_CRC64Check_Success) {
     request.setKey("test-key");
     request.setPartNumber(1);
     request.setUploadId("upload-123");
-    request.setBody(RequestBody::FromString(data));
+    request.setBody(RequestBody::fromString(data));
 
     auto outcome = client.uploadPart(request);
     EXPECT_TRUE(outcome.has_value());
@@ -1655,7 +1655,7 @@ TEST(OSSClientObjectMultipartTest, UploadPart_CRC64Check_Mismatch) {
     request.setKey("test-key");
     request.setPartNumber(1);
     request.setUploadId("upload-123");
-    request.setBody(RequestBody::FromString(data));
+    request.setBody(RequestBody::fromString(data));
 
     auto outcome = client.uploadPart(request);
     EXPECT_FALSE(outcome.has_value());
@@ -1684,7 +1684,7 @@ TEST(OSSClientObjectMultipartTest, UploadPart_CRC64Check_Disabled) {
     request.setKey("test-key");
     request.setPartNumber(1);
     request.setUploadId("upload-123");
-    request.setBody(RequestBody::FromString(data));
+    request.setBody(RequestBody::fromString(data));
 
     auto outcome = client.uploadPart(request);
     EXPECT_TRUE(outcome.has_value());

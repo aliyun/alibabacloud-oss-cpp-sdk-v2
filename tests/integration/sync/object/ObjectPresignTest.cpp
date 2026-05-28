@@ -109,7 +109,7 @@ TEST_F(ObjectPresignTest, PresignGetAndPutObjectFullProps) {
     putRequest.addHeader("Content-MD5", "XrY7u+Ae7tCTyyK7j1rNww==");
     putRequest.addHeader("x-oss-meta-key1", "value1");
     putRequest.addHeader("x-oss-meta-key2", "value2");
-    putRequest.setBody(RequestBody::FromString(content));
+    putRequest.setBody(RequestBody::fromString(content));
 
     auto presignResult = client->presign(putRequest);
 

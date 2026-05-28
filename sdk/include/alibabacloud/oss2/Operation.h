@@ -57,7 +57,7 @@ struct ALIBABACLOUD_OSS_API OperationOptions {
  *   input.method = "PUT";
  *   input.bucket = "my-bucket";
  *   input.key    = "my-key";
- *   input.body   = RequestBody::FromString("hello");
+ *   input.body   = RequestBody::fromString("hello");
  *   auto result  = client.invokeOperation(input);
  * @endcode
  */
@@ -88,7 +88,7 @@ struct ALIBABACLOUD_OSS_API OperationInput {
     AttributeMap opMetadata{};
 
     /// The request body. nullptr for bodiless requests (GET, HEAD, DELETE).
-    /// Use the RequestBody helpers (FromString, FromFile, etc.) to create.
+    /// Use the RequestBody helpers (fromString, fromFile, etc.) to create.
     std::shared_ptr<ByteContent> body{};
 };
 
@@ -259,30 +259,30 @@ using OperationCallback = std::function<void(OperationResult)>;
  *
  * @code
  *   // Owned string body (data is copied/moved in)
- *   request.setBody(RequestBody::FromString("<xml>...</xml>"));
+ *   request.setBody(RequestBody::fromString("<xml>...</xml>"));
  *
  *   // File body (opens file on each retry)
- *   request.setBody(RequestBody::FromFile("/path/to/data.bin"));
+ *   request.setBody(RequestBody::fromFile("/path/to/data.bin"));
  *
  *   // Stream body (shared ownership of the istream)
  *   auto ifs = std::make_shared<std::ifstream>("data.bin", std::ios::binary);
- *   request.setBody(RequestBody::FromStream(ifs));
+ *   request.setBody(RequestBody::fromStream(ifs));
  *
  *   // Non-owning memory body (zero-copy; caller must keep data alive)
- *   request.setBody(RequestBody::FromMemory(buf, bufLen));
+ *   request.setBody(RequestBody::fromMemory(buf, bufLen));
  * @endcode
  */
 namespace RequestBody {
 
 /// Creates a StringContent that owns a copy of @p data.
 template <class T>
-inline std::shared_ptr<ByteContent> FromString(T&& data) {
+inline std::shared_ptr<ByteContent> fromString(T&& data) {
     return std::make_shared<StringContent>(std::forward<T>(data));
 }
 
 /// Creates a StreamContent from a shared istream. Returns EmptyContent if null.
 template <class T>
-inline std::shared_ptr<ByteContent> FromStream(T&& stream) {
+inline std::shared_ptr<ByteContent> fromStream(T&& stream) {
     if (stream == nullptr) {
         return std::make_shared<EmptyContent>();
     }
@@ -291,22 +291,22 @@ inline std::shared_ptr<ByteContent> FromStream(T&& stream) {
 
 /// Creates a FileContent from a file path (string or std::filesystem::path).
 template <class T>
-inline std::shared_ptr<ByteContent> FromFile(T&& file) {
+inline std::shared_ptr<ByteContent> fromFile(T&& file) {
     return std::make_shared<FileContent>(std::forward<T>(file));
 }
 
 /// Creates a non-owning MemoryContent from a string_view or similar type.
 /// @warning The caller MUST ensure the referenced memory outlives the request.
-/// If you need owning semantics, use FromString() instead.
+/// If you need owning semantics, use fromString() instead.
 template <class T>
-inline std::shared_ptr<ByteContent> FromMemory(T&& data) {
+inline std::shared_ptr<ByteContent> fromMemory(T&& data) {
     return std::make_shared<MemoryContent>(std::forward<T>(data));
 }
 
 /// Creates a non-owning MemoryContent from a raw pointer and length.
 /// Returns EmptyContent if @p data is nullptr.
 /// @warning The caller MUST ensure the referenced memory outlives the request.
-inline std::shared_ptr<ByteContent> FromMemory(const char* data, std::size_t len) {
+inline std::shared_ptr<ByteContent> fromMemory(const char* data, std::size_t len) {
     if (data == nullptr) {
         return std::make_shared<EmptyContent>();
     }

@@ -130,7 +130,7 @@ OperationInput fromPutObjectTagging(const models::PutObjectTaggingRequest& reque
     if (request.hasTagging()) {
         auto str = toXmlText(request.getTagging(), "Tagging");
         md5 = utils::CalcContentMD5(str);
-        input.body = RequestBody::FromString(std::move(str));
+        input.body = RequestBody::fromString(std::move(str));
     }
 
     input.headers.emplace("Content-MD5", std::move(md5));

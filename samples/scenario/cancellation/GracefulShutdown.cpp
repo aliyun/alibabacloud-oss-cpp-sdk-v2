@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
                 oss::models::PutObjectRequest()
                     .setBucket(bucket)
                     .setKey(key)
-                    .setBody(oss::RequestBody::FromString(data)),
+                    .setBody(oss::RequestBody::fromString(data)),
                 &optsWithToken));
         } else {
             // Group B: without token
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
                 oss::models::PutObjectRequest()
                     .setBucket(bucket)
                     .setKey(key)
-                    .setBody(oss::RequestBody::FromString(data))));
+                    .setBody(oss::RequestBody::fromString(data))));
         }
     }
 
@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
         oss::models::PutObjectRequest()
             .setBucket(bucket)
             .setKey("graceful-shutdown-demo/after-resume.txt")
-            .setBody(oss::RequestBody::FromString("resumed")));
+            .setBody(oss::RequestBody::fromString("resumed")));
     if (!outcome.has_value()) {
         std::cerr << "Post-resume request failed"
                   << ", code: " << outcome.error().getCode()

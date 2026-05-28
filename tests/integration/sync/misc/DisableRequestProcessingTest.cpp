@@ -50,7 +50,7 @@ TEST_F(DisableRequestProcessingTest, DisableBeforeRequest) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey("disable-before")
-            .setBody(RequestBody::FromString("data")));
+            .setBody(RequestBody::fromString("data")));
 
     EXPECT_FALSE(outcome.has_value());
     EXPECT_EQ(outcome.error().getErrorCode(), ErrorCondition::Canceled);
@@ -66,7 +66,7 @@ TEST_F(DisableRequestProcessingTest, DisableDuringTransfer) {
     auto request = models::PutObjectRequest()
         .setBucket(bucketName_)
         .setKey("disable-during")
-        .setBody(RequestBody::FromString(body));
+        .setBody(RequestBody::fromString(body));
     request.addHeader("x-oss-traffic-limit", "245760");
 
     std::thread disabler([&client]() {
@@ -92,7 +92,7 @@ TEST_F(DisableRequestProcessingTest, EnableAfterDisable_FullCycle) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey("disable-cycle")
-            .setBody(RequestBody::FromString("data")));
+            .setBody(RequestBody::fromString("data")));
     EXPECT_FALSE(outcome1.has_value());
     EXPECT_EQ(outcome1.error().getErrorCode(), ErrorCondition::Canceled);
 
@@ -102,7 +102,7 @@ TEST_F(DisableRequestProcessingTest, EnableAfterDisable_FullCycle) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey("disable-cycle")
-            .setBody(RequestBody::FromString("data")));
+            .setBody(RequestBody::fromString("data")));
     EXPECT_TRUE(outcome2.has_value());
 }
 
@@ -114,7 +114,7 @@ TEST_F(DisableRequestProcessingTest, AsyncDisableBeforeRequest) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey("async-disable-before")
-            .setBody(RequestBody::FromString("data")));
+            .setBody(RequestBody::fromString("data")));
     auto outcome = future.get();
 
     EXPECT_FALSE(outcome.has_value());
@@ -131,7 +131,7 @@ TEST_F(DisableRequestProcessingTest, AsyncDisableDuringTransfer) {
     auto request = models::PutObjectRequest()
         .setBucket(bucketName_)
         .setKey("async-disable-during")
-        .setBody(RequestBody::FromString(body));
+        .setBody(RequestBody::fromString(body));
     request.addHeader("x-oss-traffic-limit", "245760");
 
     auto future = client->asyncCall(request);
@@ -158,7 +158,7 @@ TEST_F(DisableRequestProcessingTest, AsyncDisableCancelsBatchRequests) {
         auto request = models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey("async-batch-" + std::to_string(i))
-            .setBody(RequestBody::FromString(body));
+            .setBody(RequestBody::fromString(body));
         request.addHeader("x-oss-traffic-limit", "245760");
         futures.push_back(client->asyncCall(request));
     }

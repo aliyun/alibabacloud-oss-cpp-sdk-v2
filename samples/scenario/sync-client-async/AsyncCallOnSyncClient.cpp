@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
             oss::models::PutObjectRequest()
                 .setBucket(bucket)
                 .setKey(key)
-                .setBody(oss::RequestBody::FromString(data))));
+                .setBody(oss::RequestBody::fromString(data))));
     }
 
     // Collect put results

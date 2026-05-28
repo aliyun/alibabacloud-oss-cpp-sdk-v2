@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
     auto client = sample::createClient(args);
 
     std::string data = "hello world";
-    auto body = oss::RequestBody::FromString(data);
+    auto body = oss::RequestBody::fromString(data);
 
     auto outcome = client.putObject(
         oss::models::PutObjectRequest()

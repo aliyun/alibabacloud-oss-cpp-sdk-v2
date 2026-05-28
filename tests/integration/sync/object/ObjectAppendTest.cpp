@@ -43,7 +43,7 @@ TEST_F(ObjectAppendTest, AppendObject_Normal) {
     std::string content2 = "World!";
 
     // First append (position must be 0)
-    auto body1 = RequestBody::FromString(content1);
+    auto body1 = RequestBody::fromString(content1);
     auto outcome1 = client->appendObject(
             models::AppendObjectRequest().setBucket(bucketName_).setKey(key).setPosition(0).setBody(body1));
     EXPECT_TRUE(outcome1.has_value());
@@ -51,7 +51,7 @@ TEST_F(ObjectAppendTest, AppendObject_Normal) {
     EXPECT_EQ(content1.size(), result1.getNextAppendPosition());
 
     // Second append
-    auto body2 = RequestBody::FromString(content2);
+    auto body2 = RequestBody::fromString(content2);
     auto outcome2 = client->appendObject(models::AppendObjectRequest()
                                                  .setBucket(bucketName_)
                                                  .setKey(key)
@@ -65,7 +65,7 @@ TEST_F(ObjectAppendTest, AppendObject_Normal) {
 TEST_F(ObjectAppendTest, AppendObject_Fail) {
     auto client = ClientHelper::GetInvalidClient();
     std::string content = "Test content";
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
 
     auto outcome = client->appendObject(
             models::AppendObjectRequest().setBucket(bucketName_).setKey("test-key").setPosition(0).setBody(body));
@@ -81,7 +81,7 @@ TEST_F(ObjectAppendTest, SealAppendObject_Normal) {
     std::string content = "Content to seal";
 
     // Create appendable object
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
     auto appendOutcome = client->appendObject(
             models::AppendObjectRequest().setBucket(bucketName_).setKey(key).setPosition(0).setBody(body));
     EXPECT_TRUE(appendOutcome.has_value());

@@ -150,7 +150,7 @@ TEST(OSSEncryptionClientTest, PutObject_AddsCryptoHeaders) {
     auto request = models::PutObjectRequest();
     request.setBucket("test-bucket");
     request.setKey("test-key");
-    request.setBody(RequestBody::FromString("hello world"));
+    request.setBody(RequestBody::fromString("hello world"));
 
     auto outcome = client.putObject(request);
     ASSERT_TRUE(outcome.has_value());
@@ -178,7 +178,7 @@ TEST(OSSEncryptionClientTest, PutObject_BodyIsEncrypted) {
     auto request = models::PutObjectRequest();
     request.setBucket("test-bucket");
     request.setKey("test-key");
-    request.setBody(RequestBody::FromString(plaintext));
+    request.setBody(RequestBody::fromString(plaintext));
 
     auto outcome = client.putObject(request);
     ASSERT_TRUE(outcome.has_value());
@@ -365,7 +365,7 @@ TEST(OSSEncryptionClientTest, UploadPart_EncryptsBody) {
     request.setKey("test-key");
     request.setUploadId("upload-123");
     request.setPartNumber(1);
-    request.setBody(RequestBody::FromString(partData));
+    request.setBody(RequestBody::fromString(partData));
     request.setCseMultiPartContext(ctx);
 
     auto outcome = client.uploadPart(request);
@@ -435,7 +435,7 @@ TEST(OSSEncryptionClientTest, PutGet_RoundTrip) {
     auto putReq = models::PutObjectRequest();
     putReq.setBucket("test-bucket");
     putReq.setKey("test-key");
-    putReq.setBody(RequestBody::FromString(plaintext));
+    putReq.setBody(RequestBody::fromString(plaintext));
 
     auto putOutcome = putClient.putObject(putReq);
     ASSERT_TRUE(putOutcome.has_value());

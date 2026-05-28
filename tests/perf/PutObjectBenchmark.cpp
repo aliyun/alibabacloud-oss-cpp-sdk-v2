@@ -21,7 +21,7 @@ static void BM_PutObject_Sync_1KB(benchmark::State& state) {
     int64_t i = 0;
     for (auto _ : state) {
         auto key = makeKey("perf-put-sync-1k-", i++);
-        auto body = RequestBody::FromMemory(payload.data(), payload.size());
+        auto body = RequestBody::fromMemory(payload.data(), payload.size());
         auto outcome = client->putObject(
             models::PutObjectRequest().setBucket(cfg.bucket).setKey(key).setBody(body));
         if (!outcome.has_value()) {
@@ -41,7 +41,7 @@ static void BM_PutObject_Sync_1MB(benchmark::State& state) {
     int64_t i = 0;
     for (auto _ : state) {
         auto key = makeKey("perf-put-sync-1m-", i++);
-        auto body = RequestBody::FromMemory(payload.data(), payload.size());
+        auto body = RequestBody::fromMemory(payload.data(), payload.size());
         auto outcome = client->putObject(
             models::PutObjectRequest().setBucket(cfg.bucket).setKey(key).setBody(body));
         if (!outcome.has_value()) {
@@ -61,7 +61,7 @@ static void BM_PutObject_Sync_4MB(benchmark::State& state) {
     int64_t i = 0;
     for (auto _ : state) {
         auto key = makeKey("perf-put-sync-4m-", i++);
-        auto body = RequestBody::FromMemory(payload.data(), payload.size());
+        auto body = RequestBody::fromMemory(payload.data(), payload.size());
         auto outcome = client->putObject(
             models::PutObjectRequest().setBucket(cfg.bucket).setKey(key).setBody(body));
         if (!outcome.has_value()) {
@@ -86,7 +86,7 @@ static void BM_PutObject_Async_1KB_Concurrent(benchmark::State& state) {
         futures.reserve(concurrency);
         for (int i = 0; i < concurrency; i++) {
             auto key = makeKey("perf-put-async-1k-", batch * concurrency + i);
-            auto body = RequestBody::FromMemory(payload.data(), payload.size());
+            auto body = RequestBody::fromMemory(payload.data(), payload.size());
             futures.push_back(client->asyncCall(
                 models::PutObjectRequest().setBucket(cfg.bucket).setKey(key).setBody(body)));
         }
@@ -120,7 +120,7 @@ static void BM_PutObject_Async_1MB_Concurrent(benchmark::State& state) {
         futures.reserve(concurrency);
         for (int i = 0; i < concurrency; i++) {
             auto key = makeKey("perf-put-async-1m-", batch * concurrency + i);
-            auto body = RequestBody::FromMemory(payload.data(), payload.size());
+            auto body = RequestBody::fromMemory(payload.data(), payload.size());
             futures.push_back(client->asyncCall(
                 models::PutObjectRequest().setBucket(cfg.bucket).setKey(key).setBody(body)));
         }
@@ -154,7 +154,7 @@ static void BM_PutObject_Async_4MB_Concurrent(benchmark::State& state) {
         futures.reserve(concurrency);
         for (int i = 0; i < concurrency; i++) {
             auto key = makeKey("perf-put-async-4m-", batch * concurrency + i);
-            auto body = RequestBody::FromMemory(payload.data(), payload.size());
+            auto body = RequestBody::fromMemory(payload.data(), payload.size());
             futures.push_back(client->asyncCall(
                 models::PutObjectRequest().setBucket(cfg.bucket).setKey(key).setBody(body)));
         }
@@ -193,7 +193,7 @@ static void BM_PutObject_Async_Custom_Concurrent(benchmark::State& state) {
         futures.reserve(concurrency);
         for (int i = 0; i < concurrency; i++) {
             auto key = makeKey("perf-put-custom-", batch * concurrency + i);
-            auto body = RequestBody::FromMemory(payload.data(), payload.size());
+            auto body = RequestBody::fromMemory(payload.data(), payload.size());
             futures.push_back(client->asyncCall(
                 models::PutObjectRequest().setBucket(cfg.bucket).setKey(key).setBody(body)));
         }
@@ -222,7 +222,7 @@ static void BM_PutObject_Async_Sustained(benchmark::State& state) {
 
     for (auto _ : state) {
         auto key = makeKey("perf-put-sustained-", total++);
-        auto body = RequestBody::FromMemory(payload.data(), payload.size());
+        auto body = RequestBody::fromMemory(payload.data(), payload.size());
         inflight.push_back(client->asyncCall(
             models::PutObjectRequest().setBucket(cfg.bucket).setKey(key).setBody(body)));
 
@@ -254,7 +254,7 @@ static void BM_PutObject_Sync_Sustained(benchmark::State& state) {
 
     for (auto _ : state) {
         auto key = makeKey("perf-put-sync-sustained-", total++);
-        auto body = RequestBody::FromMemory(payload.data(), payload.size());
+        auto body = RequestBody::fromMemory(payload.data(), payload.size());
         auto outcome = client->putObject(
             models::PutObjectRequest().setBucket(cfg.bucket).setKey(key).setBody(body));
         if (!outcome.has_value()) {

@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
             .setKey(args.key)
             .setUploadId(uploadId)
             .setPartNumber(1)
-            .setBody(oss::RequestBody::FromString(data1)));
+            .setBody(oss::RequestBody::fromString(data1)));
 
     auto up2Future = client->asyncCall(
         oss::models::UploadPartRequest()
@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
             .setKey(args.key)
             .setUploadId(uploadId)
             .setPartNumber(2)
-            .setBody(oss::RequestBody::FromString(data2)));
+            .setBody(oss::RequestBody::fromString(data2)));
 
     auto up1 = up1Future.get();
     if (!up1.has_value()) {

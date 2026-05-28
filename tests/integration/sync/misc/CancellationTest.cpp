@@ -42,7 +42,7 @@ TEST_F(CancellationTest, PutObject_AlreadyCancelled) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey("cancel-already")
-            .setBody(RequestBody::FromString("data")),
+            .setBody(RequestBody::fromString("data")),
         &opts);
 
     EXPECT_FALSE(outcome.has_value());
@@ -60,7 +60,7 @@ TEST_F(CancellationTest, PutObject_CancelDuringTransfer) {
     auto request = models::PutObjectRequest()
         .setBucket(bucketName_)
         .setKey("cancel-during")
-        .setBody(RequestBody::FromString(body));
+        .setBody(RequestBody::fromString(body));
     request.addHeader("x-oss-traffic-limit", "245760");
 
     OperationOptions opts;
@@ -90,7 +90,7 @@ TEST_F(CancellationTest, PutObject_TimeoutViaCancelAfter) {
     auto request = models::PutObjectRequest()
         .setBucket(bucketName_)
         .setKey("cancel-timeout")
-        .setBody(RequestBody::FromString(body));
+        .setBody(RequestBody::fromString(body));
     request.addHeader("x-oss-traffic-limit", "245760");
 
     OperationOptions opts;

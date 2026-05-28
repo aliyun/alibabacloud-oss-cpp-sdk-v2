@@ -103,17 +103,17 @@ class ALIBABACLOUD_OSS_API ByteSource {
  * Typical usage through the RequestBody helpers:
  * @code
  *   // From an owned string
- *   auto body = RequestBody::FromString("hello");
+ *   auto body = RequestBody::fromString("hello");
  *
  *   // From a file (supports offset + length for multipart upload)
- *   auto body = RequestBody::FromFile("/path/to/data.bin");
+ *   auto body = RequestBody::fromFile("/path/to/data.bin");
  *
  *   // From a std::istream
  *   auto ifs = std::make_shared<std::ifstream>("data.bin", std::ios::binary);
- *   auto body = RequestBody::FromStream(ifs);
+ *   auto body = RequestBody::fromStream(ifs);
  *
  *   // From externally managed memory (zero-copy, caller must keep data alive)
- *   auto body = RequestBody::FromMemory(ptr, len);
+ *   auto body = RequestBody::fromMemory(ptr, len);
  * @endcode
  */
 class ALIBABACLOUD_OSS_API ByteContent {
@@ -168,7 +168,7 @@ class ALIBABACLOUD_OSS_API ByteContent {
  * @code
  *   auto body = std::make_shared<StringContent>("<?xml ...>");
  *   // or use the helper:
- *   auto body = RequestBody::FromString("<?xml ...>");
+ *   auto body = RequestBody::fromString("<?xml ...>");
  * @endcode
  */
 class ALIBABACLOUD_OSS_API StringContent : public ByteContent {
@@ -208,7 +208,7 @@ class ALIBABACLOUD_OSS_API StringContent : public ByteContent {
  *   auto body = std::make_shared<StreamContent>(pipeStream, false);
  *
  *   // Or use the helper:
- *   auto body = RequestBody::FromStream(ifs);
+ *   auto body = RequestBody::fromStream(ifs);
  * @endcode
  */
 class ALIBABACLOUD_OSS_API StreamContent : public ByteContent {
@@ -249,7 +249,7 @@ class ALIBABACLOUD_OSS_API StreamContent : public ByteContent {
  *   auto body = std::make_shared<FileContent>("/path/to/data.bin", 1048576, 1048576);
  *
  *   // Or use the helper:
- *   auto body = RequestBody::FromFile("/path/to/data.bin");
+ *   auto body = RequestBody::fromFile("/path/to/data.bin");
  * @endcode
  */
 class ALIBABACLOUD_OSS_API FileContent : public ByteContent {
@@ -299,14 +299,14 @@ class ALIBABACLOUD_OSS_API FileContent : public ByteContent {
  *
  *   // CORRECT: static / global data
  *   static const char kPayload[] = "...";
- *   auto body = RequestBody::FromMemory(kPayload, sizeof(kPayload) - 1);
+ *   auto body = RequestBody::fromMemory(kPayload, sizeof(kPayload) - 1);
  *
  *   // WRONG: temporary string destroyed immediately
  *   auto body = std::make_shared<MemoryContent>(std::string("hello"));
  *   // The temporary is gone -- body->spanSource() reads garbage!
  *
  *   // If you need owning semantics, use StringContent instead:
- *   auto body = RequestBody::FromString("hello");  // safe, data is copied
+ *   auto body = RequestBody::fromString("hello");  // safe, data is copied
  * @endcode
  */
 class ALIBABACLOUD_OSS_API MemoryContent : public ByteContent {

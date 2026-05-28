@@ -43,7 +43,7 @@ TEST_F(ObjectAclTest, ObjectAcl_Normal) {
 
     // Put object first
     auto putOutcome = client->putObject(
-            models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::FromString("content")));
+            models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::fromString("content")));
     EXPECT_TRUE(putOutcome.has_value());
 
     // Set object ACL to public-read

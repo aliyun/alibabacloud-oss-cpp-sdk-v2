@@ -43,7 +43,7 @@ TEST_F(CancellationTest, PutObject_Canceled) {
     auto request = models::PutObjectRequest()
         .setBucket("bucket")
         .setKey("slow-key")
-        .setBody(RequestBody::FromString("data"));
+        .setBody(RequestBody::fromString("data"));
 
     auto outcome = client.putObject(request, &opts);
     cancelThread.join();
@@ -92,7 +92,7 @@ TEST_F(CancellationTest, AsyncPutObject_Canceled) {
     auto request = models::PutObjectRequest()
         .setBucket("bucket")
         .setKey("slow-key")
-        .setBody(RequestBody::FromString("data"));
+        .setBody(RequestBody::fromString("data"));
 
     client.putObjectAsync(request, [&promise](PutObjectOutcome outcome) {
         promise.set_value(std::move(outcome));

@@ -33,7 +33,7 @@ TEST_F(AsyncObjectAppendTest, AppendObject_Normal) {
     std::string content1 = "Hello, ";
     std::string content2 = "World!";
 
-    auto future1 = client->asyncCall(models::AppendObjectRequest().setBucket(bucketName_).setKey(key).setPosition(0).setBody(RequestBody::FromString(content1)));
+    auto future1 = client->asyncCall(models::AppendObjectRequest().setBucket(bucketName_).setKey(key).setPosition(0).setBody(RequestBody::fromString(content1)));
     auto outcome1 = future1.get();
     EXPECT_TRUE(outcome1.has_value());
     EXPECT_EQ(content1.size(), outcome1.value().getNextAppendPosition());
@@ -42,7 +42,7 @@ TEST_F(AsyncObjectAppendTest, AppendObject_Normal) {
             .setBucket(bucketName_)
             .setKey(key)
             .setPosition(outcome1.value().getNextAppendPosition())
-            .setBody(RequestBody::FromString(content2)));
+            .setBody(RequestBody::fromString(content2)));
     auto outcome2 = future2.get();
     EXPECT_TRUE(outcome2.has_value());
     EXPECT_EQ(content1.size() + content2.size(), outcome2.value().getNextAppendPosition());
@@ -50,7 +50,7 @@ TEST_F(AsyncObjectAppendTest, AppendObject_Normal) {
 
 TEST_F(AsyncObjectAppendTest, AppendObject_Fail) {
     auto client = ClientHelper::GetInvalidClient();
-    auto future = client->asyncCall(models::AppendObjectRequest().setBucket(bucketName_).setKey("test-key").setPosition(0).setBody(RequestBody::FromString("content")));
+    auto future = client->asyncCall(models::AppendObjectRequest().setBucket(bucketName_).setKey("test-key").setPosition(0).setBody(RequestBody::fromString("content")));
     auto outcome = future.get();
     EXPECT_FALSE(outcome.has_value());
     EXPECT_EQ("InvalidAccessKeyId", outcome.error().getCode());
@@ -61,7 +61,7 @@ TEST_F(AsyncObjectAppendTest, SealAppendObject_Normal) {
     std::string key = "test-seal-append-object";
     std::string content = "Content to seal";
 
-    auto appendFuture = client->asyncCall(models::AppendObjectRequest().setBucket(bucketName_).setKey(key).setPosition(0).setBody(RequestBody::FromString(content)));
+    auto appendFuture = client->asyncCall(models::AppendObjectRequest().setBucket(bucketName_).setKey(key).setPosition(0).setBody(RequestBody::fromString(content)));
     EXPECT_TRUE(appendFuture.get().has_value());
 
     auto sealFuture = client->asyncCall(models::SealAppendObjectRequest().setBucket(bucketName_).setKey(key).setPosition(content.size()));

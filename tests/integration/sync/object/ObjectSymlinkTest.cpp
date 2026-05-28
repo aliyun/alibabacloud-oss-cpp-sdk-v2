@@ -43,7 +43,7 @@ TEST_F(ObjectSymlinkTest, Symlink_Normal) {
     std::string content = "Target content for symlink";
 
     // Put target object
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
 
     auto putOutcome =
             client->putObject(models::PutObjectRequest().setBucket(bucketName_).setKey(targetKey).setBody(body));

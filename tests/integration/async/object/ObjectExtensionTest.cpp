@@ -123,7 +123,7 @@ TEST_F(AsyncObjectExtensionTest, GetObjectToFileAsync_Normal) {
 
     auto putFuture = client->asyncCall(
             models::PutObjectRequest().setBucket(bucketName_).setKey(key)
-                    .setBody(RequestBody::FromString(content)));
+                    .setBody(RequestBody::fromString(content)));
     EXPECT_TRUE(putFuture.get().has_value());
 
     auto filePath = Config::GenRandomFileName();
@@ -151,7 +151,7 @@ TEST_F(AsyncObjectExtensionTest, GetObjectToFileAsync_LargeObject) {
 
     auto putFuture = client->asyncCall(
             models::PutObjectRequest().setBucket(bucketName_).setKey(key)
-                    .setBody(RequestBody::FromString(content)));
+                    .setBody(RequestBody::fromString(content)));
     EXPECT_TRUE(putFuture.get().has_value());
 
     auto filePath = Config::GenRandomFileName();
@@ -195,7 +195,7 @@ TEST_F(AsyncObjectExtensionTest, GetObjectToFileAsync_TruncatesExisting) {
 
     auto putFuture = client->asyncCall(
             models::PutObjectRequest().setBucket(bucketName_).setKey(key)
-                    .setBody(RequestBody::FromString(content)));
+                    .setBody(RequestBody::fromString(content)));
     EXPECT_TRUE(putFuture.get().has_value());
 
     auto filePath = Config::GenRandomFileName();
@@ -228,7 +228,7 @@ TEST_F(AsyncObjectExtensionTest, IsObjectExistAsync_True) {
 
     auto putFuture = client->asyncCall(
             models::PutObjectRequest().setBucket(bucketName_).setKey(key)
-                    .setBody(RequestBody::FromString("data")));
+                    .setBody(RequestBody::fromString("data")));
     EXPECT_TRUE(putFuture.get().has_value());
 
     auto ar = std::make_shared<AsyncResult<BoolOutcome>>();

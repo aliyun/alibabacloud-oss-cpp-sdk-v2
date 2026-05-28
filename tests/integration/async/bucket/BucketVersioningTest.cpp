@@ -87,7 +87,7 @@ TEST_F(AsyncBucketVersioningTest, ListObjectVersions_Normal) {
             models::PutObjectRequest()
                     .setBucket(bucketName_)
                     .setKey(key)
-                    .setBody(RequestBody::FromString("version1")));
+                    .setBody(RequestBody::fromString("version1")));
     EXPECT_TRUE(putFuture1.get().has_value());
 
     // Upload again to create a second version
@@ -95,7 +95,7 @@ TEST_F(AsyncBucketVersioningTest, ListObjectVersions_Normal) {
             models::PutObjectRequest()
                     .setBucket(bucketName_)
                     .setKey(key)
-                    .setBody(RequestBody::FromString("version2")));
+                    .setBody(RequestBody::fromString("version2")));
     EXPECT_TRUE(putFuture2.get().has_value());
 
     // List versions

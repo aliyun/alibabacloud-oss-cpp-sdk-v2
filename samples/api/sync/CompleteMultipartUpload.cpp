@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
             .setKey(args.key)
             .setUploadId(uploadId)
             .setPartNumber(1)
-            .setBody(oss::RequestBody::FromString(data1)));
+            .setBody(oss::RequestBody::fromString(data1)));
     if (!up1.has_value()) {
         std::cerr << "UploadPart 1 fail"
                   << ", code: " << up1.error().getCode()
@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
             .setKey(args.key)
             .setUploadId(uploadId)
             .setPartNumber(2)
-            .setBody(oss::RequestBody::FromString(data2)));
+            .setBody(oss::RequestBody::fromString(data2)));
     if (!up2.has_value()) {
         std::cerr << "UploadPart 2 fail"
                   << ", code: " << up2.error().getCode()

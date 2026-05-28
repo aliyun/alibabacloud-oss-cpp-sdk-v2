@@ -47,7 +47,7 @@ TEST_F(ProgressCallbackTest, PutObject_Progress) {
             models::PutObjectRequest()
                     .setBucket(bucketName_)
                     .setKey("progress-test-put")
-                    .setBody(RequestBody::FromString(data))
+                    .setBody(RequestBody::fromString(data))
                     .setProgressCallback(progress));
 
     EXPECT_TRUE(outcome.has_value());
@@ -87,7 +87,7 @@ TEST_F(ProgressCallbackTest, UploadPart_Progress) {
                     .setKey(key)
                     .setPartNumber(1)
                     .setUploadId(uploadId)
-                    .setBody(RequestBody::FromString(data))
+                    .setBody(RequestBody::fromString(data))
                     .setProgressCallback(progress));
 
     EXPECT_TRUE(uploadOutcome.has_value());
@@ -118,7 +118,7 @@ TEST_F(ProgressCallbackTest, PutObject_Progress_Fail) {
             models::PutObjectRequest()
                     .setBucket(bucketName_)
                     .setKey("progress-test-fail")
-                    .setBody(RequestBody::FromString(data))
+                    .setBody(RequestBody::fromString(data))
                     .setProgressCallback(progress));
 
     EXPECT_FALSE(outcome.has_value());

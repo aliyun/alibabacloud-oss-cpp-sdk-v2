@@ -43,7 +43,7 @@ std::string ObjectCallAsyncTest::bucketName_ = "";
 TEST_F(ObjectCallAsyncTest, PutGetObject_Future) {
     std::string key = "async-put-get-future";
     std::string content = "Hello Async Future!";
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
 
     auto putFuture = client_->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body));
     auto putOutcome = putFuture.get();
@@ -59,7 +59,7 @@ TEST_F(ObjectCallAsyncTest, PutGetObject_Future) {
 TEST_F(ObjectCallAsyncTest, PutObject_Callback) {
     std::string key = "async-put-callback";
     std::string content = "Hello Async Callback!";
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
 
     std::promise<PutObjectOutcome> promise;
     auto future = promise.get_future();
@@ -77,7 +77,7 @@ TEST_F(ObjectCallAsyncTest, PutObject_Callback) {
 TEST_F(ObjectCallAsyncTest, HeadObject_Future) {
     std::string key = "async-head-future";
     std::string content = "Head me async!";
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
 
     auto putFuture = client_->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body));
     EXPECT_TRUE(putFuture.get().has_value());
@@ -92,7 +92,7 @@ TEST_F(ObjectCallAsyncTest, HeadObject_Future) {
 TEST_F(ObjectCallAsyncTest, CopyObject_Future) {
     std::string srcKey = "async-copy-src";
     std::string dstKey = "async-copy-dst";
-    auto body = RequestBody::FromString("Copy me async!");
+    auto body = RequestBody::fromString("Copy me async!");
 
     auto putFuture = client_->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(srcKey).setBody(body));
     EXPECT_TRUE(putFuture.get().has_value());
@@ -110,7 +110,7 @@ TEST_F(ObjectCallAsyncTest, CopyObject_Future) {
 // DeleteObject Future
 TEST_F(ObjectCallAsyncTest, DeleteObject_Future) {
     std::string key = "async-delete-future";
-    auto body = RequestBody::FromString("Delete me async!");
+    auto body = RequestBody::fromString("Delete me async!");
 
     auto putFuture = client_->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body));
     EXPECT_TRUE(putFuture.get().has_value());
@@ -124,7 +124,7 @@ TEST_F(ObjectCallAsyncTest, DeleteObject_Future) {
 TEST_F(ObjectCallAsyncTest, AppendObject_Future) {
     std::string key = "async-append-future";
     std::string content = "Append me async!";
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
 
     auto future = client_->asyncCall(models::AppendObjectRequest()
             .setBucket(bucketName_)
@@ -138,7 +138,7 @@ TEST_F(ObjectCallAsyncTest, AppendObject_Future) {
 // PutObjectAcl + GetObjectAcl Future
 TEST_F(ObjectCallAsyncTest, ObjectAcl_Future) {
     std::string key = "async-acl-future";
-    auto body = RequestBody::FromString("Acl test async!");
+    auto body = RequestBody::fromString("Acl test async!");
 
     auto putFuture = client_->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body));
     EXPECT_TRUE(putFuture.get().has_value());
@@ -159,7 +159,7 @@ TEST_F(ObjectCallAsyncTest, ObjectAcl_Future) {
 TEST_F(ObjectCallAsyncTest, Symlink_Future) {
     std::string targetKey = "async-symlink-target";
     std::string symlinkKey = "async-symlink-link";
-    auto body = RequestBody::FromString("Symlink target!");
+    auto body = RequestBody::fromString("Symlink target!");
 
     auto putFuture = client_->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(targetKey).setBody(body));
     EXPECT_TRUE(putFuture.get().has_value());
@@ -179,7 +179,7 @@ TEST_F(ObjectCallAsyncTest, Symlink_Future) {
 // PutObjectTagging + GetObjectTagging + DeleteObjectTagging Future
 TEST_F(ObjectCallAsyncTest, Tagging_Future) {
     std::string key = "async-tagging-future";
-    auto body = RequestBody::FromString("Tagging test!");
+    auto body = RequestBody::fromString("Tagging test!");
 
     auto putFuture = client_->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body));
     EXPECT_TRUE(putFuture.get().has_value());

@@ -14,7 +14,7 @@ PutObjectOutcome OSSClient::putObjectFromFile(const models::PutObjectRequest& re
                                               const std::string& filePath,
                                               const OperationOptions* options) {
     auto req = request;
-    req.setBody(RequestBody::FromFile(filePath));
+    req.setBody(RequestBody::fromFile(filePath));
     return putObject(req, options);
 }
 

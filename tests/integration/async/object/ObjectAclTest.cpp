@@ -31,7 +31,7 @@ TEST_F(AsyncObjectAclTest, ObjectAcl_Normal) {
     auto client = ClientHelper::GetDefaultClient();
     std::string key = "test-acl-object";
 
-    auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::FromString("content")));
+    auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::fromString("content")));
     EXPECT_TRUE(putFuture.get().has_value());
 
     auto putAclFuture = client->asyncCall(models::PutObjectAclRequest().setBucket(bucketName_).setKey(key).setObjectAcl("private"));

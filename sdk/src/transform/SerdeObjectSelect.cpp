@@ -201,7 +201,7 @@ OperationInput fromSelectObject(const models::SelectObjectRequest& request) {
     if (request.hasSelectRequest()) {
         auto str = toXmlText(request.getSelectRequest(), "SelectRequest");
         md5 = utils::CalcContentMD5(str);
-        input.body = RequestBody::FromString(std::move(str));
+        input.body = RequestBody::fromString(std::move(str));
     }
     input.headers.emplace("Content-MD5", std::move(md5));
 
@@ -243,7 +243,7 @@ OperationInput fromCreateSelectObjectMeta(const models::CreateSelectObjectMetaRe
             str = toXmlText(*json, "JsonMetaRequest");
         }
         md5 = utils::CalcContentMD5(str);
-        input.body = RequestBody::FromString(std::move(str));
+        input.body = RequestBody::fromString(std::move(str));
     }
     input.headers.emplace("Content-MD5", std::move(md5));
 

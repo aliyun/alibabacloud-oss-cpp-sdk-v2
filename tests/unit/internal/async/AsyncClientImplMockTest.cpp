@@ -480,7 +480,7 @@ TEST(AsyncClientImplMockTest, configSeekableStream) {
     input.headers = {{"Content-Type", "application/xml"}};
     input.bucket = "bucket";
     input.key = "key";
-    input.body = RequestBody::FromString("hello world");
+    input.body = RequestBody::fromString("hello world");
 
     AsyncTestHelper helper;
     client.ExecuteAsync(input, helper.callback());

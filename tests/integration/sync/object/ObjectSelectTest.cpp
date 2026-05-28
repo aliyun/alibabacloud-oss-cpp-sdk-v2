@@ -91,7 +91,7 @@ TEST_F(ObjectSelectTest, SelectObject_Csv) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(csvData())));
+            .setBody(RequestBody::fromString(csvData())));
     ASSERT_TRUE(putOutcome.has_value());
 
     auto outcome = client->selectObject(
@@ -151,7 +151,7 @@ TEST_F(ObjectSelectTest, SelectObject_CsvWithSinkFactory) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(csvData())));
+            .setBody(RequestBody::fromString(csvData())));
     ASSERT_TRUE(putOutcome.has_value());
 
     auto userStream = std::make_shared<std::stringstream>();
@@ -217,7 +217,7 @@ TEST_F(ObjectSelectTest, SelectObject_CsvWithHeader) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(csvDataCRLF())));
+            .setBody(RequestBody::fromString(csvDataCRLF())));
     ASSERT_TRUE(putOutcome.has_value());
 
     auto outcome = client->selectObject(
@@ -257,7 +257,7 @@ TEST_F(ObjectSelectTest, SelectObject_CsvRaw) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(csvDataCRLF())));
+            .setBody(RequestBody::fromString(csvDataCRLF())));
     ASSERT_TRUE(putOutcome.has_value());
 
     auto outcome = client->selectObject(
@@ -306,7 +306,7 @@ TEST_F(ObjectSelectTest, SelectObject_Json) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(jsonData())));
+            .setBody(RequestBody::fromString(jsonData())));
     ASSERT_TRUE(putOutcome.has_value());
 
     auto outcome = client->selectObject(
@@ -357,7 +357,7 @@ TEST_F(ObjectSelectTest, SelectObject_JsonWithHeader) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(jsonDataFull())));
+            .setBody(RequestBody::fromString(jsonDataFull())));
     ASSERT_TRUE(putOutcome.has_value());
 
     auto outcome = client->selectObject(
@@ -402,7 +402,7 @@ TEST_F(ObjectSelectTest, CreateSelectObjectMeta_Csv) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(data)));
+            .setBody(RequestBody::fromString(data)));
     ASSERT_TRUE(putOutcome.has_value());
 
     auto outcome = client->createSelectObjectMeta(
@@ -441,7 +441,7 @@ TEST_F(ObjectSelectTest, CreateSelectObjectMeta_Json) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(data)));
+            .setBody(RequestBody::fromString(data)));
     ASSERT_TRUE(putOutcome.has_value());
 
     auto outcome = client->createSelectObjectMeta(
@@ -474,7 +474,7 @@ TEST_F(ObjectSelectTest, SelectObject_SkipPartialData) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(data)));
+            .setBody(RequestBody::fromString(data)));
     ASSERT_TRUE(putOutcome.has_value());
 
     // maxSkippedRecordsAllowed=1, expect failure
@@ -547,7 +547,7 @@ TEST_F(ObjectSelectTest, SelectObject_GzipData) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(content)));
+            .setBody(RequestBody::fromString(content)));
     ASSERT_TRUE(putOutcome.has_value());
 
     auto outcome = client->selectObject(
@@ -580,7 +580,7 @@ TEST_F(ObjectSelectTest, SelectObject_CsvRange) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(csvDataCRLF())));
+            .setBody(RequestBody::fromString(csvDataCRLF())));
     ASSERT_TRUE(putOutcome.has_value());
 
     // createSelectObjectMeta first (required for range queries)
@@ -666,7 +666,7 @@ TEST_F(ObjectSelectTest, CreateSelectObjectMeta_Delimiters) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(data)));
+            .setBody(RequestBody::fromString(data)));
     ASSERT_TRUE(putOutcome.has_value());
 
     // field=, record=\n
@@ -740,7 +740,7 @@ TEST_F(ObjectSelectTest, CreateSelectObjectMeta_QuoteChar) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(data)));
+            .setBody(RequestBody::fromString(data)));
     ASSERT_TRUE(putOutcome.has_value());
 
     // quoteChar = '
@@ -768,7 +768,7 @@ TEST_F(ObjectSelectTest, CreateSelectObjectMeta_QuoteChar) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(data)));
+            .setBody(RequestBody::fromString(data)));
     ASSERT_TRUE(putOutcome2.has_value());
 
     auto outcome2 = client->createSelectObjectMeta(
@@ -924,7 +924,7 @@ TEST_F(ObjectSelectTest, SelectObject_CsvConcat) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(fileContent)));
+            .setBody(RequestBody::fromString(fileContent)));
     ASSERT_TRUE(putOutcome.has_value());
 
     std::string expression = "select Year,StateAbbr, CityName, Short_Question_Text from ossobject where (data_value || data_value_unit) = '14.8%'";
@@ -980,7 +980,7 @@ TEST_F(ObjectSelectTest, SelectObject_CsvConcatWithOutputDelimiter) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(fileContent)));
+            .setBody(RequestBody::fromString(fileContent)));
     ASSERT_TRUE(putOutcome.has_value());
 
     std::string expression = "select Year,StateAbbr, CityName, Short_Question_Text from ossobject where (data_value || data_value_unit) = '14.8%'";
@@ -1035,7 +1035,7 @@ TEST_F(ObjectSelectTest, SelectObject_CsvComplexWhere) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(fileContent)));
+            .setBody(RequestBody::fromString(fileContent)));
     ASSERT_TRUE(putOutcome.has_value());
 
     std::string expression =
@@ -1107,7 +1107,7 @@ TEST_F(ObjectSelectTest, SelectObject_CsvComplexWhereRaw) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(fileContent)));
+            .setBody(RequestBody::fromString(fileContent)));
     ASSERT_TRUE(putOutcome.has_value());
 
     std::string expression =
@@ -1178,7 +1178,7 @@ TEST_F(ObjectSelectTest, SelectObject_JsonLineRange) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(fileContent)));
+            .setBody(RequestBody::fromString(fileContent)));
     ASSERT_TRUE(putOutcome.has_value());
 
     auto metaOutcome = client->createSelectObjectMeta(
@@ -1245,7 +1245,7 @@ TEST_F(ObjectSelectTest, SelectObject_JsonComplexWhere) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(fileContent)));
+            .setBody(RequestBody::fromString(fileContent)));
     ASSERT_TRUE(putOutcome.has_value());
 
     auto metaOutcome = client->createSelectObjectMeta(
@@ -1325,7 +1325,7 @@ TEST_F(ObjectSelectTest, SelectObject_JsonComplexWhereRaw) {
         models::PutObjectRequest()
             .setBucket(bucketName_)
             .setKey(key)
-            .setBody(RequestBody::FromString(fileContent)));
+            .setBody(RequestBody::fromString(fileContent)));
     ASSERT_TRUE(putOutcome.has_value());
 
     auto metaOutcome = client->createSelectObjectMeta(

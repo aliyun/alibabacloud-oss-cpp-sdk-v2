@@ -174,7 +174,7 @@ auto outcome = client.putObject(
     oss::models::PutObjectRequest()
         .setBucket("mybucket")
         .setKey("mykey")
-        .setBody(oss::RequestBody::FromString("hello")));
+        .setBody(oss::RequestBody::fromString("hello")));
 if (outcome.has_value()) {
     // use outcome.value() or *outcome
 } else {
@@ -250,10 +250,10 @@ V1 uses `std::shared_ptr<std::iostream>` as the upload body for all operations. 
 
 | Factory method | Underlying type | Ownership | Description |
 |:---------------|:----------------|:----------|:------------|
-| `RequestBody::FromString(data)` | `StringContent` | Owning (copy/move) | Copies or moves a `std::string` into the body. Safe for all use cases. |
-| `RequestBody::FromFile(path)` | `FileContent` | Owning (path) | Opens and reads from a file path. Reopens the file on each retry attempt. |
-| `RequestBody::FromStream(stream)` | `StreamContent` | Shared (`shared_ptr`) | Wraps a `std::shared_ptr<std::istream>`. Returns `EmptyContent` if null. |
-| `RequestBody::FromMemory(data, len)` | `MemoryContent` | Non-owning (zero-copy) | References existing memory without copying. Caller must keep data alive until the request completes. |
+| `RequestBody::fromString(data)` | `StringContent` | Owning (copy/move) | Copies or moves a `std::string` into the body. Safe for all use cases. |
+| `RequestBody::fromFile(path)` | `FileContent` | Owning (path) | Opens and reads from a file path. Reopens the file on each retry attempt. |
+| `RequestBody::fromStream(stream)` | `StreamContent` | Shared (`shared_ptr`) | Wraps a `std::shared_ptr<std::istream>`. Returns `EmptyContent` if null. |
+| `RequestBody::fromMemory(data, len)` | `MemoryContent` | Non-owning (zero-copy) | References existing memory without copying. Caller must keep data alive until the request completes. |
 
 ```cpp
 // v1
@@ -265,36 +265,36 @@ auto outcome2 = client.PutObject("bucket", "key", "/path/to/file");
 ```
 
 ```cpp
-// v2 -- FromString: owns a copy of the data
+// v2 -- fromString: owns a copy of the data
 auto outcome = client.putObject(
     oss::models::PutObjectRequest()
         .setBucket("bucket")
         .setKey("key")
-        .setBody(oss::RequestBody::FromString("hello world")));
+        .setBody(oss::RequestBody::fromString("hello world")));
 
-// v2 -- FromFile: reads from a file path, reopens on retry
+// v2 -- fromFile: reads from a file path, reopens on retry
 auto outcome2 = client.putObject(
     oss::models::PutObjectRequest()
         .setBucket("bucket")
         .setKey("key")
-        .setBody(oss::RequestBody::FromFile("/path/to/data.bin")));
+        .setBody(oss::RequestBody::fromFile("/path/to/data.bin")));
 
-// v2 -- FromStream: wraps a shared istream
+// v2 -- fromStream: wraps a shared istream
 auto ifs = std::make_shared<std::ifstream>("data.bin", std::ios::binary);
 auto outcome3 = client.putObject(
     oss::models::PutObjectRequest()
         .setBucket("bucket")
         .setKey("key")
-        .setBody(oss::RequestBody::FromStream(ifs)));
+        .setBody(oss::RequestBody::fromStream(ifs)));
 
-// v2 -- FromMemory: zero-copy, non-owning reference
+// v2 -- fromMemory: zero-copy, non-owning reference
 const char* buf = getBuffer();
 size_t bufLen = getBufferSize();
 auto outcome4 = client.putObject(
     oss::models::PutObjectRequest()
         .setBucket("bucket")
         .setKey("key")
-        .setBody(oss::RequestBody::FromMemory(buf, bufLen)));
+        .setBody(oss::RequestBody::fromMemory(buf, bufLen)));
 ```
 
 V2 also provides `putObjectFromFile()` as a convenience method that takes a file path directly:
@@ -601,7 +601,7 @@ auto outcome = eclient.putObject(
     oss::models::PutObjectRequest()
         .setBucket("bucket")
         .setKey("key")
-        .setBody(oss::RequestBody::FromString("data")));
+        .setBody(oss::RequestBody::fromString("data")));
 ```
 
 V2 `OSSEncryptionClient` supports: `putObject`, `getObject`, `headObject`, `getObjectMeta`, `initiateMultipartUpload`, `uploadPart`, `completeMultipartUpload`, `abortMultipartUpload`, `listParts`, and `unwrap()` to access the underlying `OSSClient` for non-encryption operations.

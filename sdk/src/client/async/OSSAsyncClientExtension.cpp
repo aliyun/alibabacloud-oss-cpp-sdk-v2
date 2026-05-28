@@ -15,7 +15,7 @@ void OSSAsyncClient::putObjectFromFileAsync(const models::PutObjectRequest& requ
                                             const PutObjectAsyncCallback& callback,
                                             const OperationOptions* options) {
     auto req = request;
-    req.setBody(RequestBody::FromFile(filePath));
+    req.setBody(RequestBody::fromFile(filePath));
     putObjectAsync(req, callback, options);
 }
 

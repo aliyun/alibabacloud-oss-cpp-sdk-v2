@@ -32,7 +32,7 @@ TEST_F(AsyncObjectRestoreTest, RestoreObject_Normal) {
     std::string key = "test-restore-object";
 
     auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key)
-            .setBody(RequestBody::FromString("Archive content")).setStorageClass("Archive"));
+            .setBody(RequestBody::fromString("Archive content")).setStorageClass("Archive"));
     EXPECT_TRUE(putFuture.get().has_value());
 
     models::RestoreRequest restoreReq;
@@ -59,7 +59,7 @@ TEST_F(AsyncObjectRestoreTest, CleanRestoredObject_Normal) {
     std::string key = "test-clean-restored-object";
 
     auto putFuture = client->asyncCall(models::PutObjectRequest().setBucket(bucketName_).setKey(key)
-            .setBody(RequestBody::FromString("Content to clean")).setStorageClass("Archive"));
+            .setBody(RequestBody::fromString("Content to clean")).setStorageClass("Archive"));
     EXPECT_TRUE(putFuture.get().has_value());
 
     auto future = client->asyncCall(models::CleanRestoredObjectRequest().setBucket(bucketName_).setKey(key));

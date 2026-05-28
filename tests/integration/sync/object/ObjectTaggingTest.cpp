@@ -42,7 +42,7 @@ TEST_F(ObjectTaggingTest, ObjectTagging_Normal) {
     std::string content = "Tagging test content";
 
     // Put object first
-    auto body = RequestBody::FromString(content);
+    auto body = RequestBody::fromString(content);
 
     auto putOutcome = client->putObject(models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(body));
     EXPECT_TRUE(putOutcome.has_value());

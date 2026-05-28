@@ -21,7 +21,7 @@ class AsyncBucketObjectsTest : public ::testing::Test {
             auto putFuture = client->asyncCall(models::PutObjectRequest()
                     .setBucket(bucketName_)
                     .setKey(key)
-                    .setBody(RequestBody::FromString("content-" + std::to_string(i))));
+                    .setBody(RequestBody::fromString("content-" + std::to_string(i))));
             EXPECT_TRUE(putFuture.get().has_value());
         }
     }
@@ -89,7 +89,7 @@ TEST_F(AsyncBucketObjectsTest, DeleteMultipleObjects_Normal) {
         auto putFuture = client->asyncCall(models::PutObjectRequest()
                 .setBucket(bucketName_)
                 .setKey(key)
-                .setBody(RequestBody::FromString("content-" + std::to_string(i))));
+                .setBody(RequestBody::fromString("content-" + std::to_string(i))));
         EXPECT_TRUE(putFuture.get().has_value());
 
         models::ObjectIdentifier obj;

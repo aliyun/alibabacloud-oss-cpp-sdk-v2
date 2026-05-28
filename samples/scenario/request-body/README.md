@@ -6,7 +6,7 @@ Demonstrates the four `RequestBody` factory methods for constructing request bod
 
 | File | Description |
 |------|-------------|
-| `RequestBodyVariants.cpp` | FromString, FromFile, FromStream, FromMemory |
+| `RequestBodyVariants.cpp` | fromString, fromFile, fromStream, fromMemory |
 
 ## Prerequisites
 

@@ -697,7 +697,7 @@ OperationInput fromPutBucket(const models::PutBucketRequest& request) {
     if (request.hasCreateBucketConfiguration()) {
         auto str = toXmlText(request.getCreateBucketConfiguration(), "CreateBucketConfiguration");
         md5 = utils::CalcContentMD5(str);
-        input.body = RequestBody::FromString(std::move(str));
+        input.body = RequestBody::fromString(std::move(str));
     }
 
     input.headers.emplace("Content-MD5", std::move(md5));
