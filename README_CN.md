@@ -207,6 +207,10 @@ auto& result = outcome.getResult();
 
 更多示例请参阅 [`samples`](samples/INDEX.md) 目录，包括同步/异步 API 用法、分页器，以及场景示例（进度回调、传输层定制、重试策略、请求取消、凭证提供者等）。
 
+## 迁移指南
+
+如果您正在从 V1 版本（[aliyun-oss-cpp-sdk](https://github.com/aliyun/aliyun-oss-cpp-sdk)）升级，请参阅[迁移指南](MIGRATION_CN.md)，了解 API 变更、配置、错误处理等详细对比。
+
 ## 许可协议
 
 > - Apache-2.0，请参阅 [许可文件](LICENSE)
