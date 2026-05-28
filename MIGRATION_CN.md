@@ -603,6 +603,53 @@ V1 和 V2 均默认开启自动重试（最大尝试 3 次）。V2 使用 `FullJ
 | 单请求覆盖 | -- | `OperationOptions::retryMaxAttempts` |
 | 接口 | `RetryStrategy`（继承 `shouldRetry` + `calcDelayTimeMs`） | `Retryer` |
 
+## CRC-64
+
+CRC-64 用于在上传和下载过程中校验数据完整性。V1 和 V2 均默认对上传操作启用 CRC-64 校验。
+
+V1 的 `getObject()` 流式下载同样启用了 CRC-64 校验 —— HTTP 客户端在接收数据时计算 CRC-64，并与服务器返回的 `x-oss-hash-crc64ecma` 响应头进行比对。V2 的 `getObject()` 流式读取**不**执行 CRC-64 校验；如需下载时校验 CRC-64，请使用 `getObjectToFile()`，或通过 `SinkFactory` + `CRC64WriteObserver` 手动校验。
+
+| Operation | V1 | V2 |
+|:----------|:---|:---|
+| `putObject` | CRC-64 enabled | CRC-64 enabled |
+| `appendObject` | CRC-64 enabled | CRC-64 enabled |
+| `uploadPart` | CRC-64 enabled | CRC-64 enabled |
+| `getObject` (streaming) | CRC-64 enabled | No CRC-64 |
+| `getObjectToFile` / `ResumableDownloadObject` | CRC-64 enabled | CRC-64 enabled |
+| Disable upload CRC | `enableCrc64 = false` | `disableUploadCRC64Check = true` |
+| Disable download CRC | `enableCrc64 = false` | `disableDownloadCRC64Check = true` |
+
+V2 中对 `getObject()` 流式下载手动校验 CRC-64，可使用 `SinkFactory` + `CRC64WriteObserver`：
+
+```cpp
+// v2 -- getObject 流式下载手动 CRC-64 校验
+auto crc = std::make_shared<oss::CRC64WriteObserver>();
+
+oss::SinkFactory factory;
+factory.isOneShot = false;
+factory.supplier = [&crc](std::int64_t, const oss::HeaderCollection&)
+    -> std::shared_ptr<oss::ByteWriter> {
+    // retry 时重置 CRC，从头重新计算
+    crc->reset();
+    auto file = std::make_shared<oss::OStreamWriter>(
+        std::make_shared<std::ofstream>("local.dat", std::ios::binary | std::ios::trunc));
+    return std::make_shared<oss::ObservableWriter>(file, crc);
+};
+
+auto outcome = client.getObject(
+    oss::models::GetObjectRequest()
+        .setBucket("bucket")
+        .setKey("key")
+        .setSinkFactory(factory));
+
+if (outcome.has_value()) {
+    auto serverCrc = outcome->getHashCrc64ecmaAsUint64();
+    if (serverCrc != 0 && crc->crc() != serverCrc) {
+        // CRC 不匹配，数据可能已损坏
+    }
+}
+```
+
 ## 凭证
 
 V2 版本提供了等效的凭证提供者，类名有所调整：

@@ -603,6 +603,53 @@ Both V1 and V2 enable automatic retry by default (max 3 attempts). V2 uses `Full
 | Per-request override | -- | `OperationOptions::retryMaxAttempts` |
 | Interface | `RetryStrategy` (inherit `shouldRetry` + `calcDelayTimeMs`) | `Retryer` |
 
+## CRC-64
+
+CRC-64 is used to verify data integrity during upload and download. Both V1 and V2 enable CRC-64 by default for uploads.
+
+V1 also enables CRC-64 for `getObject()` streaming downloads — the HTTP client computes CRC-64 during receive and verifies it against the server-returned `x-oss-hash-crc64ecma` header. V2's `getObject()` does **not** perform CRC-64 verification for streaming reads; if you need CRC-64 verification on download, use `getObjectToFile()` or verify manually with `SinkFactory` + `CRC64WriteObserver`.
+
+| Operation | V1 | V2 |
+|:----------|:---|:---|
+| `putObject` | CRC-64 enabled | CRC-64 enabled |
+| `appendObject` | CRC-64 enabled | CRC-64 enabled |
+| `uploadPart` | CRC-64 enabled | CRC-64 enabled |
+| `getObject` (streaming) | CRC-64 enabled | No CRC-64 |
+| `getObjectToFile` / `ResumableDownloadObject` | CRC-64 enabled | CRC-64 enabled |
+| Disable upload CRC | `enableCrc64 = false` | `disableUploadCRC64Check = true` |
+| Disable download CRC | `enableCrc64 = false` | `disableDownloadCRC64Check = true` |
+
+To manually verify CRC-64 for streaming downloads with V2's `getObject()`, use `SinkFactory` with `CRC64WriteObserver`:
+
+```cpp
+// v2 -- manual CRC-64 verification for getObject streaming download
+auto crc = std::make_shared<oss::CRC64WriteObserver>();
+
+oss::SinkFactory factory;
+factory.isOneShot = false;
+factory.supplier = [&crc](std::int64_t, const oss::HeaderCollection&)
+    -> std::shared_ptr<oss::ByteWriter> {
+    // reset CRC state so retries recompute from scratch
+    crc->reset();
+    auto file = std::make_shared<oss::OStreamWriter>(
+        std::make_shared<std::ofstream>("local.dat", std::ios::binary | std::ios::trunc));
+    return std::make_shared<oss::ObservableWriter>(file, crc);
+};
+
+auto outcome = client.getObject(
+    oss::models::GetObjectRequest()
+        .setBucket("bucket")
+        .setKey("key")
+        .setSinkFactory(factory));
+
+if (outcome.has_value()) {
+    auto serverCrc = outcome->getHashCrc64ecmaAsUint64();
+    if (serverCrc != 0 && crc->crc() != serverCrc) {
+        // CRC mismatch, data may be corrupted
+    }
+}
+```
+
 ## Credentials
 
 V2 provides equivalent credential providers with renamed classes:
