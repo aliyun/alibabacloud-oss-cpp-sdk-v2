@@ -191,7 +191,7 @@ struct OSSEncryptionClient::Impl {
             return writer;
         }
         auto ccResult = ccBuilder->fromEnvelope(envelope);
-        if (auto* ec = std::get_if<std::error_code>(&ccResult)) {
+        if (std::get_if<std::error_code>(&ccResult)) {
             return std::make_shared<ErrorWriter>();
         }
         auto& cc = std::get<std::unique_ptr<crypto::ContentCipher>>(ccResult);
@@ -393,6 +393,16 @@ AbortMultipartUploadOutcome OSSEncryptionClient::abortMultipartUpload(
 ListPartsOutcome OSSEncryptionClient::listParts(const models::ListPartsRequest& request,
                                                  const OperationOptions* options) {
     return impl_->client.listParts(request, options);
+}
+
+HeadObjectOutcome OSSEncryptionClient::headObject(const models::HeadObjectRequest& request,
+                                                   const OperationOptions* options) {
+    return impl_->client.headObject(request, options);
+}
+
+GetObjectMetaOutcome OSSEncryptionClient::getObjectMeta(const models::GetObjectMetaRequest& request,
+                                                         const OperationOptions* options) {
+    return impl_->client.getObjectMeta(request, options);
 }
 
 } // namespace oss2

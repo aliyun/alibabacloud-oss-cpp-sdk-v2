@@ -79,6 +79,10 @@ class ALIBABACLOUD_OSS_API OSSEncryptionClient {
 
     ListPartsOutcome listParts(const models::ListPartsRequest& request, const OperationOptions* options = nullptr);
 
+    HeadObjectOutcome headObject(const models::HeadObjectRequest& request, const OperationOptions* options = nullptr);
+
+    GetObjectMetaOutcome getObjectMeta(const models::GetObjectMetaRequest& request, const OperationOptions* options = nullptr);
+
   private:
     struct Impl;
     std::shared_ptr<Impl> impl_;
