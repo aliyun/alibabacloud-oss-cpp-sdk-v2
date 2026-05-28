@@ -4,6 +4,21 @@
 
 This guide describes how to upgrade OSS SDK for C++ from V1 ([aliyun-oss-cpp-sdk](https://github.com/aliyun/aliyun-oss-cpp-sdk)) to V2.
 
+## Major breaking changes
+
+- V2 requires C++17 or later.
+- `InitializeSdk()` / `ShutdownSdk()` are no longer required.
+- Namespace changes from `AlibabaCloud::OSS` to `alibabacloud::oss2`.
+- Client constructors are changed. Credentials, endpoint, region, and transport are configured through `ClientConfiguration`.
+- Convenience overloads are removed. Each operation now accepts a typed request object.
+- Method names are changed from PascalCase to camelCase.
+- V2 defaults to Signature V4, which requires `region`.
+- V2 uses an `Outcome` interface compatible with `std::expected`.
+- Upload body changes from `std::shared_ptr<std::iostream>` to `RequestBody`.
+- Response body factory changes from `IOStreamFactory` to `SinkFactory`.
+- Async APIs are redesigned.
+- `getObject()` streaming no longer verifies CRC-64.
+
 ## Minimum C++ version
 
 V2 requires C++17 or later. V1 required C++11.

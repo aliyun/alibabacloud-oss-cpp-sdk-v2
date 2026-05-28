@@ -4,6 +4,21 @@
 
 本部分介绍如何从V1版本 ([aliyun-oss-cpp-sdk](https://github.com/aliyun/aliyun-oss-cpp-sdk)) 迁移到 V2 版本。
 
+## 主要破坏性变更
+
+- V2 要求 C++17 或更高版本。
+- 不再需要调用 `InitializeSdk()` / `ShutdownSdk()`。
+- 命名空间从 `AlibabaCloud::OSS` 变更为 `alibabacloud::oss2`。
+- Client 构造方式变更。凭证、endpoint、region、传输层均通过 `ClientConfiguration` 配置。
+- 移除了便捷重载。每个操作现在接受一个类型化的 request 对象。
+- 方法命名从 PascalCase 变更为 camelCase。
+- V2 默认使用签名 V4，需要设置 `region`。
+- V2 使用兼容 `std::expected` 的 `Outcome` 接口。
+- 上传请求体从 `std::shared_ptr<std::iostream>` 变更为 `RequestBody`。
+- 响应体工厂从 `IOStreamFactory` 变更为 `SinkFactory`。
+- 异步 API 重新设计。
+- `getObject()` 流式读取不再校验 CRC-64。
+
 ## 最低 C++ 版本
 
 V2 版本 要求 C++17 或更高版本。V1 版本要求 C++11。
