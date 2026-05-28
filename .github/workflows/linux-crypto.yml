@@ -38,10 +38,18 @@ jobs:
           - crypto: openssl
             curl: system
             cmake_flags: "-DUSE_SYSTEM_CURL=ON -DUSE_SYSTEM_OPENSSL=ON"
+          # openssl hash + system curl + client-side encryption
+          - crypto: openssl+encryption
+            curl: system
+            cmake_flags: "-DUSE_SYSTEM_CURL=ON -DUSE_SYSTEM_OPENSSL=ON -DENABLE_ENCRYPTION=ON"
           # mbedtls hash + system curl
           - crypto: mbedtls
             curl: system
             cmake_flags: "-DUSE_SYSTEM_CURL=ON -DUSE_SYSTEM_MBEDTLS=ON"
+          # mbedtls hash + system curl + client-side encryption
+          - crypto: mbedtls+encryption
+            curl: system
+            cmake_flags: "-DUSE_SYSTEM_CURL=ON -DUSE_SYSTEM_MBEDTLS=ON -DENABLE_ENCRYPTION=ON"
 
     steps:
       - name: Checkout repository
