@@ -5,6 +5,8 @@
 
 #include <cstdint>
 #include <memory>
+#include <system_error>
+#include <variant>
 
 namespace alibabacloud {
 namespace oss2 {
@@ -43,6 +45,8 @@ class ALIBABACLOUD_OSS_API ContentCipher {
     virtual int getAlignLen() const = 0;
 };
 
+using ContentCipherResult = std::variant<std::unique_ptr<ContentCipher>, std::error_code>;
+
 // Factory that creates ContentCipher instances.
 // On upload: create() generates fresh key material.
 // On download: fromEnvelope() restores key material from stored headers.
@@ -50,9 +54,9 @@ class ALIBABACLOUD_OSS_API ContentCipherBuilder {
   public:
     virtual ~ContentCipherBuilder() = default;
 
-    virtual std::unique_ptr<ContentCipher> create() = 0;
+    virtual ContentCipherResult create() = 0;
 
-    virtual std::unique_ptr<ContentCipher> fromEnvelope(const Envelope& envelope) = 0;
+    virtual ContentCipherResult fromEnvelope(const Envelope& envelope) = 0;
 
     virtual const CipherMetadata& getCipherMetadata() const = 0;
 

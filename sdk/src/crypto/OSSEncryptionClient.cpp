@@ -190,10 +190,11 @@ struct OSSEncryptionClient::Impl {
         if (!hasEnvelope(envelope)) {
             return writer;
         }
-        auto cc = ccBuilder->fromEnvelope(envelope);
-        if (!cc) {
+        auto ccResult = ccBuilder->fromEnvelope(envelope);
+        if (auto* ec = std::get_if<std::error_code>(&ccResult)) {
             return std::make_shared<ErrorWriter>();
         }
+        auto& cc = std::get<std::unique_ptr<crypto::ContentCipher>>(ccResult);
         if (alignedStart > 0) {
             cc->seekTo(static_cast<uint64_t>(alignedStart));
         }
@@ -223,11 +224,12 @@ PutObjectOutcome OSSEncryptionClient::putObject(const models::PutObjectRequest& 
         return makeUnexpected(makeClientError(
                 ClientErrorCode::ArgumentInvalid, "EncryptionConfiguration has no contentCipherBuilder or masterCipher"));
     }
-    auto cc = impl_->ccBuilder->create();
-    if (!cc) {
+    auto ccResult = impl_->ccBuilder->create();
+    if (auto* ec = std::get_if<std::error_code>(&ccResult)) {
         return makeUnexpected(makeClientError(
-                ClientErrorCode::EncryptionFailure, "Failed to create content cipher"));
+                ClientErrorCode::EncryptionFailure, "Failed to create content cipher: " + ec->message()));
     }
+    auto& cc = std::get<std::unique_ptr<crypto::ContentCipher>>(ccResult);
 
     std::optional<int64_t> plainLen;
     std::shared_ptr<ByteContent> body;
@@ -337,11 +339,12 @@ InitiateMultipartUploadOutcome OSSEncryptionClient::initiateMultipartUpload(
                 "csePartSize and cseDataSize are required, csePartSize must be a multiple of " + std::to_string(alignLen) + " and >= 102400"));
     }
 
-    auto cc = impl_->ccBuilder->create();
-    if (!cc) {
+    auto ccResult = impl_->ccBuilder->create();
+    if (auto* ec = std::get_if<std::error_code>(&ccResult)) {
         return makeUnexpected(makeClientError(
-                ClientErrorCode::EncryptionFailure, "Failed to create content cipher"));
+                ClientErrorCode::EncryptionFailure, "Failed to create content cipher: " + ec->message()));
     }
+    auto& cc = std::get<std::unique_ptr<crypto::ContentCipher>>(ccResult);
 
     auto req = request;
     auto meta = req.getMetadata();

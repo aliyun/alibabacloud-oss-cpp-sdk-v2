@@ -1,6 +1,7 @@
 #include "AesCtrCipherBuilder.h"
 #include "AesCtrContentCipher.h"
 #include "Aes256Utils.h"
+#include "alibabacloud/oss2/crypto/Error.h"
 #include "alibabacloud/oss2/utils/Base64Utils.h"
 
 namespace alibabacloud {
@@ -24,20 +25,44 @@ AesCtrCipherBuilder::AesCtrCipherBuilder(std::shared_ptr<MasterCipher> masterCip
     : masterCipher_(masterCipher)
     , metadata_{masterCipher->getWrapAlgorithm(), kAesCtrAlgorithm, masterCipher->getMatDesc()} {}
 
-std::unique_ptr<ContentCipher> AesCtrCipherBuilder::create() {
+ContentCipherResult AesCtrCipherBuilder::create() {
     CipherData cd;
-    if (!randomKeyIV(cd, 32, 16)) return nullptr;
-    cd.encryptedKey = masterCipher_->encrypt(cd.key);
-    cd.encryptedIV = masterCipher_->encrypt(cd.iv);
-    if (cd.encryptedKey.empty() || cd.encryptedIV.empty()) return nullptr;
+    if (!randomKeyIV(cd, 32, 16)) {
+        return CryptoErrorCode::RandomGenerationFailed;
+    }
+    auto keyResult = masterCipher_->encrypt(cd.key);
+    if (auto* ec = std::get_if<std::error_code>(&keyResult)) {
+        return *ec;
+    }
+    auto ivResult = masterCipher_->encrypt(cd.iv);
+    if (auto* ec = std::get_if<std::error_code>(&ivResult)) {
+        return *ec;
+    }
+    cd.encryptedKey = std::move(std::get<std::string>(keyResult));
+    cd.encryptedIV = std::move(std::get<std::string>(ivResult));
     return std::make_unique<AesCtrContentCipher>(std::move(cd));
 }
 
-std::unique_ptr<ContentCipher> AesCtrCipherBuilder::fromEnvelope(const Envelope& envelope) {
+ContentCipherResult AesCtrCipherBuilder::fromEnvelope(const Envelope& envelope) {
+    if (envelope.cipherKey.empty() || envelope.iv.empty()) {
+        return CryptoErrorCode::EmptyKeyOrIV;
+    }
+
+    auto keyResult = masterCipher_->decrypt(utils::Base64Decode(envelope.cipherKey));
+    if (auto* ec = std::get_if<std::error_code>(&keyResult)) {
+        return *ec;
+    }
+    auto ivResult = masterCipher_->decrypt(utils::Base64Decode(envelope.iv));
+    if (auto* ec = std::get_if<std::error_code>(&ivResult)) {
+        return *ec;
+    }
+
     CipherData cd;
-    cd.key = masterCipher_->decrypt(utils::Base64Decode(envelope.cipherKey));
-    cd.iv = masterCipher_->decrypt(utils::Base64Decode(envelope.iv));
-    if (cd.key.empty() || cd.iv.empty()) return nullptr;
+    cd.key = std::move(std::get<std::string>(keyResult));
+    cd.iv = std::move(std::get<std::string>(ivResult));
+    if (cd.key.size() != 32 || cd.iv.size() != 16) {
+        return CryptoErrorCode::InvalidKeyOrIV;
+    }
     cd.encryptedKey = envelope.cipherKey;
     cd.encryptedIV = envelope.iv;
     return std::make_unique<AesCtrContentCipher>(std::move(cd));

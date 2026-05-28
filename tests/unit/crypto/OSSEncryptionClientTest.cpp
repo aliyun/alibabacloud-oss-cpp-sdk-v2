@@ -55,12 +55,12 @@ VBIJ/MGrJ+PpwOjY0Y/v8jE=
 
 class MockMasterCipher : public crypto::MasterCipher {
   public:
-    std::string encrypt(const std::string& plaintext) const override {
+    crypto::MasterCipherResult encrypt(const std::string& plaintext) const override {
         std::string result = plaintext;
         for (auto& c : result) c ^= 0x42;
         return result;
     }
-    std::string decrypt(const std::string& ciphertext) const override {
+    crypto::MasterCipherResult decrypt(const std::string& ciphertext) const override {
         std::string result = ciphertext;
         for (auto& c : result) c ^= 0x42;
         return result;
@@ -202,8 +202,8 @@ TEST(OSSEncryptionClientTest, GetObject_DecryptsBody) {
     std::string plainKey(32, '\x01');
     std::string plainIV(16, '\x02');
 
-    std::string encKey = cipher->encrypt(plainKey);
-    std::string encIV = cipher->encrypt(plainIV);
+    std::string encKey = std::get<std::string>(cipher->encrypt(plainKey));
+    std::string encIV = std::get<std::string>(cipher->encrypt(plainIV));
 
     std::string plaintext = "decryption test data here!!!";
 

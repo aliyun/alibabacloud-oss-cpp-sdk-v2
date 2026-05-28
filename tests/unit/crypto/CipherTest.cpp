@@ -4,6 +4,7 @@
 #include "src/crypto/AesCtrContentCipher.h"
 #include "src/crypto/AesCtrCipherBuilder.h"
 #include "alibabacloud/oss2/crypto/MasterCipher.h"
+#include "alibabacloud/oss2/crypto/Error.h"
 #include "alibabacloud/oss2/utils/Base64Utils.h"
 #include "alibabacloud/oss2/io/ByteStream.h"
 #include "alibabacloud/oss2/io/ByteWriter.h"
@@ -22,12 +23,13 @@ const char* kData32 = "12345678901234561234567890123456";
 
 class MockMasterCipher : public crypto::MasterCipher {
   public:
-    std::string encrypt(const std::string& plaintext) const override {
+    crypto::MasterCipherResult encrypt(const std::string& plaintext) const override {
         std::string result = plaintext;
         for (auto& c : result) c ^= 0x42;
         return result;
     }
-    std::string decrypt(const std::string& ciphertext) const override {
+    crypto::MasterCipherResult decrypt(const std::string& ciphertext) const override {
+        if (ciphertext.empty()) return crypto::CryptoErrorCode::DecryptFailed;
         std::string result = ciphertext;
         for (auto& c : result) c ^= 0x42;
         return result;
@@ -331,7 +333,9 @@ TEST(CipherTest, CipherBuilder_Create) {
     auto builder = crypto::CreateAesCtrCipherBuilder(mc);
     ASSERT_NE(nullptr, builder);
 
-    auto cipher = builder->create();
+    auto result = builder->create();
+    ASSERT_TRUE(std::holds_alternative<std::unique_ptr<crypto::ContentCipher>>(result));
+    auto& cipher = std::get<std::unique_ptr<crypto::ContentCipher>>(result);
     ASSERT_NE(nullptr, cipher);
 
     auto& cd = cipher->getCipherData();
@@ -340,20 +344,24 @@ TEST(CipherTest, CipherBuilder_Create) {
     EXPECT_FALSE(cd.encryptedKey.empty());
     EXPECT_FALSE(cd.encryptedIV.empty());
 
-    std::string decKey = mc->decrypt(cd.encryptedKey);
-    std::string decIV = mc->decrypt(cd.encryptedIV);
-    EXPECT_EQ(cd.key, decKey);
-    EXPECT_EQ(cd.iv, decIV);
+    auto decKeyResult = mc->decrypt(cd.encryptedKey);
+    auto decIVResult = mc->decrypt(cd.encryptedIV);
+    ASSERT_TRUE(std::holds_alternative<std::string>(decKeyResult));
+    ASSERT_TRUE(std::holds_alternative<std::string>(decIVResult));
+    EXPECT_EQ(cd.key, std::get<std::string>(decKeyResult));
+    EXPECT_EQ(cd.iv, std::get<std::string>(decIVResult));
 }
 
 TEST(CipherTest, CipherBuilder_Create_UniqueMaterial) {
     auto mc = std::make_shared<MockMasterCipher>();
     auto builder = crypto::CreateAesCtrCipherBuilder(mc);
 
-    auto c1 = builder->create();
-    auto c2 = builder->create();
-    ASSERT_NE(nullptr, c1);
-    ASSERT_NE(nullptr, c2);
+    auto r1 = builder->create();
+    auto r2 = builder->create();
+    ASSERT_TRUE(std::holds_alternative<std::unique_ptr<crypto::ContentCipher>>(r1));
+    ASSERT_TRUE(std::holds_alternative<std::unique_ptr<crypto::ContentCipher>>(r2));
+    auto& c1 = std::get<std::unique_ptr<crypto::ContentCipher>>(r1);
+    auto& c2 = std::get<std::unique_ptr<crypto::ContentCipher>>(r2);
 
     EXPECT_NE(c1->getCipherData().key, c2->getCipherData().key);
     EXPECT_NE(c1->getCipherData().iv, c2->getCipherData().iv);
@@ -363,8 +371,9 @@ TEST(CipherTest, CipherBuilder_FromEnvelope) {
     auto mc = std::make_shared<MockMasterCipher>();
     auto builder = crypto::CreateAesCtrCipherBuilder(mc);
 
-    auto original = builder->create();
-    ASSERT_NE(nullptr, original);
+    auto createResult = builder->create();
+    ASSERT_TRUE(std::holds_alternative<std::unique_ptr<crypto::ContentCipher>>(createResult));
+    auto& original = std::get<std::unique_ptr<crypto::ContentCipher>>(createResult);
     auto& origData = original->getCipherData();
 
     crypto::Envelope env;
@@ -373,8 +382,9 @@ TEST(CipherTest, CipherBuilder_FromEnvelope) {
     env.cekAlg = "AES/CTR/NoPadding";
     env.wrapAlg = "RSA/NONE/PKCS1Padding";
 
-    auto restored = builder->fromEnvelope(env);
-    ASSERT_NE(nullptr, restored);
+    auto restoreResult = builder->fromEnvelope(env);
+    ASSERT_TRUE(std::holds_alternative<std::unique_ptr<crypto::ContentCipher>>(restoreResult));
+    auto& restored = std::get<std::unique_ptr<crypto::ContentCipher>>(restoreResult);
 
     EXPECT_EQ(origData.key, restored->getCipherData().key);
     EXPECT_EQ(origData.iv, restored->getCipherData().iv);
@@ -401,8 +411,9 @@ TEST(CipherTest, CipherBuilder_FromEnvelope_InvalidKey) {
     env.cekAlg = "AES/CTR/NoPadding";
     env.wrapAlg = "RSA/NONE/PKCS1Padding";
 
-    auto cipher = builder->fromEnvelope(env);
-    EXPECT_EQ(nullptr, cipher);
+    auto result = builder->fromEnvelope(env);
+    ASSERT_TRUE(std::holds_alternative<std::error_code>(result));
+    EXPECT_FALSE(std::get<std::error_code>(result).message().empty());
 }
 
 // -- SeekTo tests --

@@ -1,4 +1,5 @@
 #include "alibabacloud/oss2/crypto/MasterRsaCipher.h"
+#include "alibabacloud/oss2/crypto/Error.h"
 #include "RsaUtils.h"
 
 #include <cstring>
@@ -67,12 +68,16 @@ std::string MasterRsaCipher::getMatDesc() const {
     return matDesc_;
 }
 
-std::string MasterRsaCipher::encrypt(const std::string& plaintext) const {
-    return RsaPublicEncrypt(publicKeyPem_, plaintext);
+MasterCipherResult MasterRsaCipher::encrypt(const std::string& plaintext) const {
+    auto result = RsaPublicEncrypt(publicKeyPem_, plaintext);
+    if (result.empty()) return CryptoErrorCode::EncryptFailed;
+    return result;
 }
 
-std::string MasterRsaCipher::decrypt(const std::string& ciphertext) const {
-    return RsaPrivateDecrypt(privateKeyPem_, ciphertext);
+MasterCipherResult MasterRsaCipher::decrypt(const std::string& ciphertext) const {
+    auto result = RsaPrivateDecrypt(privateKeyPem_, ciphertext);
+    if (result.empty()) return CryptoErrorCode::DecryptFailed;
+    return result;
 }
 
 } // namespace crypto

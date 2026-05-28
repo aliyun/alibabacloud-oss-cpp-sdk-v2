@@ -17,8 +17,8 @@ class ALIBABACLOUD_OSS_API MasterRsaCipher : public MasterCipher {
                     const std::map<std::string, std::string>& description = {});
     ~MasterRsaCipher() override;
 
-    std::string encrypt(const std::string& plaintext) const override;
-    std::string decrypt(const std::string& ciphertext) const override;
+    MasterCipherResult encrypt(const std::string& plaintext) const override;
+    MasterCipherResult decrypt(const std::string& ciphertext) const override;
     std::string getWrapAlgorithm() const override;
     std::string getMatDesc() const override;
 

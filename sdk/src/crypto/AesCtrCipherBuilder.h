@@ -16,8 +16,8 @@ class AesCtrCipherBuilder : public ContentCipherBuilder {
   public:
     explicit AesCtrCipherBuilder(std::shared_ptr<MasterCipher> masterCipher);
 
-    std::unique_ptr<ContentCipher> create() override;
-    std::unique_ptr<ContentCipher> fromEnvelope(const Envelope& envelope) override;
+    ContentCipherResult create() override;
+    ContentCipherResult fromEnvelope(const Envelope& envelope) override;
     const CipherMetadata& getCipherMetadata() const override;
     int getAlignLen() const override;
 

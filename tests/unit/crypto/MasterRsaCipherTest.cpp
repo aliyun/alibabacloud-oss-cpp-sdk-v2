@@ -99,24 +99,28 @@ TEST(MasterRsaCipherTest, EncryptDecrypt) {
     crypto::MasterRsaCipher cipher(kPublicKey, kPrivateKey);
 
     std::string plaintext = "test key material 32 bytes long!";
-    std::string encrypted = cipher.encrypt(plaintext);
-    EXPECT_FALSE(encrypted.empty());
+    auto encResult = cipher.encrypt(plaintext);
+    ASSERT_TRUE(std::holds_alternative<std::string>(encResult));
+    auto& encrypted = std::get<std::string>(encResult);
     EXPECT_NE(plaintext, encrypted);
 
-    std::string decrypted = cipher.decrypt(encrypted);
-    EXPECT_EQ(plaintext, decrypted);
+    auto decResult = cipher.decrypt(encrypted);
+    ASSERT_TRUE(std::holds_alternative<std::string>(decResult));
+    EXPECT_EQ(plaintext, std::get<std::string>(decResult));
 }
 
 TEST(MasterRsaCipherTest, EncryptDecrypt_2048bit) {
     crypto::MasterRsaCipher cipher(kPublicKey2048, kPrivateKey2048);
 
     std::string plaintext = "test key material 32 bytes long!";
-    std::string encrypted = cipher.encrypt(plaintext);
-    EXPECT_FALSE(encrypted.empty());
+    auto encResult = cipher.encrypt(plaintext);
+    ASSERT_TRUE(std::holds_alternative<std::string>(encResult));
+    auto& encrypted = std::get<std::string>(encResult);
     EXPECT_GT(encrypted.size(), plaintext.size());
 
-    std::string decrypted = cipher.decrypt(encrypted);
-    EXPECT_EQ(plaintext, decrypted);
+    auto decResult = cipher.decrypt(encrypted);
+    ASSERT_TRUE(std::holds_alternative<std::string>(decResult));
+    EXPECT_EQ(plaintext, std::get<std::string>(decResult));
 }
 
 TEST(MasterRsaCipherTest, WrapAlgorithm) {
@@ -141,45 +145,60 @@ TEST(MasterRsaCipherTest, DifferentKeys_CannotCrossDecrypt) {
 
     std::string plaintext = "cross-key decryption test data!!";
 
-    std::string enc1 = cipher1.encrypt(plaintext);
-    std::string enc2 = cipher2.encrypt(plaintext);
-    ASSERT_FALSE(enc1.empty());
-    ASSERT_FALSE(enc2.empty());
+    auto enc1 = cipher1.encrypt(plaintext);
+    auto enc2 = cipher2.encrypt(plaintext);
+    ASSERT_TRUE(std::holds_alternative<std::string>(enc1));
+    ASSERT_TRUE(std::holds_alternative<std::string>(enc2));
 
-    EXPECT_EQ(plaintext, cipher1.decrypt(enc1));
-    EXPECT_EQ(plaintext, cipher2.decrypt(enc2));
+    auto dec1 = cipher1.decrypt(std::get<std::string>(enc1));
+    ASSERT_TRUE(std::holds_alternative<std::string>(dec1));
+    EXPECT_EQ(plaintext, std::get<std::string>(dec1));
 
-    std::string cross1 = cipher2.decrypt(enc1);
-    std::string cross2 = cipher1.decrypt(enc2);
-    EXPECT_NE(plaintext, cross1);
-    EXPECT_NE(plaintext, cross2);
+    auto dec2 = cipher2.decrypt(std::get<std::string>(enc2));
+    ASSERT_TRUE(std::holds_alternative<std::string>(dec2));
+    EXPECT_EQ(plaintext, std::get<std::string>(dec2));
+
+    auto cross1 = cipher2.decrypt(std::get<std::string>(enc1));
+    auto cross2 = cipher1.decrypt(std::get<std::string>(enc2));
+    EXPECT_TRUE(std::holds_alternative<std::error_code>(cross1) ||
+                std::get<std::string>(cross1) != plaintext);
+    EXPECT_TRUE(std::holds_alternative<std::error_code>(cross2) ||
+                std::get<std::string>(cross2) != plaintext);
 }
 
-TEST(MasterRsaCipherTest, InvalidKey_EncryptReturnsEmpty) {
+TEST(MasterRsaCipherTest, InvalidKey_EncryptReturnsError) {
     crypto::MasterRsaCipher cipher("invalid-pem", "invalid-pem");
-    std::string result = cipher.encrypt("test data");
-    EXPECT_TRUE(result.empty());
+    auto result = cipher.encrypt("test data");
+    ASSERT_TRUE(std::holds_alternative<std::error_code>(result));
+    auto& ec = std::get<std::error_code>(result);
+    EXPECT_FALSE(ec.message().empty());
 }
 
-TEST(MasterRsaCipherTest, InvalidKey_DecryptReturnsEmpty) {
+TEST(MasterRsaCipherTest, InvalidKey_DecryptReturnsError) {
     crypto::MasterRsaCipher cipher("invalid-pem", "invalid-pem");
-    std::string result = cipher.decrypt("some ciphertext");
-    EXPECT_TRUE(result.empty());
+    auto result = cipher.decrypt("some ciphertext");
+    ASSERT_TRUE(std::holds_alternative<std::error_code>(result));
+    auto& ec = std::get<std::error_code>(result);
+    EXPECT_FALSE(ec.message().empty());
 }
 
 TEST(MasterRsaCipherTest, EncryptTwice_ProducesDifferentCiphertext) {
     crypto::MasterRsaCipher cipher(kPublicKey, kPrivateKey);
     std::string plaintext = "determinism test 32 bytes long!!";
 
-    std::string enc1 = cipher.encrypt(plaintext);
-    std::string enc2 = cipher.encrypt(plaintext);
-    ASSERT_FALSE(enc1.empty());
-    ASSERT_FALSE(enc2.empty());
+    auto r1 = cipher.encrypt(plaintext);
+    auto r2 = cipher.encrypt(plaintext);
+    ASSERT_TRUE(std::holds_alternative<std::string>(r1));
+    ASSERT_TRUE(std::holds_alternative<std::string>(r2));
     // PKCS1 v1.5 padding is randomized
-    EXPECT_NE(enc1, enc2);
+    EXPECT_NE(std::get<std::string>(r1), std::get<std::string>(r2));
 
-    EXPECT_EQ(plaintext, cipher.decrypt(enc1));
-    EXPECT_EQ(plaintext, cipher.decrypt(enc2));
+    auto d1 = cipher.decrypt(std::get<std::string>(r1));
+    auto d2 = cipher.decrypt(std::get<std::string>(r2));
+    ASSERT_TRUE(std::holds_alternative<std::string>(d1));
+    ASSERT_TRUE(std::holds_alternative<std::string>(d2));
+    EXPECT_EQ(plaintext, std::get<std::string>(d1));
+    EXPECT_EQ(plaintext, std::get<std::string>(d2));
 }
 
 TEST(MasterRsaCipherTest, MatDesc_SpecialChars) {
