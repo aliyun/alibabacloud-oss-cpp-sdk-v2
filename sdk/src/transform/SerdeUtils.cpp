@@ -94,7 +94,7 @@ std::string toString(const thirdparty::tinyxml2::XMLElement* node, bool doDecode
         return "";
     }
     std::string value = node->GetText();
-    return doDecode? utils::UrlDecode(value): value;
+    return doDecode ? utils::UrlDecode(value) : value;
 }
 
 } // namespace transform

@@ -956,7 +956,7 @@ class ALIBABACLOUD_OSS_API ListObjectsResult final : public ResultModel {
     ListObjectsResult() = default;
     ListObjectsResult(int statusCode, HeaderCollection headers) : ResultModel(statusCode, std::move(headers)) {}
     ListObjectsResult(int statusCode, HeaderCollection headers, ListBucketResultXml body)
-            : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
+        : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
 
 
     // The name of the bucket.
@@ -1137,7 +1137,7 @@ class ALIBABACLOUD_OSS_API ListObjectsV2Result final : public ResultModel {
     ListObjectsV2Result() = default;
     ListObjectsV2Result(int statusCode, HeaderCollection headers) : ResultModel(statusCode, std::move(headers)) {}
     ListObjectsV2Result(int statusCode, HeaderCollection headers, ListBucketResultXml body)
-            : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
+        : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
 
 
     // The name of the bucket.

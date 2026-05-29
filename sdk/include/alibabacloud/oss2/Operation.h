@@ -145,13 +145,16 @@ class ALIBABACLOUD_OSS_API OperationError {
 
     /// Constructs an error from a client-side error code and detail fields.
     OperationError(std::error_code errorCode, std::map<std::string, std::string> errorFields)
-            : errorCode_(std::move(errorCode)), errorFields_(std::move(errorFields)) {};
+        : errorCode_(std::move(errorCode)), errorFields_(std::move(errorFields)) {};
 
     /// Constructs a full error with request context and error details.
     OperationError(std::string opName, std::string method, std::string requestTarget, std::error_code errorCode,
                    std::map<std::string, std::string> errorFields)
-            : opName_(std::move(opName)), method_(std::move(method)), requestTarget_(std::move(requestTarget)),
-              errorCode_(std::move(errorCode)), errorFields_(std::move(errorFields)) {}
+        : opName_(std::move(opName)),
+          method_(std::move(method)),
+          requestTarget_(std::move(requestTarget)),
+          errorCode_(std::move(errorCode)),
+          errorFields_(std::move(errorFields)) {}
 
     /// Returns the OSS error code string (e.g., "NoSuchKey", "AccessDenied").
     const std::string& getCode() const;

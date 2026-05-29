@@ -12,21 +12,23 @@ namespace internal {
 
 bool isValidIp(const std::string& host) {
     static const std::regex ipPattern(
-            "((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-"
-            "9])");
+        "((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-"
+        "9])");
     return std::regex_match(host, ipPattern);
 }
 
 bool isValidBucketName(const std::string& bucket) {
     static const std::regex namePattern("^[a-z0-9][a-z0-9\\-]{1,61}[a-z0-9]$");
-    if (bucket.empty())
+    if (bucket.empty()) {
         return false;
+    }
     return std::regex_match(bucket, namePattern);
 }
 
 bool isValidObjectName(const std::string& key) {
-    if (key.empty() || !key.compare(0, 1, "\\", 1))
+    if (key.empty() || !key.compare(0, 1, "\\", 1)) {
         return false;
+    }
 
     return key.size() <= 1023;
 }
@@ -55,27 +57,16 @@ std::string regionToEndpoint(const std::string& value, EndpointType type, bool d
     std::string scheme = disableSsl ? "http" : "https";
     std::string endpoint;
     switch (type) {
-        case EndpointType::DualStack:
-            endpoint = value + ".oss.aliyuncs.com";
-            break;
-        case EndpointType::Internal:
-            endpoint = "oss-" + value + "-internal.aliyuncs.com";
-            break;
-        case EndpointType::Accelerate:
-            endpoint = "oss-accelerate.aliyuncs.com";
-            break;
-        case EndpointType::Overseas:
-            endpoint = "oss-accelerate-overseas.aliyuncs.com";
-            break;
-        default:
-            endpoint = "oss-" + value + ".aliyuncs.com";
-            break;
+        case EndpointType::DualStack: endpoint = value + ".oss.aliyuncs.com"; break;
+        case EndpointType::Internal: endpoint = "oss-" + value + "-internal.aliyuncs.com"; break;
+        case EndpointType::Accelerate: endpoint = "oss-accelerate.aliyuncs.com"; break;
+        case EndpointType::Overseas: endpoint = "oss-accelerate-overseas.aliyuncs.com"; break;
+        default: endpoint = "oss-" + value + ".aliyuncs.com"; break;
     }
     return scheme + "://" + endpoint;
 }
 
-std::string buildHostPath(const OperationInput& input, const std::string& baseUrl,
-                          AddressStyleType addressStyle) {
+std::string buildHostPath(const OperationInput& input, const std::string& baseUrl, AddressStyleType addressStyle) {
     std::vector<std::string> paths;
     paths.reserve(2);
     auto host = baseUrl;
@@ -88,12 +79,9 @@ std::string buildHostPath(const OperationInput& input, const std::string& baseUr
                     paths.emplace_back("");
                 }
                 break;
-            case AddressStyleType::CName:
-                break;
+            case AddressStyleType::CName: break;
             case AddressStyleType::VirtualHosted:
-            default:
-                host = input.bucket.value() + "." + baseUrl;
-                break;
+            default: host = input.bucket.value() + "." + baseUrl; break;
         }
     }
 

@@ -1,10 +1,10 @@
 #pragma once
 
+#include "alibabacloud/oss2/io/ByteStream.h"
+#include "alibabacloud/oss2/io/ByteWriter.h"
 #include "alibabacloud/oss2/transport/HttpTransport.h"
 #include "alibabacloud/oss2/transport/HttpTypes.h"
 #include "alibabacloud/oss2/transport/curl/CurlTransportOptions.h"
-#include "alibabacloud/oss2/io/ByteStream.h"
-#include "alibabacloud/oss2/io/ByteWriter.h"
 
 #include <curl/curl.h>
 
@@ -58,12 +58,10 @@ size_t sendBodyCallback(char* ptr, size_t size, size_t nmemb, void* userdata);
 size_t recvBodyCallback(char* ptr, size_t size, size_t nmemb, void* userdata);
 size_t recvHeadersCallback(char* buffer, size_t size, size_t nitems, void* userdata);
 
-curl_slist* buildHeaderList(const HeaderCollection& headers,
-                            const std::shared_ptr<ByteContent>& body,
+curl_slist* buildHeaderList(const HeaderCollection& headers, const std::shared_ptr<ByteContent>& body,
                             int64_t& contentLength);
 
-void applyHttpMethod(CURL* curl, const std::string& method,
-                     const std::shared_ptr<ByteContent>& body,
+void applyHttpMethod(CURL* curl, const std::string& method, const std::shared_ptr<ByteContent>& body,
                      int64_t contentLength);
 
 struct ClientOptions {
@@ -81,8 +79,7 @@ struct ClientOptions {
     std::function<bool()> isRequestDisabled;
 };
 
-void applyClientOptions(CURL* curl, const ClientOptions& opts,
-                        const RequestMessage* request);
+void applyClientOptions(CURL* curl, const ClientOptions& opts, const RequestMessage* request);
 
 ClientOptions buildClientOptions(const HttpTransportOptions& options);
 ClientOptions buildClientOptions(const CurlTransportOptions& options);
@@ -95,7 +92,6 @@ std::string curlVersionString();
 
 std::error_code make_transport_error_code(int curlCode);
 
-TransportError buildTransportError(CURLcode res, const char* errbuf,
-                                    const TransferIO& io);
+TransportError buildTransportError(CURLcode res, const char* errbuf, const TransferIO& io);
 
 } // namespace alibabacloud::oss2::transport::curl

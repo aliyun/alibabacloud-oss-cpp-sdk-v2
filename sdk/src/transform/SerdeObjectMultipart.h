@@ -18,7 +18,8 @@ Outcome<models::UploadPartResult, OperationError> toUploadPart(OperationOutput&&
 
 
 OperationInput fromCompleteMultipartUpload(const models::CompleteMultipartUploadRequest& request);
-Outcome<models::CompleteMultipartUploadResult, OperationError> toCompleteMultipartUpload(OperationOutput&& output, bool hasCallback = false);
+Outcome<models::CompleteMultipartUploadResult, OperationError> toCompleteMultipartUpload(OperationOutput&& output,
+                                                                                         bool hasCallback = false);
 
 
 OperationInput fromUploadPartCopy(const models::UploadPartCopyRequest& request);

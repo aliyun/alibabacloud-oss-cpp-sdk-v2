@@ -8,7 +8,9 @@ namespace oss2 {
 
 class server_error_category : public std::error_category {
   public:
-    const char* name() const noexcept override { return "oss2.server"; }
+    const char* name() const noexcept override {
+        return "oss2.server";
+    }
 
     std::string message(int ev) const override {
         int status = ev >= 10000 ? ev - 10000 : ev;
@@ -26,8 +28,12 @@ class server_error_category : public std::error_category {
             case 503: return "Service Unavailable";
             case 504: return "Gateway Timeout";
             default:
-                if (status >= 500 && status < 600) return "Server Error";
-                if (status >= 400 && status < 500) return "Client Error";
+                if (status >= 500 && status < 600) {
+                    return "Server Error";
+                }
+                if (status >= 400 && status < 500) {
+                    return "Client Error";
+                }
                 return "HTTP " + std::to_string(status);
         }
     }
@@ -40,8 +46,7 @@ class server_error_category : public std::error_category {
             return (code >= 500 && code < 600) || code == 401 || code == 408 || code == 429;
         }
         if (cond == make_error_condition(ErrorCondition::NonRetryable)) {
-            return code >= 400 && code < 500
-                && code != 401 && code != 408 && code != 429;
+            return code >= 400 && code < 500 && code != 401 && code != 408 && code != 429;
         }
         return false;
     }

@@ -15,8 +15,8 @@ uint32_t GetRandomValue() {
     static std::mutex threadRandomSeedGenMtx;
     thread_local std::mt19937 gen([]() -> std::mt19937::result_type {
         std::lock_guard<std::mutex> lock(threadRandomSeedGenMtx);
-        return static_cast<std::mt19937::result_type>(
-            std::hash<std::thread::id>{}(std::this_thread::get_id()) ^ threadRandomSeedGen());
+        return static_cast<std::mt19937::result_type>(std::hash<std::thread::id>{}(std::this_thread::get_id())
+                                                      ^ threadRandomSeedGen());
     }());
 
     return gen();

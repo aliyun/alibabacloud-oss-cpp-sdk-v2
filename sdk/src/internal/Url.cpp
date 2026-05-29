@@ -11,16 +11,17 @@ namespace internal {
 constexpr int INVALID_PORT = 1;
 
 Url::Url(const std::string& url)
-        : scheme_(), userName_(), password_(), host_(), path_(), port_(INVALID_PORT), query_(), fragment_() {
-    if (!url.empty())
+    : scheme_(), userName_(), password_(), host_(), path_(), port_(INVALID_PORT), query_(), fragment_() {
+    if (!url.empty()) {
         fromString(url);
+    }
 }
 
 Url::~Url() {}
 
 bool Url::operator==(const Url& url) const {
-    return scheme_ == url.scheme_ && userName_ == url.userName_ && password_ == url.password_ && host_ == url.host_ &&
-           path_ == url.path_ && port_ == url.port_ && query_ == url.query_ && fragment_ == url.fragment_;
+    return scheme_ == url.scheme_ && userName_ == url.userName_ && password_ == url.password_ && host_ == url.host_
+        && path_ == url.path_ && port_ == url.port_ && query_ == url.query_ && fragment_ == url.fragment_;
 }
 
 bool Url::operator!=(const Url& url) const {
@@ -28,16 +29,19 @@ bool Url::operator!=(const Url& url) const {
 }
 
 std::string Url::authority() const {
-    if (!isValid())
+    if (!isValid()) {
         return std::string();
+    }
 
     std::ostringstream out;
     std::string str = userInfo();
-    if (!str.empty())
+    if (!str.empty()) {
         out << str << "@";
+    }
     out << host_;
-    if (port_ != INVALID_PORT)
+    if (port_ != INVALID_PORT) {
         out << ":" << port_;
+    }
     return out.str();
 }
 
@@ -58,8 +62,9 @@ std::string Url::fragment() const {
 
 void Url::fromString(const std::string& url) {
     clear();
-    if (url.empty())
+    if (url.empty()) {
         return;
+    }
 
     std::string str = url;
     std::string::size_type pos = 0;
@@ -87,8 +92,9 @@ void Url::fromString(const std::string& url) {
     if (pos != str.npos) {
         pathPart = str.substr(pos);
         str.erase(pos);
-    } else
+    } else {
         pathPart = "/";
+    }
 
     authorityPart = str;
 
@@ -112,20 +118,23 @@ std::string Url::host() const {
 }
 
 bool Url::isEmpty() const {
-    return scheme_.empty() && userName_.empty() && password_.empty() && host_.empty() && path_.empty() &&
-           (port_ == INVALID_PORT) && query_.empty() && fragment_.empty();
+    return scheme_.empty() && userName_.empty() && password_.empty() && host_.empty() && path_.empty()
+        && (port_ == INVALID_PORT) && query_.empty() && fragment_.empty();
 }
 
 bool Url::isValid() const {
-    if (isEmpty())
+    if (isEmpty()) {
         return false;
+    }
 
-    if (host_.empty())
+    if (host_.empty()) {
         return false;
+    }
 
     bool valid = true;
-    if (userName_.empty())
+    if (userName_.empty()) {
         valid = password_.empty();
+    }
     return valid;
 }
 
@@ -167,9 +176,9 @@ void Url::setAuthority(const std::string& authority) {
     }
 
     pos = authority.find(':', prevpos);
-    if (pos == authority.npos)
+    if (pos == authority.npos) {
         hostPart = authority.substr(prevpos);
-    else {
+    } else {
         hostPart = authority.substr(prevpos, pos - prevpos);
         portPart = authority.substr(pos + 1);
     }
@@ -227,9 +236,9 @@ void Url::setUserInfo(const std::string& userInfo) {
     }
 
     auto pos = userInfo.find(':');
-    if (pos == userInfo.npos)
+    if (pos == userInfo.npos) {
         userName_ = userInfo;
-    else {
+    } else {
         userName_ = userInfo.substr(0, pos);
         password_ = userInfo.substr(pos + 1);
     }
@@ -240,34 +249,42 @@ void Url::setUserName(const std::string& userName) {
 }
 
 std::string Url::toString() const {
-    if (!isValid())
+    if (!isValid()) {
         return std::string();
+    }
 
     std::ostringstream out;
-    if (!scheme_.empty())
+    if (!scheme_.empty()) {
         out << scheme_ << "://";
+    }
     std::string str = authority();
-    if (!str.empty())
+    if (!str.empty()) {
         out << str;
-    if (path_.empty())
+    }
+    if (path_.empty()) {
         out << "/";
-    else
+    } else {
         out << path_;
-    if (hasQuery())
+    }
+    if (hasQuery()) {
         out << "?" << query_;
-    if (hasFragment())
+    }
+    if (hasFragment()) {
         out << "#" << fragment_;
+    }
     return out.str();
 }
 
 std::string Url::userInfo() const {
-    if (!isValid())
+    if (!isValid()) {
         return std::string();
+    }
 
     std::ostringstream out;
     out << userName_;
-    if (!password_.empty())
+    if (!password_.empty()) {
         out << ":" << password_;
+    }
     return out.str();
 }
 

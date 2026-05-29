@@ -60,8 +60,7 @@ void CRC64WriteObserver::onReset() {
 }
 
 
-MemoryWriter::MemoryWriter(std::uint8_t* buf, std::size_t capacity)
-    : buf_(buf), capacity_(capacity) {}
+MemoryWriter::MemoryWriter(std::uint8_t* buf, std::size_t capacity) : buf_(buf), capacity_(capacity) {}
 
 std::size_t MemoryWriter::onWrite(const std::uint8_t* data, std::size_t n) {
     if (offset_ + n > capacity_) {

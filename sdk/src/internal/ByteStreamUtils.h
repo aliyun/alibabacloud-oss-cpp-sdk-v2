@@ -1,9 +1,9 @@
 #pragma once
 
-#include "alibabacloud/oss2/Types.h"
-#include "alibabacloud/oss2/Error.h"
-#include "alibabacloud/oss2/io/ByteStream.h"
 #include "ExecuteMiddleware.h"
+#include "alibabacloud/oss2/Error.h"
+#include "alibabacloud/oss2/Types.h"
+#include "alibabacloud/oss2/io/ByteStream.h"
 
 #include <system_error>
 
@@ -46,7 +46,7 @@ class StreamObserver {
 class ProgressObserver : public StreamObserver {
   public:
     ProgressObserver(ProgressCallback callback, std::int64_t total)
-            : callback_(callback), total_(total), written_(0), lastWritten_(0) {}
+        : callback_(callback), total_(total), written_(0), lastWritten_(0) {}
 
     void data(std::uint8_t* buffer, std::size_t count) override {
         ((void) (buffer));
@@ -79,9 +79,13 @@ class CRC64Observer : public StreamObserver {
         value_ = init_;
     }
 
-    inline uint64_t crc() const { return value_; }
+    inline uint64_t crc() const {
+        return value_;
+    }
 
-    inline std::string crcAsString() const { return std::to_string(value_); }
+    inline std::string crcAsString() const {
+        return std::to_string(value_);
+    }
 
   private:
     uint64_t init_;
@@ -91,11 +95,17 @@ class CRC64Observer : public StreamObserver {
 struct CRC64ResponseChecker {
     // cppcheck-suppress constParameterReference
     bool operator()(std::unique_ptr<ResponseMessage>& response, ExecuteContext& context) {
-        if (!checker) return true;
+        if (!checker) {
+            return true;
+        }
         auto it = response->headers.find("x-oss-hash-crc64ecma");
-        if (it == response->headers.end()) return true;
+        if (it == response->headers.end()) {
+            return true;
+        }
         auto ccrc = checker->crcAsString();
-        if (ccrc == it->second) return true;
+        if (ccrc == it->second) {
+            return true;
+        }
         context.errorContext.error = make_error_code(ClientErrorCode::CrcMismatch);
         context.errorContext.errorFields.emplace("Code", "CRCInconsistent");
         context.errorContext.errorFields.emplace(
@@ -108,7 +118,7 @@ struct CRC64ResponseChecker {
 class TeeByteContent : public ByteContent {
   public:
     TeeByteContent(std::shared_ptr<ByteContent> source, std::vector<std::shared_ptr<StreamObserver>> sinks)
-            : source_(std::move(source)), sinks_(std::move(sinks)), first_(true) {}
+        : source_(std::move(source)), sinks_(std::move(sinks)), first_(true) {}
 
     std::optional<std::size_t> length() const override {
         return source_->length();

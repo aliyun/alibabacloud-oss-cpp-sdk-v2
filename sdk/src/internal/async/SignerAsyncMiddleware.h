@@ -2,10 +2,10 @@
 #pragma once
 
 #include "AsyncExecuteMiddleware.h"
-#include "src/internal/OSSUtils.h"
-#include "alibabacloud/oss2/credentials/CredentialsProvider.h"
 #include "alibabacloud/oss2/Error.h"
+#include "alibabacloud/oss2/credentials/CredentialsProvider.h"
 #include "alibabacloud/oss2/signer/Signer.h"
+#include "src/internal/OSSUtils.h"
 
 namespace alibabacloud {
 namespace oss2 {
@@ -13,17 +13,14 @@ namespace internal {
 
 class SignerAsyncMiddleware final : public AsyncExecuteMiddleware {
   public:
-    SignerAsyncMiddleware(std::unique_ptr<AsyncExecuteMiddleware> next,
-                          std::shared_ptr<Signer> signer,
+    SignerAsyncMiddleware(std::unique_ptr<AsyncExecuteMiddleware> next, std::shared_ptr<Signer> signer,
                           std::shared_ptr<CredentialsProvider> provider)
-            : next_(std::move(next)),
-              signer_(std::move(signer)),
-              provider_(std::move(provider)) {}
+        : next_(std::move(next)), signer_(std::move(signer)), provider_(std::move(provider)) {}
 
     void handleRequest(const std::shared_ptr<AsyncExecuteState>& state) override {
         if (provider_ == nullptr) {
-            updateError(state->context, CredentialsErrorCode::ProviderNull,
-                        "IllegalArgument", "Credentials provider is null.");
+            updateError(state->context, CredentialsErrorCode::ProviderNull, "IllegalArgument",
+                        "Credentials provider is null.");
             prev_->handleResponse(state);
             return;
         }
@@ -36,8 +33,8 @@ class SignerAsyncMiddleware final : public AsyncExecuteMiddleware {
         auto cred = provider_->getCredentials();
         if (!cred.hasKeys()) {
             auto code = cred.isErrorRetryable() ? CredentialsErrorCode::FetchError : CredentialsErrorCode::Empty;
-            updateError(state->context, code,
-                        "CredentialsError", cred.getError().value_or("Credentials is null or empty."));
+            updateError(state->context, code, "CredentialsError",
+                        cred.getError().value_or("Credentials is null or empty."));
             prev_->handleResponse(state);
             return;
         }
@@ -46,8 +43,8 @@ class SignerAsyncMiddleware final : public AsyncExecuteMiddleware {
         state->context.signingContext.request = state->request.get();
 
         if (!signer_->sign(state->context.signingContext)) {
-            updateError(state->context, SignerErrorCode::SignFailed,
-                        "SignatureError", "The signer encountered an error while signing.");
+            updateError(state->context, SignerErrorCode::SignFailed, "SignatureError",
+                        "The signer encountered an error while signing.");
             prev_->handleResponse(state);
             return;
         }

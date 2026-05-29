@@ -1,7 +1,7 @@
 #include "AesCtrContentCipher.h"
 #include "Aes256Utils.h"
-#include "alibabacloud/oss2/io/ByteWriter.h"
 #include "alibabacloud/oss2/io/ByteStream.h"
+#include "alibabacloud/oss2/io/ByteWriter.h"
 
 #include <vector>
 
@@ -27,7 +27,9 @@ class CryptoByteSource final : public ByteSource {
     }
 
     int iostate() override {
-        if (cipherError_) return std::ios_base::badbit;
+        if (cipherError_) {
+            return std::ios_base::badbit;
+        }
         return inner_->state();
     }
 
@@ -41,8 +43,12 @@ class CryptoByteContent final : public ByteContent {
     CryptoByteContent(std::shared_ptr<ByteContent> inner, const std::string& key, const std::string& iv)
         : inner_(std::move(inner)), key_(key), iv_(iv) {}
 
-    std::optional<std::size_t> length() const override { return inner_->length(); }
-    bool isOneShot() const override { return inner_->isOneShot(); }
+    std::optional<std::size_t> length() const override {
+        return inner_->length();
+    }
+    bool isOneShot() const override {
+        return inner_->isOneShot();
+    }
 
     std::unique_ptr<ByteSource> spanSource() override {
         return std::make_unique<CryptoByteSource>(inner_->spanSource(), key_, iv_);
@@ -61,8 +67,12 @@ class DecryptingWriter final : public ByteWriter {
 
   private:
     std::size_t onWrite(const std::uint8_t* data, std::size_t n) override {
-        if (n == 0) return 0;
-        if (buffer_.size() < n) buffer_.resize(n);
+        if (n == 0) {
+            return 0;
+        }
+        if (buffer_.size() < n) {
+            buffer_.resize(n);
+        }
         if (cipher_->process(data, buffer_.data(), n) != n) {
             cipherError_ = true;
             return 0;
@@ -71,7 +81,9 @@ class DecryptingWriter final : public ByteWriter {
     }
 
     int iostate() const override {
-        if (cipherError_) return std::ios_base::badbit;
+        if (cipherError_) {
+            return std::ios_base::badbit;
+        }
         return inner_->state();
     }
 
@@ -82,7 +94,9 @@ class DecryptingWriter final : public ByteWriter {
 };
 
 static void seekIV(std::string& iv, uint64_t offset) {
-    if (iv.size() < 16) return;
+    if (iv.size() < 16) {
+        return;
+    }
     uint64_t blockIndex = offset / 16;
 
     uint64_t counter = 0;
@@ -98,16 +112,14 @@ static void seekIV(std::string& iv, uint64_t offset) {
 
 } // namespace
 
-AesCtrContentCipher::AesCtrContentCipher(CipherData cd)
-    : cipherData_(std::move(cd)) {}
+AesCtrContentCipher::AesCtrContentCipher(CipherData cd) : cipherData_(std::move(cd)) {}
 
 std::shared_ptr<ByteContent> AesCtrContentCipher::encryptContent(std::shared_ptr<ByteContent> body) {
     return std::make_shared<CryptoByteContent>(std::move(body), cipherData_.key, cipherData_.iv);
 }
 
-std::shared_ptr<ByteWriter> AesCtrContentCipher::decryptContent(
-    std::shared_ptr<ByteWriter> writer,
-    int64_t /*encryptedContentLen*/) {
+std::shared_ptr<ByteWriter> AesCtrContentCipher::decryptContent(std::shared_ptr<ByteWriter> writer,
+                                                                int64_t /*encryptedContentLen*/) {
     return std::make_shared<DecryptingWriter>(std::move(writer), cipherData_.key, cipherData_.iv);
 }
 

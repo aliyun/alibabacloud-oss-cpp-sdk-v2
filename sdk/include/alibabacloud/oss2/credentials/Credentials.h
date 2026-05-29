@@ -22,14 +22,18 @@ class ALIBABACLOUD_OSS_API Credentials {
 
     /// Constructs credentials with an access key pair and optional STS token.
     Credentials(std::string accessKeyId, std::string accessKeySecret, std::string sessionToken = "")
-            : accessKeyId_(std::move(accessKeyId)), accessKeySecret_(std::move(accessKeySecret)),
-              sessionToken_(std::move(sessionToken)), expiration_(std::chrono::system_clock::time_point::max()) {}
+        : accessKeyId_(std::move(accessKeyId)),
+          accessKeySecret_(std::move(accessKeySecret)),
+          sessionToken_(std::move(sessionToken)),
+          expiration_(std::chrono::system_clock::time_point::max()) {}
 
     /// Constructs credentials with an explicit expiration time (for STS tokens).
     Credentials(std::string accessKeyId, std::string accessKeySecret, std::string sessionToken,
                 std::chrono::system_clock::time_point expiration)
-            : accessKeyId_(std::move(accessKeyId)), accessKeySecret_(std::move(accessKeySecret)),
-              sessionToken_(std::move(sessionToken)), expiration_(expiration) {}
+        : accessKeyId_(std::move(accessKeyId)),
+          accessKeySecret_(std::move(accessKeySecret)),
+          sessionToken_(std::move(sessionToken)),
+          expiration_(expiration) {}
 
     /// Creates a failed Credentials with a non-retryable error.
     /// The error message propagates to OperationError::getMessage().

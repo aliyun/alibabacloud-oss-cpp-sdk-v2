@@ -42,7 +42,7 @@ class ALIBABACLOUD_OSS_API CancellationToken {
     friend class CancellationTokenSource;
     CancellationToken(std::shared_ptr<std::atomic<std::chrono::steady_clock::time_point>> deadline,
                       std::weak_ptr<CancellationTokenSource> source)
-            : deadline_(deadline), source_(source) {}
+        : deadline_(deadline), source_(source) {}
     std::shared_ptr<std::atomic<std::chrono::steady_clock::time_point>> deadline_;
     std::weak_ptr<CancellationTokenSource> source_;
 };
@@ -72,8 +72,8 @@ class ALIBABACLOUD_OSS_API CancellationTokenSource : public std::enable_shared_f
 
   public:
     explicit CancellationTokenSource(Key)
-            : deadline_(std::make_shared<std::atomic<std::chrono::steady_clock::time_point>>(
-                      (std::chrono::steady_clock::time_point::max)())) {}
+        : deadline_(std::make_shared<std::atomic<std::chrono::steady_clock::time_point>>(
+              (std::chrono::steady_clock::time_point::max)())) {}
 
     /// Creates a new CancellationTokenSource.
     static std::shared_ptr<CancellationTokenSource> create() {

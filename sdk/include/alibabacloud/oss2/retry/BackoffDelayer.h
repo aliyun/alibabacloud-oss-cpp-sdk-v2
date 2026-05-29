@@ -42,7 +42,7 @@ class ALIBABACLOUD_OSS_API FixedDelayBackoff : public BackoffDelayer {
 class ALIBABACLOUD_OSS_API EqualJitterBackoff : public BackoffDelayer {
   public:
     EqualJitterBackoff(std::chrono::milliseconds baseDelay, std::chrono::milliseconds maxBackoff)
-            : baseDelay_(baseDelay), maxBackoff_(maxBackoff) {}
+        : baseDelay_(baseDelay), maxBackoff_(maxBackoff) {}
 
     std::chrono::milliseconds backoffDelay(long attempt, const std::error_code& error) const override;
 
@@ -58,7 +58,7 @@ class ALIBABACLOUD_OSS_API EqualJitterBackoff : public BackoffDelayer {
 class ALIBABACLOUD_OSS_API FullJitterBackoff : public BackoffDelayer {
   public:
     FullJitterBackoff(std::chrono::milliseconds baseDelay, std::chrono::milliseconds maxBackoff)
-            : baseDelay_(baseDelay), maxBackoff_(maxBackoff) {}
+        : baseDelay_(baseDelay), maxBackoff_(maxBackoff) {}
 
     std::chrono::milliseconds backoffDelay(long attempt, const std::error_code& error) const override;
 

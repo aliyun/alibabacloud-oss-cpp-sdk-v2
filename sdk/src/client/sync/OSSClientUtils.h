@@ -6,40 +6,40 @@
 #define requiredField(field)                                                                              \
     do {                                                                                                  \
         if (isFieldMissing(request.get##field())) {                                                       \
-            return makeUnexpected(OperationError(ClientErrorCode::ArgumentRequired,                                        \
-                                  {{"Code", "ArgumentRequired"}, {"Message", "Missing field " #field ""}})); \
+            return makeUnexpected(                                                                        \
+                OperationError(ClientErrorCode::ArgumentRequired,                                         \
+                               {{"Code", "ArgumentRequired"}, {"Message", "Missing field " #field ""}})); \
         }                                                                                                 \
     } while (false)
 
-#define requiredFieldsOr2_(f1, f2)                                                                             \
-    do {                                                                                                     \
-        if (isFieldMissing(request.get##f1()) && isFieldMissing(request.get##f2())) {                        \
-            return makeUnexpected(OperationError(                                                                           \
-                    ClientErrorCode::ArgumentRequired,                                                         \
-                    {{"Code", "ArgumentRequired"}, {"Message", "Missing field " #f1 " or " #f2 ""}}));       \
-        }                                                                                                    \
+#define requiredFieldsOr2_(f1, f2)                                                                                \
+    do {                                                                                                          \
+        if (isFieldMissing(request.get##f1()) && isFieldMissing(request.get##f2())) {                             \
+            return makeUnexpected(                                                                                \
+                OperationError(ClientErrorCode::ArgumentRequired,                                                 \
+                               {{"Code", "ArgumentRequired"}, {"Message", "Missing field " #f1 " or " #f2 ""}})); \
+        }                                                                                                         \
     } while (false)
 
-#define requiredFieldsOr3_(f1, f2, f3)                                                                         \
-    do {                                                                                                     \
-        if (isFieldMissing(request.get##f1()) && isFieldMissing(request.get##f2())                           \
-            && isFieldMissing(request.get##f3())) {                                                          \
-            return makeUnexpected(OperationError(                                                                           \
-                    ClientErrorCode::ArgumentRequired,                                                         \
-                    {{"Code", "ArgumentRequired"},                                                           \
-                     {"Message", "Missing field " #f1 " or " #f2 " or " #f3 ""}}));                          \
-        }                                                                                                    \
+#define requiredFieldsOr3_(f1, f2, f3)                                                                        \
+    do {                                                                                                      \
+        if (isFieldMissing(request.get##f1()) && isFieldMissing(request.get##f2())                            \
+            && isFieldMissing(request.get##f3())) {                                                           \
+            return makeUnexpected(OperationError(                                                             \
+                ClientErrorCode::ArgumentRequired,                                                            \
+                {{"Code", "ArgumentRequired"}, {"Message", "Missing field " #f1 " or " #f2 " or " #f3 ""}})); \
+        }                                                                                                     \
     } while (false)
 
-#define requiredFieldsOr4_(f1, f2, f3, f4)                                                                     \
-    do {                                                                                                     \
-        if (isFieldMissing(request.get##f1()) && isFieldMissing(request.get##f2())                           \
-            && isFieldMissing(request.get##f3()) && isFieldMissing(request.get##f4())) {                     \
-            return makeUnexpected(OperationError(                                                                           \
-                    ClientErrorCode::ArgumentRequired,                                                         \
-                    {{"Code", "ArgumentRequired"},                                                           \
-                     {"Message", "Missing field " #f1 " or " #f2 " or " #f3 " or " #f4 ""}}));              \
-        }                                                                                                    \
+#define requiredFieldsOr4_(f1, f2, f3, f4)                                                                \
+    do {                                                                                                  \
+        if (isFieldMissing(request.get##f1()) && isFieldMissing(request.get##f2())                        \
+            && isFieldMissing(request.get##f3()) && isFieldMissing(request.get##f4())) {                  \
+            return makeUnexpected(                                                                        \
+                OperationError(ClientErrorCode::ArgumentRequired,                                         \
+                               {{"Code", "ArgumentRequired"},                                             \
+                                {"Message", "Missing field " #f1 " or " #f2 " or " #f3 " or " #f4 ""}})); \
+        }                                                                                                 \
     } while (false)
 
 #define requiredFieldsOrN_(_1, _2, _3, _4, NAME, ...) NAME
@@ -50,7 +50,8 @@
 #define requiredHasField(field)                                                                           \
     do {                                                                                                  \
         if (!request.has##field()) {                                                                      \
-            return makeUnexpected(OperationError(ClientErrorCode::ArgumentRequired,                                        \
-                                  {{"Code", "ArgumentRequired"}, {"Message", "Missing field " #field ""}})); \
+            return makeUnexpected(                                                                        \
+                OperationError(ClientErrorCode::ArgumentRequired,                                         \
+                               {{"Code", "ArgumentRequired"}, {"Message", "Missing field " #field ""}})); \
         }                                                                                                 \
     } while (false)

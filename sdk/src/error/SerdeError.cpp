@@ -8,19 +8,19 @@ namespace {
 
 class serde_error_category : public std::error_category {
   public:
-    const char* name() const noexcept override { return "oss2.serde"; }
+    const char* name() const noexcept override {
+        return "oss2.serde";
+    }
 
     std::string message(int ev) const override {
         switch (static_cast<SerdeErrorCode>(ev)) {
-            case SerdeErrorCode::DeserializationFailed:
-                return "deserialization failed";
-            default:
-                return "unknown serde error";
+            case SerdeErrorCode::DeserializationFailed: return "deserialization failed";
+            default: return "unknown serde error";
         }
     }
 
     bool equivalent(int code, const std::error_condition& cond) const noexcept override {
-        (void)code;
+        (void) code;
         if (cond == make_error_condition(ErrorCondition::NonRetryable)) {
             return static_cast<SerdeErrorCode>(code) == SerdeErrorCode::DeserializationFailed;
         }

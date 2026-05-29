@@ -145,7 +145,6 @@ struct ALIBABACLOUD_OSS_API DeletedInfo final {
         deleteMarkerVersionId = std::forward<ValueT>(value);
         return *this;
     }
-
 };
 
 
@@ -645,7 +644,7 @@ class ALIBABACLOUD_OSS_API CopyObjectResult final : public ResultModel {
     CopyObjectResult() = default;
     CopyObjectResult(int statusCode, HeaderCollection headers) : ResultModel(statusCode, std::move(headers)) {}
     CopyObjectResult(int statusCode, HeaderCollection headers, CopyObjectResultXml body)
-            : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
+        : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
 
     // <no value>
     inline const std::string& getCopySourceVersionId() const {
@@ -932,7 +931,7 @@ class ALIBABACLOUD_OSS_API GetObjectResult final : public ResultModel {
     GetObjectResult() = default;
     GetObjectResult(int statusCode, HeaderCollection headers) : ResultModel(statusCode, std::move(headers)) {}
     GetObjectResult(int statusCode, HeaderCollection headers, std::shared_ptr<std::iostream> body)
-            : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
+        : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
 
 
     // <no value>
@@ -1035,12 +1034,18 @@ class ALIBABACLOUD_OSS_API GetObjectResult final : public ResultModel {
         return body_;
     }
 
-    void setBody(std::shared_ptr<std::iostream> body) { body_ = std::move(body); }
+    void setBody(std::shared_ptr<std::iostream> body) {
+        body_ = std::move(body);
+    }
 
     // Used by OSSEncryptionClient to fix Content-Length/Content-Range after range realignment.
     void overwriteRange(std::string contentLength, std::string contentRange) {
-        if (!contentLength.empty()) headers_["Content-Length"] = std::move(contentLength);
-        if (!contentRange.empty()) headers_["Content-Range"] = std::move(contentRange);
+        if (!contentLength.empty()) {
+            headers_["Content-Length"] = std::move(contentLength);
+        }
+        if (!contentRange.empty()) {
+            headers_["Content-Range"] = std::move(contentRange);
+        }
     }
 
   private:
@@ -1439,7 +1444,8 @@ class ALIBABACLOUD_OSS_API DeleteMultipleObjectsRequest final : public RequestMo
 class ALIBABACLOUD_OSS_API DeleteMultipleObjectsResult final : public ResultModel {
   public:
     DeleteMultipleObjectsResult() = default;
-    DeleteMultipleObjectsResult(int statusCode, HeaderCollection headers) : ResultModel(statusCode, std::move(headers)) {}
+    DeleteMultipleObjectsResult(int statusCode, HeaderCollection headers)
+        : ResultModel(statusCode, std::move(headers)) {}
 
     // The container that stores information about the deleted objects.
     inline const std::vector<DeletedInfo>& getDeletedObjects() const {

@@ -1,10 +1,10 @@
 
 #pragma once
 
-#include "src/internal/ExecuteMiddleware.h"
 #include "alibabacloud/oss2/Error.h"
 #include "alibabacloud/oss2/retry/Retryer.h"
 #include "alibabacloud/oss2/utils/Cancellation.h"
+#include "src/internal/ExecuteMiddleware.h"
 
 #include <functional>
 
@@ -16,12 +16,11 @@ using ClientWaitForFn = std::function<bool(std::chrono::milliseconds)>;
 
 class RetryerExecuteMiddleware final : public ExecuteMiddleware {
   public:
-    RetryerExecuteMiddleware(std::unique_ptr<ExecuteMiddleware> nextHandler,
-                             std::shared_ptr<Retryer> retryer,
+    RetryerExecuteMiddleware(std::unique_ptr<ExecuteMiddleware> nextHandler, std::shared_ptr<Retryer> retryer,
                              ClientWaitForFn clientWaitFor)
-            : nextHandler_(std::move(nextHandler)),
-              retryer_(std::move(retryer)),
-              clientWaitFor_(std::move(clientWaitFor)) {}
+        : nextHandler_(std::move(nextHandler)),
+          retryer_(std::move(retryer)),
+          clientWaitFor_(std::move(clientWaitFor)) {}
 
     std::unique_ptr<ResponseMessage> Execute(std::unique_ptr<RequestMessage>& request,
                                              ExecuteContext& context) override {
@@ -51,8 +50,8 @@ class RetryerExecuteMiddleware final : public ExecuteMiddleware {
             }
 
             // response.body().isReplayable()
-            if (context.transportContext.sinkFactory.has_value() &&
-                context.transportContext.sinkFactory.value().isOneShot) {
+            if (context.transportContext.sinkFactory.has_value()
+                && context.transportContext.sinkFactory.value().isOneShot) {
                 break;
             }
 
@@ -84,7 +83,9 @@ class RetryerExecuteMiddleware final : public ExecuteMiddleware {
     static constexpr auto kNotifyThreshold = std::chrono::milliseconds(200);
 
     bool waitForRetry(std::chrono::milliseconds delay, const std::optional<CancellationToken>& token) {
-        if (delay.count() == 0) return false;
+        if (delay.count() == 0) {
+            return false;
+        }
 
         if (delay < kNotifyThreshold || !token.has_value() || !token->canBeCanceled()) {
             return clientWaitFor_(delay) || (token.has_value() && token->isCanceled());

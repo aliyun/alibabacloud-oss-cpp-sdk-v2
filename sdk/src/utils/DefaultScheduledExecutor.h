@@ -28,7 +28,9 @@ class DefaultScheduledExecutor : public ScheduledExecutor {
     struct Entry {
         std::chrono::steady_clock::time_point deadline;
         std::function<void()> task;
-        bool operator>(const Entry& o) const { return deadline > o.deadline; }
+        bool operator>(const Entry& o) const {
+            return deadline > o.deadline;
+        }
     };
 
     struct Impl {

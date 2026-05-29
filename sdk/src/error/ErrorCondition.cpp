@@ -8,22 +8,18 @@ namespace {
 
 class error_condition_category : public std::error_category {
   public:
-    const char* name() const noexcept override { return "oss2.condition"; }
+    const char* name() const noexcept override {
+        return "oss2.condition";
+    }
 
     std::string message(int ev) const override {
         switch (static_cast<ErrorCondition>(ev)) {
-            case ErrorCondition::Retryable:
-                return "retryable error";
-            case ErrorCondition::NonRetryable:
-                return "non-retryable error";
-            case ErrorCondition::Canceled:
-                return "operation canceled";
-            case ErrorCondition::InvalidArgument:
-                return "invalid argument";
-            case ErrorCondition::AuthenticationError:
-                return "authentication error";
-            default:
-                return "unknown condition";
+            case ErrorCondition::Retryable: return "retryable error";
+            case ErrorCondition::NonRetryable: return "non-retryable error";
+            case ErrorCondition::Canceled: return "operation canceled";
+            case ErrorCondition::InvalidArgument: return "invalid argument";
+            case ErrorCondition::AuthenticationError: return "authentication error";
+            default: return "unknown condition";
         }
     }
 };

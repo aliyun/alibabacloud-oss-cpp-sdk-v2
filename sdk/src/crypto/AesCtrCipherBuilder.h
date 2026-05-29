@@ -9,8 +9,7 @@ namespace alibabacloud {
 namespace oss2 {
 namespace crypto {
 
-std::unique_ptr<ContentCipherBuilder> CreateAesCtrCipherBuilder(
-    std::shared_ptr<MasterCipher> masterCipher);
+std::unique_ptr<ContentCipherBuilder> CreateAesCtrCipherBuilder(std::shared_ptr<MasterCipher> masterCipher);
 
 class AesCtrCipherBuilder : public ContentCipherBuilder {
   public:

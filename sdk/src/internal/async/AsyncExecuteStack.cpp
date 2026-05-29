@@ -7,12 +7,12 @@ namespace oss2 {
 namespace internal {
 
 AsyncExecuteStack::AsyncExecuteStack(std::shared_ptr<AsyncHttpTransport> transport, OnFinished onFinished)
-        : sentinel_(std::move(onFinished)), transport_(std::move(transport)) {}
+    : sentinel_(std::move(onFinished)), transport_(std::move(transport)) {}
 
 AsyncExecuteStack::~AsyncExecuteStack() = default;
 
 void AsyncExecuteStack::Push(CreateMiddleware create, const std::string& name) {
-    ((void)(name));
+    ((void) (name));
     stack_.emplace_back(std::move(create));
 }
 

@@ -4,13 +4,13 @@
 #include <mbedtls/version.h>
 
 #if MBEDTLS_VERSION_NUMBER >= 0x03000000
-#define oss2_md5_starts(ctx)              mbedtls_md5_starts(ctx)
+#define oss2_md5_starts(ctx) mbedtls_md5_starts(ctx)
 #define oss2_md5_update(ctx, input, ilen) mbedtls_md5_update(ctx, input, ilen)
-#define oss2_md5_finish(ctx, output)      mbedtls_md5_finish(ctx, output)
+#define oss2_md5_finish(ctx, output) mbedtls_md5_finish(ctx, output)
 #else
-#define oss2_md5_starts(ctx)              mbedtls_md5_starts_ret(ctx)
+#define oss2_md5_starts(ctx) mbedtls_md5_starts_ret(ctx)
 #define oss2_md5_update(ctx, input, ilen) mbedtls_md5_update_ret(ctx, input, ilen)
-#define oss2_md5_finish(ctx, output)      mbedtls_md5_finish_ret(ctx, output)
+#define oss2_md5_finish(ctx, output) mbedtls_md5_finish_ret(ctx, output)
 #endif
 
 namespace alibabacloud {

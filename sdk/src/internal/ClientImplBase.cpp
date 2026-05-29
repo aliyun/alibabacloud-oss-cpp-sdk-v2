@@ -8,8 +8,8 @@
 #include "alibabacloud/oss2/retry/StandardRetryer.h"
 #include "alibabacloud/oss2/signer/SignerV1.h"
 #include "alibabacloud/oss2/signer/SignerV4.h"
-#include "src/thirdparty/tinyxml2/tinyxml2.hpp"
 #include "alibabacloud/oss2/transport/HttpTransport.h"
+#include "src/thirdparty/tinyxml2/tinyxml2.hpp"
 #include "src/utils/Utils.h"
 
 #include <cstdlib>
@@ -53,8 +53,8 @@ static bool onPreServiceError(std::unique_ptr<ResponseMessage>& response, Execut
         errorFields.emplace("Code", "BadErrorResponse");
         errorFields.emplace("Message", "Empty body");
     } else {
-        if (response->headers.find("Content-Type") != response->headers.end() &&
-            "application/json" == response->headers.at("Content-Type")) {
+        if (response->headers.find("Content-Type") != response->headers.end()
+            && "application/json" == response->headers.at("Content-Type")) {
             errorFields.emplace("Code", "ParseJSONError");
             errorFields.emplace("Message", "Not support json body");
         } else {
@@ -72,8 +72,8 @@ static bool onPreServiceError(std::unique_ptr<ResponseMessage>& response, Execut
                 } else {
                     errorFields.emplace("Code", "ParseXMLError");
                     errorFields.emplace("Message",
-                                        "Xml format invalid, root node name is not Error. the content is:\n" +
-                                                context.errorContext.snapshot.substr(0, 255));
+                                        "Xml format invalid, root node name is not Error. the content is:\n"
+                                            + context.errorContext.snapshot.substr(0, 255));
                 }
             } else {
                 errorFields.emplace("Code", "ParseXMLError:" + std::to_string(static_cast<int>(xml_err)));
@@ -104,9 +104,9 @@ static bool onClockSkewError(std::unique_ptr<ResponseMessage>& response, Execute
     } else if (response->statusCode == 400) {
         auto codeIt = context.errorContext.errorFields.find("Code");
         auto msgIt = context.errorContext.errorFields.find("Message");
-        if (codeIt != context.errorContext.errorFields.end() && codeIt->second == "InvalidArgument" &&
-            msgIt != context.errorContext.errorFields.end() &&
-            msgIt->second == "Invalid signing date in Authorization header.") {
+        if (codeIt != context.errorContext.errorFields.end() && codeIt->second == "InvalidArgument"
+            && msgIt != context.errorContext.errorFields.end()
+            && msgIt->second == "Invalid signing date in Authorization header.") {
             isClockSkewError = true;
         }
     }
@@ -217,8 +217,8 @@ std::shared_ptr<Retryer> ClientImplBase::resolveRetryer(const struct ClientConfi
         return config.retryer;
     }
     return std::make_shared<StandardRetryer>(
-            config.retryMaxAttempts.value_or(defaults::MAX_ATTEMPTS),
-            std::make_unique<FullJitterBackoff>(defaults::BASE_DELAY, defaults::MAX_BACKOFF));
+        config.retryMaxAttempts.value_or(defaults::MAX_ATTEMPTS),
+        std::make_unique<FullJitterBackoff>(defaults::BASE_DELAY, defaults::MAX_BACKOFF));
 }
 
 std::shared_ptr<Signer> ClientImplBase::resolveSigner(const struct ClientConfiguration& config) {
@@ -324,7 +324,7 @@ void ClientImplBase::applyOperationOptions(ExecuteContext& context, const Operat
 }
 
 std::unique_ptr<RequestMessage> ClientImplBase::applyOperationInput(ExecuteContext& context,
-                                                                     const OperationInput& input) {
+                                                                    const OperationInput& input) {
     if (input.bucket.has_value()) {
         context.signingContext.bucket = input.bucket.value();
     }

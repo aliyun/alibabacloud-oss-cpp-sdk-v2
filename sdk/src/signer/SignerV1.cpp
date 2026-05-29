@@ -25,38 +25,38 @@ std::string buildResource(const std::string& bucket, const std::string& key) {
 }
 
 const static std::set<std::string> SubResourceSet = {
-        "acl",
-        "bucketInfo",
-        "location",
-        "stat",
-        "delete",
-        "append",
-        "tagging",
-        "objectMeta",
-        "uploads",
-        "uploadId",
-        "partNumber",
-        "security-token",
-        "position",
-        "response-content-type",
-        "response-content-language",
-        "response-expires",
-        "response-cache-control",
-        "response-content-disposition",
-        "response-content-encoding",
-        "restore",
-        "callback",
-        "callback-var",
-        "versions",
-        "versioning",
-        "versionId",
-        "sequential",
-        "continuation-token",
-        "regionList",
-        "cloudboxes",
-        "symlink",
-        "resourceGroup",
-        "cleanRestoredObject",
+    "acl",
+    "bucketInfo",
+    "location",
+    "stat",
+    "delete",
+    "append",
+    "tagging",
+    "objectMeta",
+    "uploads",
+    "uploadId",
+    "partNumber",
+    "security-token",
+    "position",
+    "response-content-type",
+    "response-content-language",
+    "response-expires",
+    "response-cache-control",
+    "response-content-disposition",
+    "response-content-encoding",
+    "restore",
+    "callback",
+    "callback-var",
+    "versions",
+    "versioning",
+    "versionId",
+    "sequential",
+    "continuation-token",
+    "regionList",
+    "cloudboxes",
+    "symlink",
+    "resourceGroup",
+    "cleanRestoredObject",
 };
 
 static bool isSignHeader(const std::string& key) {
@@ -152,8 +152,7 @@ static std::string calcStringToSign(const SigningContext& context, const std::st
 
 static std::string calcSignature(const std::string& secret, const std::string& stringToSign) {
     unsigned char out[20];
-    utils::HmacSha1(stringToSign.data(), stringToSign.size(),
-                    secret.data(), secret.size(), out);
+    utils::HmacSha1(stringToSign.data(), stringToSign.size(), secret.data(), secret.size(), out);
     return utils::Base64Encode(reinterpret_cast<const std::byte*>(out), 20);
 }
 
@@ -214,7 +213,7 @@ static void authQuery(SigningContext& context) {
     if (queryPos != std::string::npos) {
         auto existingParams = utils::ToEncodedParameters(request->uri.substr(queryPos));
         for (const auto& [k, v] : existingParams) {
-            params[k] = v;  // Keep already-encoded values
+            params[k] = v; // Keep already-encoded values
         }
     }
 
@@ -231,9 +230,13 @@ static void authQuery(SigningContext& context) {
     ss << request->uri.substr(0, queryPos) << "?";
     bool first = true;
     for (const auto& [k, v] : params) {
-        if (!first) ss << "&";
+        if (!first) {
+            ss << "&";
+        }
         ss << k;
-        if (!v.empty()) ss << "=" << v;
+        if (!v.empty()) {
+            ss << "=" << v;
+        }
         first = false;
     }
 

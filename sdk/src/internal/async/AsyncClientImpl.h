@@ -21,9 +21,7 @@ class AsyncClientImpl : public ClientImplBase {
     explicit AsyncClientImpl(const struct ClientConfiguration& config, const ClientOptionsFns& fns);
     ~AsyncClientImpl() override;
 
-    void ExecuteAsync(const OperationInput& input,
-                      OperationCallback callback,
-                      const OperationOptions* opts = nullptr,
+    void ExecuteAsync(const OperationInput& input, OperationCallback callback, const OperationOptions* opts = nullptr,
                       const OperationInnerOptions* innerOpts = nullptr);
 
   private:

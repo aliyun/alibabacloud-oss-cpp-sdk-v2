@@ -13,21 +13,19 @@ std::string CurlHttpClient::getName() const {
 }
 
 CurlHttpClient::CurlHttpClient(const HttpTransportOptions& options)
-        : curlContainer_(std::make_unique<CurlContainer>(
-                  kDefaultMaxConnectionsSync,
-                  options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs),
-                  options.connectTimeout.value_or(kDefaultConnectTimeoutMs))),
-          clientOpts_(buildClientOptions(options)) {
-    (void)CurlGlobalInitializer::instance();
+    : curlContainer_(std::make_unique<CurlContainer>(kDefaultMaxConnectionsSync,
+                                                     options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs),
+                                                     options.connectTimeout.value_or(kDefaultConnectTimeoutMs))),
+      clientOpts_(buildClientOptions(options)) {
+    (void) CurlGlobalInitializer::instance();
 }
 
 CurlHttpClient::CurlHttpClient(const CurlTransportOptions& options)
-        : curlContainer_(std::make_unique<CurlContainer>(
-                  options.maxConnections.value_or(kDefaultMaxConnectionsSync),
-                  options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs),
-                  options.connectTimeout.value_or(kDefaultConnectTimeoutMs))),
-          clientOpts_(buildClientOptions(options)) {
-    (void)CurlGlobalInitializer::instance();
+    : curlContainer_(std::make_unique<CurlContainer>(options.maxConnections.value_or(kDefaultMaxConnectionsSync),
+                                                     options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs),
+                                                     options.connectTimeout.value_or(kDefaultConnectTimeoutMs))),
+      clientOpts_(buildClientOptions(options)) {
+    (void) CurlGlobalInitializer::instance();
 }
 
 ResponseResult CurlHttpClient::send(std::unique_ptr<RequestMessage>& request, const RequestOptions& options) {

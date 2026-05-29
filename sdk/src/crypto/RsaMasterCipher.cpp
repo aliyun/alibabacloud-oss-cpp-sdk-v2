@@ -1,6 +1,6 @@
 #include "alibabacloud/oss2/crypto/RsaMasterCipher.h"
-#include "alibabacloud/oss2/crypto/Error.h"
 #include "RsaUtils.h"
+#include "alibabacloud/oss2/crypto/Error.h"
 
 #include <sstream>
 
@@ -16,20 +16,28 @@ std::string jsonEscape(const std::string& s) {
     std::string result;
     result.reserve(s.size());
     for (char c : s) {
-        if (c == '"') result += "\\\"";
-        else if (c == '\\') result += "\\\\";
-        else result += c;
+        if (c == '"') {
+            result += "\\\"";
+        } else if (c == '\\') {
+            result += "\\\\";
+        } else {
+            result += c;
+        }
     }
     return result;
 }
 
 std::string serializeMatDesc(const std::map<std::string, std::string>& desc) {
-    if (desc.empty()) return "{}";
+    if (desc.empty()) {
+        return "{}";
+    }
     std::ostringstream oss;
     oss << "{";
     bool first = true;
     for (const auto& kv : desc) {
-        if (!first) oss << ",";
+        if (!first) {
+            oss << ",";
+        }
         oss << "\"" << jsonEscape(kv.first) << "\":\"" << jsonEscape(kv.second) << "\"";
         first = false;
     }
@@ -38,10 +46,10 @@ std::string serializeMatDesc(const std::map<std::string, std::string>& desc) {
 }
 
 class RsaMasterCipher : public MasterCipher {
-public:
+  public:
     RsaMasterCipher(const std::string& publicKeyPem, const std::string& privateKeyPem,
                     const std::map<std::string, std::string>& description)
-            : matDesc_(serializeMatDesc(description)) {
+        : matDesc_(serializeMatDesc(description)) {
         std::string error;
         if (!publicKeyPem.empty()) {
             publicKey_ = tryRsaPublicKey(publicKeyPem, error);
@@ -81,7 +89,7 @@ public:
         return matDesc_;
     }
 
-private:
+  private:
     std::shared_ptr<RsaPublicKey> publicKey_;
     std::shared_ptr<RsaPrivateKey> privateKey_;
     std::string matDesc_;
@@ -89,9 +97,8 @@ private:
 
 } // namespace
 
-std::shared_ptr<MasterCipher> makeRsaMasterCipher(
-        const std::string& publicKeyPem, const std::string& privateKeyPem,
-        const std::map<std::string, std::string>& description) {
+std::shared_ptr<MasterCipher> makeRsaMasterCipher(const std::string& publicKeyPem, const std::string& privateKeyPem,
+                                                  const std::map<std::string, std::string>& description) {
     return std::make_shared<RsaMasterCipher>(publicKeyPem, privateKeyPem, description);
 }
 

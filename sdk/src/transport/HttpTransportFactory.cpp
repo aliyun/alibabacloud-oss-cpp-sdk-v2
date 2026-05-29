@@ -1,5 +1,5 @@
-#include "alibabacloud/oss2/Config.h"
 #include "HttpTransportFactory.h"
+#include "alibabacloud/oss2/Config.h"
 
 #ifdef ALIBABACLOUD_OSS_HAS_CURL
 #include "alibabacloud/oss2/transport/curl/CurlTransportFactory.h"
@@ -13,8 +13,7 @@ namespace alibabacloud {
 namespace oss2 {
 namespace transport {
 
-std::shared_ptr<HttpTransport> HttpTransportFactory::create(
-        [[maybe_unused]] const HttpTransportOptions& options) {
+std::shared_ptr<HttpTransport> HttpTransportFactory::create([[maybe_unused]] const HttpTransportOptions& options) {
 #ifdef ALIBABACLOUD_OSS_HAS_CURL
     CurlTransportOptions curlOpts;
     static_cast<HttpTransportOptions&>(curlOpts) = options;
@@ -29,7 +28,7 @@ std::shared_ptr<HttpTransport> HttpTransportFactory::create(
 }
 
 std::shared_ptr<AsyncHttpTransport> AsyncHttpTransportFactory::create(
-        [[maybe_unused]] const HttpTransportOptions& options) {
+    [[maybe_unused]] const HttpTransportOptions& options) {
 #ifdef ALIBABACLOUD_OSS_HAS_CURL
     CurlTransportOptions curlOpts;
     static_cast<HttpTransportOptions&>(curlOpts) = options;

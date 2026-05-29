@@ -328,7 +328,8 @@ inline static models::CommonPrefix toCommonPrefix(const thirdparty::tinyxml2::XM
 }
 
 
-inline static models::ServerSideEncryptionRule toServerSideEncryptionRule(const thirdparty::tinyxml2::XMLElement* root) {
+inline static models::ServerSideEncryptionRule toServerSideEncryptionRule(
+    const thirdparty::tinyxml2::XMLElement* root) {
     const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::ServerSideEncryptionRule();
 
@@ -660,8 +661,8 @@ Outcome<models::GetBucketStatResult, OperationError> toGetBucketStat(OperationOu
         } else {
             auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
-                                                {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
-                                                {"Message", doc.ErrorStr()},
+                                            {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
+                                            {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
             return makeUnexpected(std::move(opErr));
@@ -793,8 +794,8 @@ Outcome<models::ListObjectsResult, OperationError> toListObjects(OperationOutput
         } else {
             auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
-                                                {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
-                                                {"Message", doc.ErrorStr()},
+                                            {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
+                                            {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
             return makeUnexpected(std::move(opErr));
@@ -851,8 +852,8 @@ Outcome<models::ListObjectsV2Result, OperationError> toListObjectsV2(OperationOu
         } else {
             auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
-                                                {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
-                                                {"Message", doc.ErrorStr()},
+                                            {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
+                                            {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
             return makeUnexpected(std::move(opErr));
@@ -911,8 +912,8 @@ Outcome<models::GetBucketInfoResult, OperationError> toGetBucketInfo(OperationOu
         } else {
             auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
-                                                {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
-                                                {"Message", doc.ErrorStr()},
+                                            {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
+                                            {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
             return makeUnexpected(std::move(opErr));
@@ -971,8 +972,8 @@ Outcome<models::GetBucketLocationResult, OperationError> toGetBucketLocation(Ope
         } else {
             auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
-                                                {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
-                                                {"Message", doc.ErrorStr()},
+                                            {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
+                                            {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
             return makeUnexpected(std::move(opErr));

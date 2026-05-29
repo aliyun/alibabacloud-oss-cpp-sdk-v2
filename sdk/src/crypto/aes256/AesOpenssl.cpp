@@ -9,7 +9,9 @@ namespace crypto {
 
 AesCtrCipher::AesCtrCipher(const std::string& key, const std::string& iv) : ctx_(nullptr) {
     EVP_CIPHER_CTX* evpCtx = EVP_CIPHER_CTX_new();
-    if (!evpCtx) return;
+    if (!evpCtx) {
+        return;
+    }
 
     const EVP_CIPHER* cipher = nullptr;
     if (key.size() == 32) {
@@ -21,9 +23,9 @@ AesCtrCipher::AesCtrCipher(const std::string& key, const std::string& iv) : ctx_
         return;
     }
 
-    if (EVP_EncryptInit_ex(evpCtx, cipher, nullptr,
-                           reinterpret_cast<const unsigned char*>(key.data()),
-                           reinterpret_cast<const unsigned char*>(iv.data())) != 1) {
+    if (EVP_EncryptInit_ex(evpCtx, cipher, nullptr, reinterpret_cast<const unsigned char*>(key.data()),
+                           reinterpret_cast<const unsigned char*>(iv.data()))
+        != 1) {
         EVP_CIPHER_CTX_free(evpCtx);
         return;
     }
@@ -38,7 +40,9 @@ AesCtrCipher::~AesCtrCipher() {
 }
 
 size_t AesCtrCipher::process(const uint8_t* in, uint8_t* out, size_t len) {
-    if (!ctx_) return 0;
+    if (!ctx_) {
+        return 0;
+    }
     int outLen = 0;
     EVP_EncryptUpdate(static_cast<EVP_CIPHER_CTX*>(ctx_), out, &outLen, in, static_cast<int>(len));
     return static_cast<size_t>(outLen);

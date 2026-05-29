@@ -11,7 +11,9 @@
 
 namespace alibabacloud {
 namespace oss2 {
-namespace crypto { class EncryptionMultiPartContext; }
+namespace crypto {
+class EncryptionMultiPartContext;
+}
 namespace models {
 
 
@@ -285,13 +287,17 @@ class ALIBABACLOUD_OSS_API InitiateMultipartUploadRequest final : public Request
         return *this;
     }
 
-    inline std::optional<int64_t> getCsePartSize() const { return csePartSize_; }
+    inline std::optional<int64_t> getCsePartSize() const {
+        return csePartSize_;
+    }
     InitiateMultipartUploadRequest& setCsePartSize(int64_t value) {
         csePartSize_ = value;
         return *this;
     }
 
-    inline std::optional<int64_t> getCseDataSize() const { return cseDataSize_; }
+    inline std::optional<int64_t> getCseDataSize() const {
+        return cseDataSize_;
+    }
     InitiateMultipartUploadRequest& setCseDataSize(int64_t value) {
         cseDataSize_ = value;
         return *this;
@@ -321,10 +327,10 @@ class ALIBABACLOUD_OSS_API InitiateMultipartUploadResult final : public ResultMo
   public:
     InitiateMultipartUploadResult() = default;
     InitiateMultipartUploadResult(int statusCode, HeaderCollection headers)
-            : ResultModel(statusCode, std::move(headers)) {}
+        : ResultModel(statusCode, std::move(headers)) {}
 
     InitiateMultipartUploadResult(int statusCode, HeaderCollection headers, InitiateMultipartUploadResultXml body)
-            : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
+        : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
 
     // The name of the object that is uploaded by the multipart upload task.
     inline const std::string& getKey() {
@@ -601,7 +607,7 @@ class ALIBABACLOUD_OSS_API CompleteMultipartUploadResult final : public ResultMo
   public:
     CompleteMultipartUploadResult() = default;
     CompleteMultipartUploadResult(int statusCode, HeaderCollection headers)
-            : ResultModel(statusCode, std::move(headers)) {}
+        : ResultModel(statusCode, std::move(headers)) {}
 
 
     // <no value>
@@ -860,7 +866,7 @@ class ALIBABACLOUD_OSS_API UploadPartCopyResult final : public ResultModel {
     UploadPartCopyResult() = default;
     UploadPartCopyResult(int statusCode, HeaderCollection headers) : ResultModel(statusCode, std::move(headers)) {}
     UploadPartCopyResult(int statusCode, HeaderCollection headers, CopyPartResult body)
-            : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
+        : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
 
     // <no value>
     inline const std::string& getCopySourceVersionId() const {
@@ -928,7 +934,7 @@ class ALIBABACLOUD_OSS_API AbortMultipartUploadResult final : public ResultModel
   public:
     AbortMultipartUploadResult() = default;
     AbortMultipartUploadResult(int statusCode, HeaderCollection headers)
-            : ResultModel(statusCode, std::move(headers)) {}
+        : ResultModel(statusCode, std::move(headers)) {}
 
 
   private:
@@ -1057,10 +1063,10 @@ class ALIBABACLOUD_OSS_API ListMultipartUploadsResult final : public ResultModel
   public:
     ListMultipartUploadsResult() = default;
     ListMultipartUploadsResult(int statusCode, HeaderCollection headers)
-            : ResultModel(statusCode, std::move(headers)) {}
+        : ResultModel(statusCode, std::move(headers)) {}
 
     ListMultipartUploadsResult(int statusCode, HeaderCollection headers, ListMultipartUploadsResultXml body)
-            : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
+        : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
 
     // The prefix that the returned object names must contain. If you specify a prefix in the request, the specified
     // prefix is included in the response.
@@ -1231,7 +1237,7 @@ class ALIBABACLOUD_OSS_API ListPartsResult final : public ResultModel {
     ListPartsResult() = default;
     ListPartsResult(int statusCode, HeaderCollection headers) : ResultModel(statusCode, std::move(headers)) {}
     ListPartsResult(int statusCode, HeaderCollection headers, ListPartResultXml body)
-            : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
+        : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
 
     // The name of the object.
     inline const std::string& getBucket() const {

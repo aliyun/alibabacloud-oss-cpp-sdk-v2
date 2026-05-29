@@ -15,11 +15,9 @@ namespace crypto {
 namespace {
 
 class MbedtlsRsaPublicKey : public RsaPublicKey {
-public:
+  public:
     // Ownership transfer via value copy: caller must not free the originals.
-    MbedtlsRsaPublicKey(mbedtls_pk_context pk,
-                         mbedtls_entropy_context entropy,
-                         mbedtls_ctr_drbg_context ctrDrbg)
+    MbedtlsRsaPublicKey(mbedtls_pk_context pk, mbedtls_entropy_context entropy, mbedtls_ctr_drbg_context ctrDrbg)
         : pk_(pk), entropy_(entropy), ctrDrbg_(ctrDrbg) {}
 
     ~MbedtlsRsaPublicKey() override {
@@ -37,17 +35,17 @@ public:
         size_t outLen = mbedtls_pk_get_len(&pk_);
         std::string result(outLen, '\0');
 
-        if (mbedtls_pk_encrypt(&pk_,
-                reinterpret_cast<const unsigned char*>(plaintext.data()), plaintext.size(),
-                reinterpret_cast<unsigned char*>(result.data()), &outLen, result.size(),
-                mbedtls_ctr_drbg_random, &ctrDrbg_) != 0) {
+        if (mbedtls_pk_encrypt(&pk_, reinterpret_cast<const unsigned char*>(plaintext.data()), plaintext.size(),
+                               reinterpret_cast<unsigned char*>(result.data()), &outLen, result.size(),
+                               mbedtls_ctr_drbg_random, &ctrDrbg_)
+            != 0) {
             return {};
         }
         result.resize(outLen);
         return result;
     }
 
-private:
+  private:
     mbedtls_pk_context pk_;
     mbedtls_entropy_context entropy_;
     mbedtls_ctr_drbg_context ctrDrbg_;
@@ -55,11 +53,9 @@ private:
 };
 
 class MbedtlsRsaPrivateKey : public RsaPrivateKey {
-public:
+  public:
     // Ownership transfer via value copy: caller must not free the originals.
-    MbedtlsRsaPrivateKey(mbedtls_pk_context pk,
-                          mbedtls_entropy_context entropy,
-                          mbedtls_ctr_drbg_context ctrDrbg)
+    MbedtlsRsaPrivateKey(mbedtls_pk_context pk, mbedtls_entropy_context entropy, mbedtls_ctr_drbg_context ctrDrbg)
         : pk_(pk), entropy_(entropy), ctrDrbg_(ctrDrbg) {}
 
     ~MbedtlsRsaPrivateKey() override {
@@ -77,17 +73,17 @@ public:
         size_t outLen = mbedtls_pk_get_len(&pk_);
         std::string result(outLen, '\0');
 
-        if (mbedtls_pk_decrypt(&pk_,
-                reinterpret_cast<const unsigned char*>(ciphertext.data()), ciphertext.size(),
-                reinterpret_cast<unsigned char*>(result.data()), &outLen, result.size(),
-                mbedtls_ctr_drbg_random, &ctrDrbg_) != 0) {
+        if (mbedtls_pk_decrypt(&pk_, reinterpret_cast<const unsigned char*>(ciphertext.data()), ciphertext.size(),
+                               reinterpret_cast<unsigned char*>(result.data()), &outLen, result.size(),
+                               mbedtls_ctr_drbg_random, &ctrDrbg_)
+            != 0) {
             return {};
         }
         result.resize(outLen);
         return result;
     }
 
-private:
+  private:
     mbedtls_pk_context pk_;
     mbedtls_entropy_context entropy_;
     mbedtls_ctr_drbg_context ctrDrbg_;
@@ -96,8 +92,7 @@ private:
 
 } // namespace
 
-std::unique_ptr<RsaPublicKey> tryRsaPublicKey(
-        const std::string& publicKeyPem, std::string& detailError) {
+std::unique_ptr<RsaPublicKey> tryRsaPublicKey(const std::string& publicKeyPem, std::string& detailError) {
     mbedtls_pk_context pk;
     mbedtls_pk_init(&pk);
     mbedtls_entropy_context entropy;
@@ -113,9 +108,8 @@ std::unique_ptr<RsaPublicKey> tryRsaPublicKey(
         return nullptr;
     }
 
-    int ret = mbedtls_pk_parse_public_key(&pk,
-            reinterpret_cast<const unsigned char*>(publicKeyPem.data()),
-            publicKeyPem.size() + 1);
+    int ret = mbedtls_pk_parse_public_key(&pk, reinterpret_cast<const unsigned char*>(publicKeyPem.data()),
+                                          publicKeyPem.size() + 1);
     if (ret != 0) {
         mbedtls_pk_free(&pk);
         mbedtls_ctr_drbg_free(&ctrDrbg);
@@ -127,8 +121,7 @@ std::unique_ptr<RsaPublicKey> tryRsaPublicKey(
     return std::make_unique<MbedtlsRsaPublicKey>(pk, entropy, ctrDrbg);
 }
 
-std::unique_ptr<RsaPrivateKey> tryRsaPrivateKey(
-        const std::string& privateKeyPem, std::string& detailError) {
+std::unique_ptr<RsaPrivateKey> tryRsaPrivateKey(const std::string& privateKeyPem, std::string& detailError) {
     mbedtls_pk_context pk;
     mbedtls_pk_init(&pk);
     mbedtls_entropy_context entropy;
@@ -144,13 +137,13 @@ std::unique_ptr<RsaPrivateKey> tryRsaPrivateKey(
         return nullptr;
     }
 
-    int ret = mbedtls_pk_parse_key(&pk,
-            reinterpret_cast<const unsigned char*>(privateKeyPem.data()),
-            privateKeyPem.size() + 1, nullptr, 0
+    int ret = mbedtls_pk_parse_key(&pk, reinterpret_cast<const unsigned char*>(privateKeyPem.data()),
+                                   privateKeyPem.size() + 1, nullptr, 0
 #if MBEDTLS_VERSION_NUMBER >= 0x03000000
-            , mbedtls_ctr_drbg_random, &ctrDrbg
+                                   ,
+                                   mbedtls_ctr_drbg_random, &ctrDrbg
 #endif
-            );
+    );
     if (ret != 0) {
         mbedtls_pk_free(&pk);
         mbedtls_ctr_drbg_free(&ctrDrbg);

@@ -61,30 +61,57 @@ struct ALIBABACLOUD_OSS_API ObjectVersion final {
 
 
     template <typename ValueT = std::string>
-    ObjectVersion& setKey(ValueT&& value) { key = std::forward<ValueT>(value); return *this; }
+    ObjectVersion& setKey(ValueT&& value) {
+        key = std::forward<ValueT>(value);
+        return *this;
+    }
 
     template <typename ValueT = std::string>
-    ObjectVersion& setVersionId(ValueT&& value) { versionId = std::forward<ValueT>(value); return *this; }
+    ObjectVersion& setVersionId(ValueT&& value) {
+        versionId = std::forward<ValueT>(value);
+        return *this;
+    }
 
     template <typename ValueT = bool>
-    ObjectVersion& setIsLatest(ValueT&& value) { isLatest = std::forward<ValueT>(value); return *this; }
+    ObjectVersion& setIsLatest(ValueT&& value) {
+        isLatest = std::forward<ValueT>(value);
+        return *this;
+    }
 
     template <typename ValueT = std::string>
-    ObjectVersion& setLastModified(ValueT&& value) { lastModified = std::forward<ValueT>(value); return *this; }
+    ObjectVersion& setLastModified(ValueT&& value) {
+        lastModified = std::forward<ValueT>(value);
+        return *this;
+    }
 
     template <typename ValueT = std::string>
-    ObjectVersion& setETag(ValueT&& value) { eTag = std::forward<ValueT>(value); return *this; }
+    ObjectVersion& setETag(ValueT&& value) {
+        eTag = std::forward<ValueT>(value);
+        return *this;
+    }
 
-    ObjectVersion& setSize(std::int64_t value) { size = value; return *this; }
+    ObjectVersion& setSize(std::int64_t value) {
+        size = value;
+        return *this;
+    }
 
     template <typename ValueT = std::string>
-    ObjectVersion& setStorageClass(ValueT&& value) { storageClass = std::forward<ValueT>(value); return *this; }
+    ObjectVersion& setStorageClass(ValueT&& value) {
+        storageClass = std::forward<ValueT>(value);
+        return *this;
+    }
 
     template <typename ValueT = Owner>
-    ObjectVersion& setOwner(ValueT&& value) { owner = std::forward<ValueT>(value); return *this; }
+    ObjectVersion& setOwner(ValueT&& value) {
+        owner = std::forward<ValueT>(value);
+        return *this;
+    }
 
     template <typename ValueT = std::string>
-    ObjectVersion& setRestoreInfo(ValueT&& value) { restoreInfo = std::forward<ValueT>(value); return *this; }
+    ObjectVersion& setRestoreInfo(ValueT&& value) {
+        restoreInfo = std::forward<ValueT>(value);
+        return *this;
+    }
 };
 
 
@@ -109,19 +136,34 @@ struct ALIBABACLOUD_OSS_API DeleteMarkerEntry final {
 
 
     template <typename ValueT = std::string>
-    DeleteMarkerEntry& setKey(ValueT&& value) { key = std::forward<ValueT>(value); return *this; }
+    DeleteMarkerEntry& setKey(ValueT&& value) {
+        key = std::forward<ValueT>(value);
+        return *this;
+    }
 
     template <typename ValueT = std::string>
-    DeleteMarkerEntry& setVersionId(ValueT&& value) { versionId = std::forward<ValueT>(value); return *this; }
+    DeleteMarkerEntry& setVersionId(ValueT&& value) {
+        versionId = std::forward<ValueT>(value);
+        return *this;
+    }
 
     template <typename ValueT = bool>
-    DeleteMarkerEntry& setIsLatest(ValueT&& value) { isLatest = std::forward<ValueT>(value); return *this; }
+    DeleteMarkerEntry& setIsLatest(ValueT&& value) {
+        isLatest = std::forward<ValueT>(value);
+        return *this;
+    }
 
     template <typename ValueT = std::string>
-    DeleteMarkerEntry& setLastModified(ValueT&& value) { lastModified = std::forward<ValueT>(value); return *this; }
+    DeleteMarkerEntry& setLastModified(ValueT&& value) {
+        lastModified = std::forward<ValueT>(value);
+        return *this;
+    }
 
     template <typename ValueT = Owner>
-    DeleteMarkerEntry& setOwner(ValueT&& value) { owner = std::forward<ValueT>(value); return *this; }
+    DeleteMarkerEntry& setOwner(ValueT&& value) {
+        owner = std::forward<ValueT>(value);
+        return *this;
+    }
 };
 
 
@@ -330,7 +372,7 @@ class ALIBABACLOUD_OSS_API ListObjectVersionsResult final : public ResultModel {
     ListObjectVersionsResult() = default;
     ListObjectVersionsResult(int statusCode, HeaderCollection headers) : ResultModel(statusCode, std::move(headers)) {}
     ListObjectVersionsResult(int statusCode, HeaderCollection headers, ListVersionsResultXml body)
-            : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
+        : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
 
 
     // The bucket name.

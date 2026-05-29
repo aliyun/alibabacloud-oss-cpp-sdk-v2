@@ -23,8 +23,7 @@ class CurlMultiTransport : public AsyncHttpTransport {
     explicit CurlMultiTransport(const CurlTransportOptions& options);
     ~CurlMultiTransport() override;
 
-    void sendAsync(std::unique_ptr<RequestMessage> request,
-                   const RequestOptions& options,
+    void sendAsync(std::unique_ptr<RequestMessage> request, const RequestOptions& options,
                    RequestCallback callback) override;
 
     std::string getName() const override;

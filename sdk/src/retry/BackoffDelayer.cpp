@@ -14,10 +14,9 @@ std::chrono::milliseconds EqualJitterBackoff::backoffDelay(long attempt, const s
     attempt = std::min(attempt, RETRIES_ATTEMPTED_CEILING);
     auto ceil = std::min(baseDelay_ * (static_cast<int64_t>(1) << attempt), maxBackoff_);
     auto factor = static_cast<double>(utils::GetRandomValue()) / std::mt19937::max();
-    auto delay =
-            ceil / 2 +
-            std::chrono::milliseconds(static_cast<std::chrono::milliseconds::rep>(
-                    (std::chrono::duration<double, std::chrono::milliseconds::period>(ceil / 2) * factor).count()));
+    auto delay = ceil / 2
+        + std::chrono::milliseconds(static_cast<std::chrono::milliseconds::rep>(
+            (std::chrono::duration<double, std::chrono::milliseconds::period>(ceil / 2) * factor).count()));
     return delay;
 }
 
@@ -30,7 +29,7 @@ std::chrono::milliseconds FullJitterBackoff::backoffDelay(long attempt, const st
     auto ceil = std::min(baseDelay_ * (static_cast<int64_t>(1) << attempt), maxBackoff_);
     auto factor = static_cast<double>(utils::GetRandomValue()) / std::mt19937::max();
     return std::chrono::milliseconds(static_cast<std::chrono::milliseconds::rep>(
-            (std::chrono::duration<double, std::chrono::milliseconds::period>(ceil) * factor).count()));
+        (std::chrono::duration<double, std::chrono::milliseconds::period>(ceil) * factor).count()));
 }
 
 } // namespace oss2

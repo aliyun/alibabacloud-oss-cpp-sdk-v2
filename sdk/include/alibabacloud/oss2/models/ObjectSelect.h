@@ -22,19 +22,19 @@ namespace CSVHeaderInfo {
 inline constexpr char None[] = "None";
 inline constexpr char Ignore[] = "Ignore";
 inline constexpr char Use[] = "Use";
-}
+} // namespace CSVHeaderInfo
 
 // JSON document format type for InputSerialization.
 namespace JsonType {
 inline constexpr char DOCUMENT[] = "DOCUMENT";
 inline constexpr char LINES[] = "LINES";
-}
+} // namespace JsonType
 
 // Compression type for InputSerialization.
 namespace CompressionType {
 inline constexpr char NONE[] = "NONE";
 inline constexpr char GZIP[] = "GZIP";
-}
+} // namespace CompressionType
 
 
 // CSV format parameters for InputSerialization.
@@ -295,14 +295,18 @@ class ALIBABACLOUD_OSS_API SelectObjectRequest final : public RequestModel {
   public:
     SelectObjectRequest() = default;
 
-    inline const std::string& getBucket() const { return bucket_; }
+    inline const std::string& getBucket() const {
+        return bucket_;
+    }
     template <typename ValueT = std::string>
     SelectObjectRequest& setBucket(ValueT&& value) {
         bucket_ = std::forward<ValueT>(value);
         return *this;
     }
 
-    inline const std::string& getKey() const { return key_; }
+    inline const std::string& getKey() const {
+        return key_;
+    }
     template <typename ValueT = std::string>
     SelectObjectRequest& setKey(ValueT&& value) {
         key_ = std::forward<ValueT>(value);
@@ -310,7 +314,9 @@ class ALIBABACLOUD_OSS_API SelectObjectRequest final : public RequestModel {
     }
 
     // The process type: "csv/select" or "json/select"
-    inline const std::string& getProcess() const { return process_; }
+    inline const std::string& getProcess() const {
+        return process_;
+    }
     template <typename ValueT = std::string>
     SelectObjectRequest& setProcess(ValueT&& value) {
         process_ = std::forward<ValueT>(value);
@@ -318,8 +324,12 @@ class ALIBABACLOUD_OSS_API SelectObjectRequest final : public RequestModel {
     }
 
     // The XML body containing the SQL expression and serialization settings
-    inline const SelectRequest& getSelectRequest() const { return selectRequest_.at(0); }
-    inline bool hasSelectRequest() const { return selectRequest_.find(0) != selectRequest_.end(); }
+    inline const SelectRequest& getSelectRequest() const {
+        return selectRequest_.at(0);
+    }
+    inline bool hasSelectRequest() const {
+        return selectRequest_.find(0) != selectRequest_.end();
+    }
     template <typename ValueT = SelectRequest>
     SelectObjectRequest& setSelectRequest(ValueT&& value) {
         selectRequest_.insert_or_assign(0, std::forward<ValueT>(value));
@@ -327,7 +337,9 @@ class ALIBABACLOUD_OSS_API SelectObjectRequest final : public RequestModel {
     }
 
     // Custom sink factory for writing the decoded response body
-    inline const std::optional<SinkFactory>& getSinkFactory() const { return sinkFactory_; }
+    inline const std::optional<SinkFactory>& getSinkFactory() const {
+        return sinkFactory_;
+    }
     SelectObjectRequest& setSinkFactory(SinkFactory value) {
         sinkFactory_ = std::move(value);
         return *this;
@@ -346,12 +358,15 @@ class ALIBABACLOUD_OSS_API SelectObjectRequest final : public RequestModel {
 class ALIBABACLOUD_OSS_API SelectObjectResult final : public ResultModel {
   public:
     SelectObjectResult() = default;
-    SelectObjectResult(int statusCode, HeaderCollection headers)
-            : ResultModel(statusCode, std::move(headers)) {}
+    SelectObjectResult(int statusCode, HeaderCollection headers) : ResultModel(statusCode, std::move(headers)) {}
 
     // The frame-decoded response body stream
-    inline const std::shared_ptr<std::iostream>& getBody() const { return body_; }
-    void setBody(std::shared_ptr<std::iostream> body) { body_ = std::move(body); }
+    inline const std::shared_ptr<std::iostream>& getBody() const {
+        return body_;
+    }
+    void setBody(std::shared_ptr<std::iostream> body) {
+        body_ = std::move(body);
+    }
 
   private:
     std::shared_ptr<std::iostream> body_;
@@ -408,14 +423,18 @@ class ALIBABACLOUD_OSS_API CreateSelectObjectMetaRequest final : public RequestM
   public:
     CreateSelectObjectMetaRequest() = default;
 
-    inline const std::string& getBucket() const { return bucket_; }
+    inline const std::string& getBucket() const {
+        return bucket_;
+    }
     template <typename ValueT = std::string>
     CreateSelectObjectMetaRequest& setBucket(ValueT&& value) {
         bucket_ = std::forward<ValueT>(value);
         return *this;
     }
 
-    inline const std::string& getKey() const { return key_; }
+    inline const std::string& getKey() const {
+        return key_;
+    }
     template <typename ValueT = std::string>
     CreateSelectObjectMetaRequest& setKey(ValueT&& value) {
         key_ = std::forward<ValueT>(value);
@@ -423,7 +442,9 @@ class ALIBABACLOUD_OSS_API CreateSelectObjectMetaRequest final : public RequestM
     }
 
     // The process type: "csv/meta" or "json/meta"
-    inline const std::string& getProcess() const { return process_; }
+    inline const std::string& getProcess() const {
+        return process_;
+    }
     template <typename ValueT = std::string>
     CreateSelectObjectMetaRequest& setProcess(ValueT&& value) {
         process_ = std::forward<ValueT>(value);
@@ -431,8 +452,12 @@ class ALIBABACLOUD_OSS_API CreateSelectObjectMetaRequest final : public RequestM
     }
 
     // The XML body describing input format (CSVMetaRequest or JSONMetaRequest)
-    inline const SelectMetaRequest& getSelectMetaRequest() const { return selectMetaRequest_.at(0); }
-    inline bool hasSelectMetaRequest() const { return selectMetaRequest_.find(0) != selectMetaRequest_.end(); }
+    inline const SelectMetaRequest& getSelectMetaRequest() const {
+        return selectMetaRequest_.at(0);
+    }
+    inline bool hasSelectMetaRequest() const {
+        return selectMetaRequest_.find(0) != selectMetaRequest_.end();
+    }
     template <typename ValueT>
     CreateSelectObjectMetaRequest& setSelectMetaRequest(ValueT&& value) {
         selectMetaRequest_.insert_or_assign(0, std::forward<ValueT>(value));
@@ -465,30 +490,44 @@ class ALIBABACLOUD_OSS_API CreateSelectObjectMetaResult final : public ResultMod
   public:
     CreateSelectObjectMetaResult() = default;
     CreateSelectObjectMetaResult(int statusCode, HeaderCollection headers)
-            : ResultModel(statusCode, std::move(headers)) {}
+        : ResultModel(statusCode, std::move(headers)) {}
     CreateSelectObjectMetaResult(int statusCode, HeaderCollection headers, SelectObjectMeta body)
-            : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
+        : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
 
     // Byte offset of the metadata in the object
-    inline std::int64_t getOffset() const { return body_.offset; }
+    inline std::int64_t getOffset() const {
+        return body_.offset;
+    }
 
     // Total bytes scanned during metadata creation
-    inline std::int64_t getTotalScanned() const { return body_.totalScanned; }
+    inline std::int64_t getTotalScanned() const {
+        return body_.totalScanned;
+    }
 
     // HTTP-like status code from the end frame (200 = success)
-    inline std::int32_t getStatus() const { return body_.status; }
+    inline std::int32_t getStatus() const {
+        return body_.status;
+    }
 
     // Number of splits in the object
-    inline std::int32_t getSplitsCount() const { return body_.splitsCount; }
+    inline std::int32_t getSplitsCount() const {
+        return body_.splitsCount;
+    }
 
     // Total number of rows in the object
-    inline std::int64_t getRowsCount() const { return body_.rowsCount; }
+    inline std::int64_t getRowsCount() const {
+        return body_.rowsCount;
+    }
 
     // Total number of columns (CSV only, 0 for JSON)
-    inline std::int32_t getColumnsCount() const { return body_.columnsCount; }
+    inline std::int32_t getColumnsCount() const {
+        return body_.columnsCount;
+    }
 
     // Error message from the end frame (empty on success)
-    inline const std::string& getErrorMessage() const { return body_.errorMessage; }
+    inline const std::string& getErrorMessage() const {
+        return body_.errorMessage;
+    }
 
   private:
     SelectObjectMeta body_;

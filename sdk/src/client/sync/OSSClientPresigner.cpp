@@ -1,7 +1,7 @@
+#include "OSSClientFieldCheck.h"
+#include "alibabacloud/oss2/Error.h"
 #include "alibabacloud/oss2/OSSClient.h"
 #include "src/internal/sync/ClientImpl.h"
-#include "alibabacloud/oss2/Error.h"
-#include "OSSClientFieldCheck.h"
 
 #include <ctime>
 
@@ -14,8 +14,9 @@ using internal::PresignInnerResult;
 #define requiredField(field)                                                                              \
     do {                                                                                                  \
         if (isFieldMissing(request.get##field())) {                                                       \
-            return makeUnexpected(OperationError(ClientErrorCode::ArgumentRequired,                         \
-                                  {{"Code", "ArgumentRequired"}, {"Message", "Missing field " #field ""}})); \
+            return makeUnexpected(                                                                        \
+                OperationError(ClientErrorCode::ArgumentRequired,                                         \
+                               {{"Code", "ArgumentRequired"}, {"Message", "Missing field " #field ""}})); \
         }                                                                                                 \
     } while (false)
 
@@ -42,7 +43,8 @@ static PresignOutcome doPresign(internal::ClientImpl* impl, const OperationInput
         return PresignOutcome(std::move(presignResult));
     }
 
-    return makeUnexpected(OperationError{SignerErrorCode::SignFailed, {{"Code", "Unknown"}, {"Message", "Unknown error"}}});
+    return makeUnexpected(
+        OperationError{SignerErrorCode::SignFailed, {{"Code", "Unknown"}, {"Message", "Unknown error"}}});
 }
 
 PresignOutcome OSSClient::presign(const models::PutObjectRequest& request, const models::PresignOptions* options) {

@@ -255,7 +255,7 @@ class ALIBABACLOUD_OSS_API StreamContent : public ByteContent {
 class ALIBABACLOUD_OSS_API FileContent : public ByteContent {
   public:
     FileContent(std::string path, std::size_t off = 0, std::optional<std::size_t> length = std::nullopt)
-            : FileContent(std::filesystem::path(std::move(path)), off, length) {}
+        : FileContent(std::filesystem::path(std::move(path)), off, length) {}
 
     FileContent(std::filesystem::path path, std::size_t off = 0, std::optional<std::size_t> length = std::nullopt);
 

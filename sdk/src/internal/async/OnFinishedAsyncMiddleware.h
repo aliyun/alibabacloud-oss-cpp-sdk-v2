@@ -11,8 +11,7 @@ class OnFinishedAsyncMiddleware final : public AsyncExecuteMiddleware {
   public:
     using OnFinished = std::function<void(const std::shared_ptr<AsyncExecuteState>&)>;
 
-    explicit OnFinishedAsyncMiddleware(OnFinished onFinished)
-            : onFinished_(std::move(onFinished)) {}
+    explicit OnFinishedAsyncMiddleware(OnFinished onFinished) : onFinished_(std::move(onFinished)) {}
 
     void handleRequest(const std::shared_ptr<AsyncExecuteState>&) override {}
 

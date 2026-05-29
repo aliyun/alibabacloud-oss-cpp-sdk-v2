@@ -105,20 +105,20 @@ ALIBABACLOUD_OSS_API std::error_code make_error_code(TransportErrorCode e);
 } // namespace oss2
 } // namespace alibabacloud
 
-template<>
+template <>
 struct std::is_error_condition_enum<alibabacloud::oss2::ErrorCondition> : std::true_type {};
 
-template<>
+template <>
 struct std::is_error_code_enum<alibabacloud::oss2::ClientErrorCode> : std::true_type {};
 
-template<>
+template <>
 struct std::is_error_code_enum<alibabacloud::oss2::CredentialsErrorCode> : std::true_type {};
 
-template<>
+template <>
 struct std::is_error_code_enum<alibabacloud::oss2::SignerErrorCode> : std::true_type {};
 
-template<>
+template <>
 struct std::is_error_code_enum<alibabacloud::oss2::SerdeErrorCode> : std::true_type {};
 
-template<>
+template <>
 struct std::is_error_code_enum<alibabacloud::oss2::TransportErrorCode> : std::true_type {};

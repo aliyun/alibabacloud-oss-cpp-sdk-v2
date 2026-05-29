@@ -10,8 +10,7 @@ WinHttpAction::WinHttpAction()
       expectedStatus_(0),
       error_(0),
       bytesAvailable_(0),
-      bytesRead_(0) {
-}
+      bytesRead_(0) {}
 
 WinHttpAction::~WinHttpAction() {
     if (event_ != nullptr) {
@@ -20,17 +19,14 @@ WinHttpAction::~WinHttpAction() {
 }
 
 bool WinHttpAction::registerCallback(HINTERNET hRequest) {
-    return WinHttpSetStatusCallback(
-        hRequest,
-        &WinHttpAction::statusCallback,
-        WINHTTP_CALLBACK_FLAG_ALL_COMPLETIONS |
-        WINHTTP_CALLBACK_FLAG_HANDLES |
-        WINHTTP_CALLBACK_FLAG_REQUEST_ERROR,
-        0) != WINHTTP_INVALID_STATUS_CALLBACK;
+    return WinHttpSetStatusCallback(hRequest, &WinHttpAction::statusCallback,
+                                    WINHTTP_CALLBACK_FLAG_ALL_COMPLETIONS | WINHTTP_CALLBACK_FLAG_HANDLES
+                                        | WINHTTP_CALLBACK_FLAG_REQUEST_ERROR,
+                                    0)
+        != WINHTTP_INVALID_STATUS_CALLBACK;
 }
 
-bool WinHttpAction::waitForAction(std::function<bool()> initiateAction,
-                                  DWORD expectedStatus,
+bool WinHttpAction::waitForAction(std::function<bool()> initiateAction, DWORD expectedStatus,
                                   const std::optional<CancellationToken>& token,
                                   const std::function<bool()>& isDisabled) {
     ResetEvent(event_);
@@ -83,10 +79,8 @@ DWORD WinHttpAction::getBytesRead() const {
     return bytesRead_;
 }
 
-void CALLBACK WinHttpAction::statusCallback(
-    HINTERNET /*hInternet*/, DWORD_PTR dwContext,
-    DWORD dwInternetStatus, LPVOID lpvStatusInformation,
-    DWORD dwStatusInformationLength) {
+void CALLBACK WinHttpAction::statusCallback(HINTERNET /*hInternet*/, DWORD_PTR dwContext, DWORD dwInternetStatus,
+                                            LPVOID lpvStatusInformation, DWORD dwStatusInformationLength) {
     if (dwContext == 0) {
         return;
     }

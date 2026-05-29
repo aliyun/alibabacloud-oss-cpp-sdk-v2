@@ -6,13 +6,13 @@
 #include <mbedtls/version.h>
 
 #if MBEDTLS_VERSION_NUMBER >= 0x03000000
-#define oss2_sha256_starts(ctx, is224)        mbedtls_sha256_starts(ctx, is224)
-#define oss2_sha256_update(ctx, input, ilen)  mbedtls_sha256_update(ctx, input, ilen)
-#define oss2_sha256_finish(ctx, output)       mbedtls_sha256_finish(ctx, output)
+#define oss2_sha256_starts(ctx, is224) mbedtls_sha256_starts(ctx, is224)
+#define oss2_sha256_update(ctx, input, ilen) mbedtls_sha256_update(ctx, input, ilen)
+#define oss2_sha256_finish(ctx, output) mbedtls_sha256_finish(ctx, output)
 #else
-#define oss2_sha256_starts(ctx, is224)        mbedtls_sha256_starts_ret(ctx, is224)
-#define oss2_sha256_update(ctx, input, ilen)  mbedtls_sha256_update_ret(ctx, input, ilen)
-#define oss2_sha256_finish(ctx, output)       mbedtls_sha256_finish_ret(ctx, output)
+#define oss2_sha256_starts(ctx, is224) mbedtls_sha256_starts_ret(ctx, is224)
+#define oss2_sha256_update(ctx, input, ilen) mbedtls_sha256_update_ret(ctx, input, ilen)
+#define oss2_sha256_finish(ctx, output) mbedtls_sha256_finish_ret(ctx, output)
 #endif
 
 namespace alibabacloud {
@@ -25,10 +25,8 @@ void HmacSha1(const void* data, size_t numDataBytes, const void* key, size_t num
         std::memset(out, 0, 20);
         return;
     }
-    mbedtls_md_hmac(info,
-        static_cast<const unsigned char*>(key), numKeyBytes,
-        static_cast<const unsigned char*>(data), numDataBytes,
-        out);
+    mbedtls_md_hmac(info, static_cast<const unsigned char*>(key), numKeyBytes, static_cast<const unsigned char*>(data),
+                    numDataBytes, out);
 }
 
 void HmacSh256(const void* data, size_t numDataBytes, const void* key, size_t numKeyBytes, unsigned char out[32]) {
@@ -37,10 +35,8 @@ void HmacSh256(const void* data, size_t numDataBytes, const void* key, size_t nu
         std::memset(out, 0, 32);
         return;
     }
-    mbedtls_md_hmac(info,
-        static_cast<const unsigned char*>(key), numKeyBytes,
-        static_cast<const unsigned char*>(data), numDataBytes,
-        out);
+    mbedtls_md_hmac(info, static_cast<const unsigned char*>(key), numKeyBytes, static_cast<const unsigned char*>(data),
+                    numDataBytes, out);
 }
 
 std::string HashSh256(const void* data, size_t numDataBytes) {

@@ -48,7 +48,9 @@ class ALIBABACLOUD_OSS_API ByteWriter {
      * @return The number of bytes actually written. A return value of 0
      *         indicates an error (check state()).
      */
-    std::size_t write(const std::uint8_t* data, std::size_t n) { return onWrite(data, n); }
+    std::size_t write(const std::uint8_t* data, std::size_t n) {
+        return onWrite(data, n);
+    }
 
     /**
      * @brief Returns the current stream error-state flags.
@@ -58,16 +60,24 @@ class ALIBABACLOUD_OSS_API ByteWriter {
      *   - fail bit 0x2  Logical error on I/O operation
      *   - bad  bit 0x4  Unrecoverable write error
      */
-    int state() const { return iostate(); }
+    int state() const {
+        return iostate();
+    }
 
     /// Returns true if no error flags are set.
-    bool good() const { return iostate() == std::ios_base::goodbit; }
+    bool good() const {
+        return iostate() == std::ios_base::goodbit;
+    }
 
     /// Returns true if failbit or badbit is set.
-    bool fail() const { return (iostate() & (std::ios_base::badbit | std::ios_base::failbit)) != 0; }
+    bool fail() const {
+        return (iostate() & (std::ios_base::badbit | std::ios_base::failbit)) != 0;
+    }
 
     /// Returns true if badbit is set (unrecoverable I/O error).
-    bool bad() const { return (iostate() & std::ios_base::badbit) != 0; }
+    bool bad() const {
+        return (iostate() & std::ios_base::badbit) != 0;
+    }
 };
 
 
@@ -114,11 +124,15 @@ class ALIBABACLOUD_OSS_API ByteWriterObserver : public ByteWriter {
      */
     virtual void onReset() = 0;
 
-    int iostate() const override { return 0; }
+    int iostate() const override {
+        return 0;
+    }
 
   public:
     /// Resets the observer's accumulated state (e.g., for retries).
-    void reset() { onReset(); }
+    void reset() {
+        onReset();
+    }
 };
 
 
@@ -175,7 +189,9 @@ class ALIBABACLOUD_OSS_API ProgressWriteObserver : public ByteWriterObserver {
   public:
     ProgressWriteObserver(ProgressCallback callback, std::int64_t total);
 
-    void updateTotal(std::int64_t total) { total_ = total; }
+    void updateTotal(std::int64_t total) {
+        total_ = total;
+    }
 
   private:
     std::size_t onWrite(const std::uint8_t* data, std::size_t n) override;
@@ -208,10 +224,14 @@ class ALIBABACLOUD_OSS_API CRC64WriteObserver : public ByteWriterObserver {
     explicit CRC64WriteObserver(uint64_t init = 0) : init_(init), value_(init) {}
 
     /// Returns the current CRC-64 checksum value.
-    inline uint64_t crc() const { return value_; }
+    inline uint64_t crc() const {
+        return value_;
+    }
 
     /// Returns the current CRC-64 checksum as a decimal string.
-    inline std::string crcAsString() const { return std::to_string(value_); }
+    inline std::string crcAsString() const {
+        return std::to_string(value_);
+    }
 
   private:
     std::size_t onWrite(const std::uint8_t* data, std::size_t n) override;
@@ -242,7 +262,9 @@ class ALIBABACLOUD_OSS_API MemoryWriter : public ByteWriter {
     MemoryWriter(std::uint8_t* buf, std::size_t capacity);
 
     /// Returns the number of bytes written so far.
-    std::size_t written() const { return offset_; }
+    std::size_t written() const {
+        return offset_;
+    }
 
   private:
     std::size_t onWrite(const std::uint8_t* data, std::size_t n) override;

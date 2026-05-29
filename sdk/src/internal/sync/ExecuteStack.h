@@ -1,7 +1,7 @@
 #pragma once
 
-#include "src/internal/ExecuteMiddleware.h"
 #include "TransportExecuteMiddleware.h"
+#include "src/internal/ExecuteMiddleware.h"
 
 #include <functional>
 #include <memory>
@@ -16,10 +16,10 @@ namespace internal {
 class ExecuteStack final {
   public:
     using CreateExecuteMiddleware =
-            std::function<std::unique_ptr<ExecuteMiddleware>(std::unique_ptr<ExecuteMiddleware>)>;
+        std::function<std::unique_ptr<ExecuteMiddleware>(std::unique_ptr<ExecuteMiddleware>)>;
 
     explicit ExecuteStack(std::function<std::unique_ptr<ExecuteMiddleware>()> createTransport)
-            : createTransport_(std::move(createTransport)) {}
+        : createTransport_(std::move(createTransport)) {}
 
     ~ExecuteStack() = default;
 

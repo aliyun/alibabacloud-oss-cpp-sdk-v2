@@ -71,7 +71,7 @@ class ResourceManager {
 class CurlContainer {
   public:
     CurlContainer(unsigned maxSize = 16, long requestTimeout = 10000, long connectTimeout = 5000)
-            : maxPoolSize_(maxSize), requestTimeout_(requestTimeout), connectTimeout_(connectTimeout), poolSize_(0) {}
+        : maxPoolSize_(maxSize), requestTimeout_(requestTimeout), connectTimeout_(connectTimeout), poolSize_(0) {}
 
     ~CurlContainer() {
         for (CURL* handle : handleContainer_.ShutdownAndWait(poolSize_)) {

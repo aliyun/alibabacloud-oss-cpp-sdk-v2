@@ -10,7 +10,7 @@ namespace internal {
 class ResponseCheckerAsyncMiddleware final : public AsyncExecuteMiddleware {
   public:
     explicit ResponseCheckerAsyncMiddleware(std::unique_ptr<AsyncExecuteMiddleware> next = nullptr)
-            : next_(std::move(next)) {}
+        : next_(std::move(next)) {}
 
     void handleRequest(const std::shared_ptr<AsyncExecuteState>& state) override {
         next_->handleRequest(state);

@@ -1,10 +1,10 @@
 
+#include "OSSClientUtils.h"
 #include "alibabacloud/oss2/OSSClient.h"
 #include "src/internal/ByteStreamUtils.h"
 #include "src/internal/sync/ClientImpl.h"
 #include "src/transform/SerdeObjectMultipart.h"
 #include "src/utils/Utils.h"
-#include "OSSClientUtils.h"
 
 namespace alibabacloud {
 namespace oss2 {
@@ -45,7 +45,7 @@ UploadPartOutcome OSSClient::uploadPart(const models::UploadPartRequest& request
             total = len.has_value() ? static_cast<int64_t>(len.value()) : -1;
         }
         innerOpts.uploadObserver.push_back(
-                std::make_shared<internal::ProgressObserver>(request.getProgressCallback().value(), total));
+            std::make_shared<internal::ProgressObserver>(request.getProgressCallback().value(), total));
     }
 
     if (client_->hasFlag(FeatureFlagsType::EnableCRC64CheckUpload) && request.hasBody()) {
@@ -72,7 +72,8 @@ CompleteMultipartUploadOutcome OSSClient::completeMultipartUpload(const models::
     if (std::holds_alternative<OperationError>(result)) {
         return makeUnexpected(std::get<OperationError>(result));
     }
-    return transform::toCompleteMultipartUpload(std::move(std::get<OperationOutput>(result)), !request.getCallback().empty());
+    return transform::toCompleteMultipartUpload(std::move(std::get<OperationOutput>(result)),
+                                                !request.getCallback().empty());
 }
 
 UploadPartCopyOutcome OSSClient::uploadPartCopy(const models::UploadPartCopyRequest& request,

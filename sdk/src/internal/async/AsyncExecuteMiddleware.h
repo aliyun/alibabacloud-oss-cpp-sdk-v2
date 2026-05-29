@@ -1,9 +1,9 @@
 
 #pragma once
 
-#include "src/internal/ExecuteMiddleware.h"
 #include "alibabacloud/oss2/Operation.h"
 #include "alibabacloud/oss2/transport/HttpTypes.h"
+#include "src/internal/ExecuteMiddleware.h"
 
 #include <chrono>
 #include <memory>
@@ -38,7 +38,9 @@ class AsyncExecuteMiddleware {
   public:
     virtual ~AsyncExecuteMiddleware() = default;
 
-    void setPrev(AsyncExecuteMiddleware* parent) { prev_ = parent; }
+    void setPrev(AsyncExecuteMiddleware* parent) {
+        prev_ = parent;
+    }
 
     virtual void handleRequest(const std::shared_ptr<AsyncExecuteState>& state) = 0;
     virtual void handleResponse(const std::shared_ptr<AsyncExecuteState>& state) = 0;

@@ -66,7 +66,7 @@ class StreamSource final : public ByteSource {
 class OStreamSupplierImpl : public OStreamSupplier {
   public:
     explicit OStreamSupplierImpl(std::function<std::shared_ptr<std::ostream>()> supplier, bool reuse)
-            : supplier_(std::move(supplier)), reuse_(reuse) {}
+        : supplier_(std::move(supplier)), reuse_(reuse) {}
 
     bool isOneShot() const override {
         return !reuse_;
@@ -116,7 +116,7 @@ std::vector<std::uint8_t> ByteSource::readToEnd() {
 }
 
 FileContent::FileContent(std::filesystem::path path, std::size_t off, std::optional<std::size_t> length)
-        : path_(std::move(path)), off_(0), length_(std::nullopt) {
+    : path_(std::move(path)), off_(0), length_(std::nullopt) {
     std::error_code ec;
     auto size = static_cast<std::size_t>(std::filesystem::file_size(path_, ec));
     if (!ec) {
@@ -133,8 +133,7 @@ FileContent::FileContent(std::filesystem::path path, std::size_t off, std::optio
 }
 
 StreamContent::StreamContent(std::shared_ptr<std::istream> content)
-        : content_(std::move(content)), length_(std::nullopt), pos_(std::streampos(-1)), seekable_(false),
-          spanned_(false) {
+    : content_(std::move(content)), length_(std::nullopt), pos_(std::streampos(-1)), seekable_(false), spanned_(false) {
     if (content_ != nullptr) {
         if (*(content_.get())) {
             pos_ = content_->tellg();
@@ -159,8 +158,7 @@ StreamContent::StreamContent(std::shared_ptr<std::istream> content)
 }
 
 StreamContent::StreamContent(std::shared_ptr<std::istream> content, bool seekable, std::optional<std::size_t> length)
-        : content_(std::move(content)), length_(length), pos_(std::streampos(-1)), seekable_(seekable),
-          spanned_(false) {}
+    : content_(std::move(content)), length_(length), pos_(std::streampos(-1)), seekable_(seekable), spanned_(false) {}
 
 
 std::unique_ptr<ByteSource> StringContent::spanSource() {

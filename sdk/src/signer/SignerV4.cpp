@@ -22,7 +22,8 @@ static bool isDefaultSignedHeader(const std::string& lowerKey) {
     return false;
 }
 
-static HeaderSet signedAdditionalHeaders(const HeaderCollection& headers, const std::vector<std::string>& additionalHeaders) {
+static HeaderSet signedAdditionalHeaders(const HeaderCollection& headers,
+                                         const std::vector<std::string>& additionalHeaders) {
     HeaderSet result;
     for (auto const& key : additionalHeaders) {
         std::string lowerKey = utils::ToLower(key.c_str());
@@ -135,8 +136,9 @@ static std::string buildCanonicalReuqest(const std::string& method, const std::s
 static std::string LowerHexToString(const unsigned char* data, size_t size) {
     static const char hex[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
     std::stringstream ss;
-    for (size_t i = 0; i < size; i++)
+    for (size_t i = 0; i < size; i++) {
         ss << hex[(data[i] >> 4)] << hex[(data[i] & 0x0F)];
+    }
     return ss.str();
 }
 
@@ -227,7 +229,7 @@ static void authHeader(SigningContext& context) {
     auto resource = toResource(context.bucket, context.key);
 
     auto canonicalReuqest =
-            buildCanonicalReuqest(request->method, resource, encodedParameters, request->headers, additionalHeaders);
+        buildCanonicalReuqest(request->method, resource, encodedParameters, request->headers, additionalHeaders);
     auto stringToSign = buildStringToSign(datetime, scope, canonicalReuqest);
     auto signature = buildSignature(cred.getAccessKeySecret(), date, context.region, context.product, stringToSign);
 
@@ -295,7 +297,7 @@ static void authQuery(SigningContext& context) {
     auto resource = toResource(context.bucket, context.key);
 
     auto canonicalReuqest =
-            buildCanonicalReuqest(request->method, resource, encodedParameters, request->headers, additionalHeaders);
+        buildCanonicalReuqest(request->method, resource, encodedParameters, request->headers, additionalHeaders);
     auto stringToSign = buildStringToSign(datetime, scope, canonicalReuqest);
     auto signature = buildSignature(cred.getAccessKeySecret(), date, context.region, context.product, stringToSign);
 

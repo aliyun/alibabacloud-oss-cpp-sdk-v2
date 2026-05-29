@@ -1,7 +1,7 @@
 
 #include "../Utils.h"
-#include "src/thirdparty/hash/sha256.h"
 #include "src/thirdparty/hash/sha1.h"
+#include "src/thirdparty/hash/sha256.h"
 #include <cstring>
 
 
@@ -22,8 +22,9 @@ void HmacSha1(const void* data, size_t numDataBytes, const void* key, size_t num
         keyHasher.getHash(usedKey);
     }
 
-    for (size_t i = 0; i < SHA1::BlockSize; i++)
+    for (size_t i = 0; i < SHA1::BlockSize; i++) {
         usedKey[i] ^= 0x36;
+    }
 
     unsigned char inside[SHA1::HashBytes];
     SHA1 insideHasher;
@@ -31,8 +32,9 @@ void HmacSha1(const void* data, size_t numDataBytes, const void* key, size_t num
     insideHasher.add(data, numDataBytes);
     insideHasher.getHash(inside);
 
-    for (size_t i = 0; i < SHA1::BlockSize; i++)
+    for (size_t i = 0; i < SHA1::BlockSize; i++) {
         usedKey[i] ^= 0x5C ^ 0x36;
+    }
 
     SHA1 finalHasher;
     finalHasher.add(usedKey, SHA1::BlockSize);
@@ -59,8 +61,9 @@ void HmacSh256(const void* data, size_t numDataBytes, const void* key, size_t nu
     }
 
     // create initial XOR padding
-    for (size_t i = 0; i < SHA256::BlockSize; i++)
+    for (size_t i = 0; i < SHA256::BlockSize; i++) {
         usedKey[i] ^= 0x36;
+    }
 
     // inside = hash((usedKey ^ 0x36) + data)
     unsigned char inside[SHA256::HashBytes];
@@ -70,8 +73,9 @@ void HmacSh256(const void* data, size_t numDataBytes, const void* key, size_t nu
     insideHasher.getHash(inside);
 
     // undo usedKey's previous 0x36 XORing and apply a XOR by 0x5C
-    for (size_t i = 0; i < SHA256::BlockSize; i++)
+    for (size_t i = 0; i < SHA256::BlockSize; i++) {
         usedKey[i] ^= 0x5C ^ 0x36;
+    }
 
     // hash((usedKey ^ 0x5C) + hash((usedKey ^ 0x36) + data))
     SHA256 finalHasher;
