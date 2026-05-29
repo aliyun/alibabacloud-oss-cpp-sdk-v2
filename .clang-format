@@ -2,9 +2,9 @@
 Language:        Cpp
 # BasedOnStyle:  Google
 AccessModifierOffset: -2
-AlignAfterOpenBracket: true
+AlignAfterOpenBracket: Align
 AlignEscapedNewlinesLeft: true
-AlignOperands: true
+AlignOperands: false
 AlignTrailingComments: true
 AllowAllParametersOfDeclarationOnNextLine: true
 AllowShortBlocksOnASingleLine: false
@@ -18,8 +18,8 @@ AlwaysBreakBeforeMultilineStrings: true
 BreakBeforeBinaryOperators: NonAssignment
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializersBeforeComma: false
-BinPackParameters: false
-BinPackArguments: false
+BinPackParameters: true
+BinPackArguments: true
 ColumnLimit: 120
 PackConstructorInitializers: NextLine
 ConstructorInitializerIndentWidth: 4
