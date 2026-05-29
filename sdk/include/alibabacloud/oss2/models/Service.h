@@ -206,7 +206,7 @@ class ALIBABACLOUD_OSS_API ListBucketsResult final : public ResultModel {
     ListBucketsResult() = default;
     ListBucketsResult(int statusCode, HeaderCollection headers) : ResultModel(statusCode, std::move(headers)) {}
     ListBucketsResult(int statusCode, HeaderCollection headers, ListAllMyBucketsResult body)
-            : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
+        : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
 
     // The maximum number of buckets that can be returned.
     // -1 means unkonwn

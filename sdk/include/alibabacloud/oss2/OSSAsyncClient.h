@@ -21,8 +21,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
     explicit OSSAsyncClient(const struct ClientConfiguration& config, ClientOptionsFns& fns);
     ~OSSAsyncClient();
 
-    void invokeOperationAsync(const OperationInput& input,
-                              const OperationCallback& callback,
+    void invokeOperationAsync(const OperationInput& input, const OperationCallback& callback,
                               const OperationOptions* options = nullptr);
 
     // Service
@@ -34,8 +33,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void listBucketsAsync(const models::ListBucketsRequest& request,
-                          const ListBucketsAsyncCallback& callback,
+    void listBucketsAsync(const models::ListBucketsRequest& request, const ListBucketsAsyncCallback& callback,
                           const OperationOptions* options = nullptr);
 
     // Region
@@ -49,8 +47,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param options Optional, operation options
      */
     void describeRegionsAsync(const models::DescribeRegionsRequest& request,
-                              const DescribeRegionsAsyncCallback& callback,
-                              const OperationOptions* options = nullptr);
+                              const DescribeRegionsAsyncCallback& callback, const OperationOptions* options = nullptr);
 
     // Bucket Basic
 
@@ -61,8 +58,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void getBucketStatAsync(const models::GetBucketStatRequest& request,
-                            const GetBucketStatAsyncCallback& callback,
+    void getBucketStatAsync(const models::GetBucketStatRequest& request, const GetBucketStatAsyncCallback& callback,
                             const OperationOptions* options = nullptr);
 
     /**
@@ -72,8 +68,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void putBucketAsync(const models::PutBucketRequest& request,
-                        const PutBucketAsyncCallback& callback,
+    void putBucketAsync(const models::PutBucketRequest& request, const PutBucketAsyncCallback& callback,
                         const OperationOptions* options = nullptr);
 
     /**
@@ -83,8 +78,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void deleteBucketAsync(const models::DeleteBucketRequest& request,
-                           const DeleteBucketAsyncCallback& callback,
+    void deleteBucketAsync(const models::DeleteBucketRequest& request, const DeleteBucketAsyncCallback& callback,
                            const OperationOptions* options = nullptr);
 
     /**
@@ -94,8 +88,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void listObjectsAsync(const models::ListObjectsRequest& request,
-                          const ListObjectsAsyncCallback& callback,
+    void listObjectsAsync(const models::ListObjectsRequest& request, const ListObjectsAsyncCallback& callback,
                           const OperationOptions* options = nullptr);
 
     /**
@@ -105,8 +98,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void listObjectsV2Async(const models::ListObjectsV2Request& request,
-                            const ListObjectsV2AsyncCallback& callback,
+    void listObjectsV2Async(const models::ListObjectsV2Request& request, const ListObjectsV2AsyncCallback& callback,
                             const OperationOptions* options = nullptr);
 
     /**
@@ -116,8 +108,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void getBucketInfoAsync(const models::GetBucketInfoRequest& request,
-                            const GetBucketInfoAsyncCallback& callback,
+    void getBucketInfoAsync(const models::GetBucketInfoRequest& request, const GetBucketInfoAsyncCallback& callback,
                             const OperationOptions* options = nullptr);
 
     /**
@@ -140,8 +131,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void putBucketAclAsync(const models::PutBucketAclRequest& request,
-                           const PutBucketAclAsyncCallback& callback,
+    void putBucketAclAsync(const models::PutBucketAclRequest& request, const PutBucketAclAsyncCallback& callback,
                            const OperationOptions* options = nullptr);
 
     /**
@@ -151,8 +141,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void getBucketAclAsync(const models::GetBucketAclRequest& request,
-                           const GetBucketAclAsyncCallback& callback,
+    void getBucketAclAsync(const models::GetBucketAclRequest& request, const GetBucketAclAsyncCallback& callback,
                            const OperationOptions* options = nullptr);
 
     // Bucket Referer
@@ -211,8 +200,8 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param options Optional, operation options
      */
     void listObjectVersionsAsync(const models::ListObjectVersionsRequest& request,
-                                  const ListObjectVersionsAsyncCallback& callback,
-                                  const OperationOptions* options = nullptr);
+                                 const ListObjectVersionsAsyncCallback& callback,
+                                 const OperationOptions* options = nullptr);
 
     // Object Basic
 
@@ -223,8 +212,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void putObjectAsync(const models::PutObjectRequest& request,
-                        const PutObjectAsyncCallback& callback,
+    void putObjectAsync(const models::PutObjectRequest& request, const PutObjectAsyncCallback& callback,
                         const OperationOptions* options = nullptr);
 
     /**
@@ -234,8 +222,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void copyObjectAsync(const models::CopyObjectRequest& request,
-                         const CopyObjectAsyncCallback& callback,
+    void copyObjectAsync(const models::CopyObjectRequest& request, const CopyObjectAsyncCallback& callback,
                          const OperationOptions* options = nullptr);
 
     /**
@@ -245,8 +232,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void getObjectAsync(const models::GetObjectRequest& request,
-                        const GetObjectAsyncCallback& callback,
+    void getObjectAsync(const models::GetObjectRequest& request, const GetObjectAsyncCallback& callback,
                         const OperationOptions* options = nullptr);
 
     /**
@@ -256,8 +242,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void appendObjectAsync(const models::AppendObjectRequest& request,
-                           const AppendObjectAsyncCallback& callback,
+    void appendObjectAsync(const models::AppendObjectRequest& request, const AppendObjectAsyncCallback& callback,
                            const OperationOptions* options = nullptr);
 
     /**
@@ -278,8 +263,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void deleteObjectAsync(const models::DeleteObjectRequest& request,
-                           const DeleteObjectAsyncCallback& callback,
+    void deleteObjectAsync(const models::DeleteObjectRequest& request, const DeleteObjectAsyncCallback& callback,
                            const OperationOptions* options = nullptr);
 
     /**
@@ -300,8 +284,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void headObjectAsync(const models::HeadObjectRequest& request,
-                         const HeadObjectAsyncCallback& callback,
+    void headObjectAsync(const models::HeadObjectRequest& request, const HeadObjectAsyncCallback& callback,
                          const OperationOptions* options = nullptr);
 
     /**
@@ -312,8 +295,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void getObjectMetaAsync(const models::GetObjectMetaRequest& request,
-                            const GetObjectMetaAsyncCallback& callback,
+    void getObjectMetaAsync(const models::GetObjectMetaRequest& request, const GetObjectMetaAsyncCallback& callback,
                             const OperationOptions* options = nullptr);
 
     /**
@@ -323,8 +305,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void restoreObjectAsync(const models::RestoreObjectRequest& request,
-                            const RestoreObjectAsyncCallback& callback,
+    void restoreObjectAsync(const models::RestoreObjectRequest& request, const RestoreObjectAsyncCallback& callback,
                             const OperationOptions* options = nullptr);
 
     /**
@@ -348,8 +329,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void selectObjectAsync(const models::SelectObjectRequest& request,
-                           const SelectObjectAsyncCallback& callback,
+    void selectObjectAsync(const models::SelectObjectRequest& request, const SelectObjectAsyncCallback& callback,
                            const OperationOptions* options = nullptr);
 
     /**
@@ -372,8 +352,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void putObjectAclAsync(const models::PutObjectAclRequest& request,
-                           const PutObjectAclAsyncCallback& callback,
+    void putObjectAclAsync(const models::PutObjectAclRequest& request, const PutObjectAclAsyncCallback& callback,
                            const OperationOptions* options = nullptr);
 
     /**
@@ -383,8 +362,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void getObjectAclAsync(const models::GetObjectAclRequest& request,
-                           const GetObjectAclAsyncCallback& callback,
+    void getObjectAclAsync(const models::GetObjectAclRequest& request, const GetObjectAclAsyncCallback& callback,
                            const OperationOptions* options = nullptr);
 
     // Object Symlink
@@ -396,8 +374,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void putSymlinkAsync(const models::PutSymlinkRequest& request,
-                         const PutSymlinkAsyncCallback& callback,
+    void putSymlinkAsync(const models::PutSymlinkRequest& request, const PutSymlinkAsyncCallback& callback,
                          const OperationOptions* options = nullptr);
 
     /**
@@ -407,8 +384,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void getSymlinkAsync(const models::GetSymlinkRequest& request,
-                         const GetSymlinkAsyncCallback& callback,
+    void getSymlinkAsync(const models::GetSymlinkRequest& request, const GetSymlinkAsyncCallback& callback,
                          const OperationOptions* options = nullptr);
 
     // Object Tagging
@@ -467,8 +443,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void uploadPartAsync(const models::UploadPartRequest& request,
-                         const UploadPartAsyncCallback& callback,
+    void uploadPartAsync(const models::UploadPartRequest& request, const UploadPartAsyncCallback& callback,
                          const OperationOptions* options = nullptr);
 
     /**
@@ -490,8 +465,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void uploadPartCopyAsync(const models::UploadPartCopyRequest& request,
-                             const UploadPartCopyAsyncCallback& callback,
+    void uploadPartCopyAsync(const models::UploadPartCopyRequest& request, const UploadPartCopyAsyncCallback& callback,
                              const OperationOptions* options = nullptr);
 
     /**
@@ -524,8 +498,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param callback The callback to receive the operation result
      * @param options Optional, operation options
      */
-    void listPartsAsync(const models::ListPartsRequest& request,
-                        const ListPartsAsyncCallback& callback,
+    void listPartsAsync(const models::ListPartsRequest& request, const ListPartsAsyncCallback& callback,
                         const OperationOptions* options = nullptr);
 
   public:
@@ -534,10 +507,8 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
     /**
      * @brief Asynchronously uploads a local file as an object.
      */
-    void putObjectFromFileAsync(const models::PutObjectRequest& request,
-                                const std::string& filePath,
-                                const PutObjectAsyncCallback& callback,
-                                const OperationOptions* options = nullptr);
+    void putObjectFromFileAsync(const models::PutObjectRequest& request, const std::string& filePath,
+                                const PutObjectAsyncCallback& callback, const OperationOptions* options = nullptr);
 
     /**
      * @brief Asynchronously downloads an object to a local file.
@@ -548,26 +519,22 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * internally by the SDK at the request level (each retry downloads from the beginning).
      * Supports CRC-64 verification (controlled by EnableCRC64CheckDownload feature flag).
      */
-    void getObjectToFileAsync(const models::GetObjectRequest& request,
-                              const std::string& filePath,
-                              const GetObjectAsyncCallback& callback,
-                              const OperationOptions* options = nullptr);
+    void getObjectToFileAsync(const models::GetObjectRequest& request, const std::string& filePath,
+                              const GetObjectAsyncCallback& callback, const OperationOptions* options = nullptr);
 
     /**
      * @brief Asynchronously checks whether an object exists.
      */
-    void isObjectExistAsync(const std::string& bucket, const std::string& key,
-                            const BoolAsyncCallback& callback,
+    void isObjectExistAsync(const std::string& bucket, const std::string& key, const BoolAsyncCallback& callback,
                             const OperationOptions* options = nullptr);
 
     /**
      * @brief Asynchronously checks whether a bucket exists.
      */
-    void isBucketExistAsync(const std::string& bucket,
-                            const BoolAsyncCallback& callback,
+    void isBucketExistAsync(const std::string& bucket, const BoolAsyncCallback& callback,
                             const OperationOptions* options = nullptr);
 
-    template<typename RequestT>
+    template <typename RequestT>
     struct OperationTraits;
 
     /**
@@ -590,15 +557,15 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
      * @param options Optional, operation options
      * @return std::future holding the operation outcome
      */
-    template<typename RequestT>
-    std::future<typename OperationTraits<RequestT>::OutcomeType>
-    asyncCall(const RequestT& request, const OperationOptions* options = nullptr) {
+    template <typename RequestT>
+    std::future<typename OperationTraits<RequestT>::OutcomeType> asyncCall(const RequestT& request,
+                                                                           const OperationOptions* options = nullptr) {
         using Traits = OperationTraits<RequestT>;
         auto promise = std::make_shared<std::promise<typename Traits::OutcomeType>>();
-        (this->*Traits::method)(request,
-            typename Traits::CallbackType([promise](typename Traits::OutcomeType result) {
-                promise->set_value(std::move(result));
-            }), options);
+        (this->*Traits::method)(request, typename Traits::CallbackType([promise](typename Traits::OutcomeType result) {
+                                    promise->set_value(std::move(result));
+                                }),
+                                options);
         return promise->get_future();
     }
 
@@ -609,7 +576,7 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
 // OperationTraits specializations
 
 // Service
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::ListBucketsRequest> {
     using OutcomeType = ListBucketsOutcome;
     using CallbackType = ListBucketsAsyncCallback;
@@ -617,7 +584,7 @@ struct OSSAsyncClient::OperationTraits<models::ListBucketsRequest> {
 };
 
 // Region
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::DescribeRegionsRequest> {
     using OutcomeType = DescribeRegionsOutcome;
     using CallbackType = DescribeRegionsAsyncCallback;
@@ -625,49 +592,49 @@ struct OSSAsyncClient::OperationTraits<models::DescribeRegionsRequest> {
 };
 
 // Bucket Basic
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::GetBucketStatRequest> {
     using OutcomeType = GetBucketStatOutcome;
     using CallbackType = GetBucketStatAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::getBucketStatAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::PutBucketRequest> {
     using OutcomeType = PutBucketOutcome;
     using CallbackType = PutBucketAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::putBucketAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::DeleteBucketRequest> {
     using OutcomeType = DeleteBucketOutcome;
     using CallbackType = DeleteBucketAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::deleteBucketAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::ListObjectsRequest> {
     using OutcomeType = ListObjectsOutcome;
     using CallbackType = ListObjectsAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::listObjectsAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::ListObjectsV2Request> {
     using OutcomeType = ListObjectsV2Outcome;
     using CallbackType = ListObjectsV2AsyncCallback;
     static constexpr auto method = &OSSAsyncClient::listObjectsV2Async;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::GetBucketInfoRequest> {
     using OutcomeType = GetBucketInfoOutcome;
     using CallbackType = GetBucketInfoAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::getBucketInfoAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::GetBucketLocationRequest> {
     using OutcomeType = GetBucketLocationOutcome;
     using CallbackType = GetBucketLocationAsyncCallback;
@@ -675,14 +642,14 @@ struct OSSAsyncClient::OperationTraits<models::GetBucketLocationRequest> {
 };
 
 // Bucket Acl
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::PutBucketAclRequest> {
     using OutcomeType = PutBucketAclOutcome;
     using CallbackType = PutBucketAclAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::putBucketAclAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::GetBucketAclRequest> {
     using OutcomeType = GetBucketAclOutcome;
     using CallbackType = GetBucketAclAsyncCallback;
@@ -690,14 +657,14 @@ struct OSSAsyncClient::OperationTraits<models::GetBucketAclRequest> {
 };
 
 // Bucket Referer
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::PutBucketRefererRequest> {
     using OutcomeType = PutBucketRefererOutcome;
     using CallbackType = PutBucketRefererAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::putBucketRefererAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::GetBucketRefererRequest> {
     using OutcomeType = GetBucketRefererOutcome;
     using CallbackType = GetBucketRefererAsyncCallback;
@@ -705,21 +672,21 @@ struct OSSAsyncClient::OperationTraits<models::GetBucketRefererRequest> {
 };
 
 // Bucket Versioning
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::PutBucketVersioningRequest> {
     using OutcomeType = PutBucketVersioningOutcome;
     using CallbackType = PutBucketVersioningAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::putBucketVersioningAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::GetBucketVersioningRequest> {
     using OutcomeType = GetBucketVersioningOutcome;
     using CallbackType = GetBucketVersioningAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::getBucketVersioningAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::ListObjectVersionsRequest> {
     using OutcomeType = ListObjectVersionsOutcome;
     using CallbackType = ListObjectVersionsAsyncCallback;
@@ -727,77 +694,77 @@ struct OSSAsyncClient::OperationTraits<models::ListObjectVersionsRequest> {
 };
 
 // Object Basic
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::PutObjectRequest> {
     using OutcomeType = PutObjectOutcome;
     using CallbackType = PutObjectAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::putObjectAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::CopyObjectRequest> {
     using OutcomeType = CopyObjectOutcome;
     using CallbackType = CopyObjectAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::copyObjectAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::GetObjectRequest> {
     using OutcomeType = GetObjectOutcome;
     using CallbackType = GetObjectAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::getObjectAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::AppendObjectRequest> {
     using OutcomeType = AppendObjectOutcome;
     using CallbackType = AppendObjectAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::appendObjectAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::SealAppendObjectRequest> {
     using OutcomeType = SealAppendObjectOutcome;
     using CallbackType = SealAppendObjectAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::sealAppendObjectAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::DeleteObjectRequest> {
     using OutcomeType = DeleteObjectOutcome;
     using CallbackType = DeleteObjectAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::deleteObjectAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::DeleteMultipleObjectsRequest> {
     using OutcomeType = DeleteMultipleObjectsOutcome;
     using CallbackType = DeleteMultipleObjectsAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::deleteMultipleObjectsAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::HeadObjectRequest> {
     using OutcomeType = HeadObjectOutcome;
     using CallbackType = HeadObjectAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::headObjectAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::GetObjectMetaRequest> {
     using OutcomeType = GetObjectMetaOutcome;
     using CallbackType = GetObjectMetaAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::getObjectMetaAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::RestoreObjectRequest> {
     using OutcomeType = RestoreObjectOutcome;
     using CallbackType = RestoreObjectAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::restoreObjectAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::CleanRestoredObjectRequest> {
     using OutcomeType = CleanRestoredObjectOutcome;
     using CallbackType = CleanRestoredObjectAsyncCallback;
@@ -805,14 +772,14 @@ struct OSSAsyncClient::OperationTraits<models::CleanRestoredObjectRequest> {
 };
 
 // Object Acl
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::PutObjectAclRequest> {
     using OutcomeType = PutObjectAclOutcome;
     using CallbackType = PutObjectAclAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::putObjectAclAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::GetObjectAclRequest> {
     using OutcomeType = GetObjectAclOutcome;
     using CallbackType = GetObjectAclAsyncCallback;
@@ -820,14 +787,14 @@ struct OSSAsyncClient::OperationTraits<models::GetObjectAclRequest> {
 };
 
 // Object Symlink
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::PutSymlinkRequest> {
     using OutcomeType = PutSymlinkOutcome;
     using CallbackType = PutSymlinkAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::putSymlinkAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::GetSymlinkRequest> {
     using OutcomeType = GetSymlinkOutcome;
     using CallbackType = GetSymlinkAsyncCallback;
@@ -835,21 +802,21 @@ struct OSSAsyncClient::OperationTraits<models::GetSymlinkRequest> {
 };
 
 // Object Tagging
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::PutObjectTaggingRequest> {
     using OutcomeType = PutObjectTaggingOutcome;
     using CallbackType = PutObjectTaggingAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::putObjectTaggingAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::GetObjectTaggingRequest> {
     using OutcomeType = GetObjectTaggingOutcome;
     using CallbackType = GetObjectTaggingAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::getObjectTaggingAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::DeleteObjectTaggingRequest> {
     using OutcomeType = DeleteObjectTaggingOutcome;
     using CallbackType = DeleteObjectTaggingAsyncCallback;
@@ -857,49 +824,49 @@ struct OSSAsyncClient::OperationTraits<models::DeleteObjectTaggingRequest> {
 };
 
 // Object Multipart
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::InitiateMultipartUploadRequest> {
     using OutcomeType = InitiateMultipartUploadOutcome;
     using CallbackType = InitiateMultipartUploadAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::initiateMultipartUploadAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::UploadPartRequest> {
     using OutcomeType = UploadPartOutcome;
     using CallbackType = UploadPartAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::uploadPartAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::CompleteMultipartUploadRequest> {
     using OutcomeType = CompleteMultipartUploadOutcome;
     using CallbackType = CompleteMultipartUploadAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::completeMultipartUploadAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::UploadPartCopyRequest> {
     using OutcomeType = UploadPartCopyOutcome;
     using CallbackType = UploadPartCopyAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::uploadPartCopyAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::AbortMultipartUploadRequest> {
     using OutcomeType = AbortMultipartUploadOutcome;
     using CallbackType = AbortMultipartUploadAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::abortMultipartUploadAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::ListMultipartUploadsRequest> {
     using OutcomeType = ListMultipartUploadsOutcome;
     using CallbackType = ListMultipartUploadsAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::listMultipartUploadsAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::ListPartsRequest> {
     using OutcomeType = ListPartsOutcome;
     using CallbackType = ListPartsAsyncCallback;
@@ -907,14 +874,14 @@ struct OSSAsyncClient::OperationTraits<models::ListPartsRequest> {
 };
 
 // Object Select
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::SelectObjectRequest> {
     using OutcomeType = SelectObjectOutcome;
     using CallbackType = SelectObjectAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::selectObjectAsync;
 };
 
-template<>
+template <>
 struct OSSAsyncClient::OperationTraits<models::CreateSelectObjectMetaRequest> {
     using OutcomeType = CreateSelectObjectMetaOutcome;
     using CallbackType = CreateSelectObjectMetaAsyncCallback;

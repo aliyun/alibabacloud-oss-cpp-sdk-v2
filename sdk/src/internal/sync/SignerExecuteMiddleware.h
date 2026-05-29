@@ -1,11 +1,11 @@
 
 #pragma once
 
+#include "alibabacloud/oss2/Error.h"
+#include "alibabacloud/oss2/credentials/CredentialsProvider.h"
+#include "alibabacloud/oss2/signer/SignerV4.h"
 #include "src/internal/ExecuteMiddleware.h"
 #include "src/internal/OSSUtils.h"
-#include "alibabacloud/oss2/credentials/CredentialsProvider.h"
-#include "alibabacloud/oss2/Error.h"
-#include "alibabacloud/oss2/signer/SignerV4.h"
 
 
 namespace alibabacloud {
@@ -17,8 +17,7 @@ class SignerExecuteMiddleware final : public ExecuteMiddleware {
   public:
     SignerExecuteMiddleware(std::unique_ptr<ExecuteMiddleware> nextHandler, std::shared_ptr<Signer> signer,
                             std::shared_ptr<CredentialsProvider> provider)
-            : nextHandler_(std::move(nextHandler)), signer_(std::move(signer)), provider_(std::move(provider)) {
-    }
+        : nextHandler_(std::move(nextHandler)), signer_(std::move(signer)), provider_(std::move(provider)) {}
 
     std::unique_ptr<ResponseMessage> Execute(std::unique_ptr<RequestMessage>& request,
                                              ExecuteContext& context) override {
@@ -36,8 +35,7 @@ class SignerExecuteMiddleware final : public ExecuteMiddleware {
 
         if (!cred.hasKeys()) {
             auto code = cred.isErrorRetryable() ? CredentialsErrorCode::FetchError : CredentialsErrorCode::Empty;
-            updateError(context, code, "CredentialsError",
-                        cred.getError().value_or("Credentials is null or empty."));
+            updateError(context, code, "CredentialsError", cred.getError().value_or("Credentials is null or empty."));
             return nullptr;
         }
 

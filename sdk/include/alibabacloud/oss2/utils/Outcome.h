@@ -70,8 +70,10 @@ class Outcome {
     }
 
     Outcome(Outcome&& o)
-            : // Required to force Move Constructor
-              result_(std::move(o.result_)), error_(std::move(o.error_)), hasValue_(o.hasValue_) {}
+        : // Required to force Move Constructor
+          result_(std::move(o.result_)),
+          error_(std::move(o.error_)),
+          hasValue_(o.hasValue_) {}
 
     Outcome& operator=(Outcome&& o) {
         if (this != &o) {
@@ -85,19 +87,39 @@ class Outcome {
 
     // --- std::expected compatible interface ---
 
-    bool has_value() const { return hasValue_; }
-    explicit operator bool() const { return hasValue_; }
+    bool has_value() const {
+        return hasValue_;
+    }
+    explicit operator bool() const {
+        return hasValue_;
+    }
 
-    R& value() { return result_; }
-    const R& value() const { return result_; }
+    R& value() {
+        return result_;
+    }
+    const R& value() const {
+        return result_;
+    }
 
-    E& error() { return error_; }
-    const E& error() const { return error_; }
+    E& error() {
+        return error_;
+    }
+    const E& error() const {
+        return error_;
+    }
 
-    R& operator*() { return result_; }
-    const R& operator*() const { return result_; }
-    R* operator->() { return &result_; }
-    const R* operator->() const { return &result_; }
+    R& operator*() {
+        return result_;
+    }
+    const R& operator*() const {
+        return result_;
+    }
+    R* operator->() {
+        return &result_;
+    }
+    const R* operator->() const {
+        return &result_;
+    }
 
     template <typename U>
     R value_or(U&& default_value) const {
@@ -106,13 +128,23 @@ class Outcome {
 
     // --- Legacy interface (compatible with aliyun-oss-cpp-sdk) ---
 
-    bool isSuccess() const { return hasValue_; }
+    bool isSuccess() const {
+        return hasValue_;
+    }
 
-    const E& getError() const { return error_; }
-    E& getError() { return error_; }
+    const E& getError() const {
+        return error_;
+    }
+    E& getError() {
+        return error_;
+    }
 
-    const R& getResult() const { return result_; }
-    R& getResult() { return result_; }
+    const R& getResult() const {
+        return result_;
+    }
+    R& getResult() {
+        return result_;
+    }
 
   private:
     R result_;
@@ -121,7 +153,9 @@ class Outcome {
 };
 
 template <typename E>
-E&& makeUnexpected(E&& e) { return std::forward<E>(e); }
+E&& makeUnexpected(E&& e) {
+    return std::forward<E>(e);
+}
 
 #endif // !ALIBABACLOUD_OSS_USE_STD_EXPECTED
 

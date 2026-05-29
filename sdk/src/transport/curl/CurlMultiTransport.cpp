@@ -29,12 +29,11 @@ std::string CurlMultiTransport::getName() const {
 }
 
 CurlMultiTransport::CurlMultiTransport(const HttpTransportOptions& options)
-        : curlContainer_(std::make_unique<CurlContainer>(
-                  kDefaultMaxConnectionsAsync,
-                  options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs),
-                  options.connectTimeout.value_or(kDefaultConnectTimeoutMs))),
-          clientOpts_(buildClientOptions(options)) {
-    (void)CurlGlobalInitializer::instance();
+    : curlContainer_(std::make_unique<CurlContainer>(kDefaultMaxConnectionsAsync,
+                                                     options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs),
+                                                     options.connectTimeout.value_or(kDefaultConnectTimeoutMs))),
+      clientOpts_(buildClientOptions(options)) {
+    (void) CurlGlobalInitializer::instance();
 
     multiHandle_ = curl_multi_init();
     if (multiHandle_ != nullptr) {
@@ -43,12 +42,11 @@ CurlMultiTransport::CurlMultiTransport(const HttpTransportOptions& options)
 }
 
 CurlMultiTransport::CurlMultiTransport(const CurlTransportOptions& options)
-        : curlContainer_(std::make_unique<CurlContainer>(
-                  options.maxConnections.value_or(kDefaultMaxConnectionsAsync),
-                  options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs),
-                  options.connectTimeout.value_or(kDefaultConnectTimeoutMs))),
-          clientOpts_(buildClientOptions(options)) {
-    (void)CurlGlobalInitializer::instance();
+    : curlContainer_(std::make_unique<CurlContainer>(options.maxConnections.value_or(kDefaultMaxConnectionsAsync),
+                                                     options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs),
+                                                     options.connectTimeout.value_or(kDefaultConnectTimeoutMs))),
+      clientOpts_(buildClientOptions(options)) {
+    (void) CurlGlobalInitializer::instance();
 
     multiHandle_ = curl_multi_init();
     if (multiHandle_ != nullptr) {
@@ -72,35 +70,34 @@ CurlMultiTransport::~CurlMultiTransport() {
     }
 }
 
-void CurlMultiTransport::sendAsync(std::unique_ptr<RequestMessage> request,
-                                    const RequestOptions& options,
-                                    RequestCallback callback) {
+void CurlMultiTransport::sendAsync(std::unique_ptr<RequestMessage> request, const RequestOptions& options,
+                                   RequestCallback callback) {
     if (multiHandle_ == nullptr) {
-        callback(TransportError{std::make_error_code(std::errc::operation_not_supported),
-                 "ClientError", "curl_multi_init failed"},
+        callback(TransportError{std::make_error_code(std::errc::operation_not_supported), "ClientError",
+                                "curl_multi_init failed"},
                  std::move(request));
         return;
     }
     if (stopped_.load(std::memory_order_acquire)) {
-        callback(TransportError{std::make_error_code(std::errc::operation_canceled),
-                 "ClientError", "transport is stopped"},
-                 std::move(request));
+        callback(
+            TransportError{std::make_error_code(std::errc::operation_canceled), "ClientError", "transport is stopped"},
+            std::move(request));
         return;
     }
 
     CURL* curl = curlContainer_->Acquire();
 
     if (curl == nullptr) {
-        callback(TransportError{std::make_error_code(std::errc::resource_unavailable_try_again),
-                 "ClientError", "failed to acquire curl handle"},
+        callback(TransportError{std::make_error_code(std::errc::resource_unavailable_try_again), "ClientError",
+                                "failed to acquire curl handle"},
                  std::move(request));
         return;
     }
     if (stopped_.load(std::memory_order_acquire)) {
         curlContainer_->Release(curl, false);
-        callback(TransportError{std::make_error_code(std::errc::operation_canceled),
-                 "ClientError", "transport is stopped"},
-                 std::move(request));
+        callback(
+            TransportError{std::make_error_code(std::errc::operation_canceled), "ClientError", "transport is stopped"},
+            std::move(request));
         return;
     }
 
@@ -173,7 +170,7 @@ void CurlMultiTransport::drainPending() {
         setupCurlHandle(raw);
         curl_multi_add_handle(multiHandle_, raw->io.curl);
         inflightHandles_.insert(raw);
-        (void)ctx.release();
+        (void) ctx.release();
     }
 }
 
@@ -205,8 +202,8 @@ void CurlMultiTransport::processCompleted() {
             ctx->response->statusCode = response_code;
             ctx->response->body = ctx->io.defaultSink;
 
-            OSS_LOG(LogLevel::LogDebug, TAG, "completed async request, CURLcode:%d, ResponseCode:%d",
-                    res, response_code);
+            OSS_LOG(LogLevel::LogDebug, TAG, "completed async request, CURLcode:%d, ResponseCode:%d", res,
+                    response_code);
 
             curlContainer_->Release(curl, false);
             ctx->callback(std::move(ctx->response), std::move(ctx->request));
@@ -215,8 +212,7 @@ void CurlMultiTransport::processCompleted() {
 
             curlContainer_->Release(curl, true);
 
-            ctx->callback(buildTransportError(res, ctx->errbuf, ctx->io),
-                          std::move(ctx->request));
+            ctx->callback(buildTransportError(res, ctx->errbuf, ctx->io), std::move(ctx->request));
         }
     }
 }
@@ -230,9 +226,9 @@ void CurlMultiTransport::cleanupInflight() {
     for (auto& ctx : pending) {
         curlContainer_->Release(ctx->io.curl, false);
         ctx->io.curl = nullptr;
-        ctx->callback(TransportError{std::make_error_code(std::errc::operation_canceled),
-                      "ClientError", "transport is stopped"},
-                      std::move(ctx->request));
+        ctx->callback(
+            TransportError{std::make_error_code(std::errc::operation_canceled), "ClientError", "transport is stopped"},
+            std::move(ctx->request));
     }
 
     for (auto* raw : inflightHandles_) {
@@ -243,9 +239,9 @@ void CurlMultiTransport::cleanupInflight() {
         ctx->io.curl = nullptr;
         ctx->headers = nullptr;
         curlContainer_->Release(curl, false);
-        ctx->callback(TransportError{std::make_error_code(std::errc::operation_canceled),
-                      "ClientError", "transport is stopped"},
-                      std::move(ctx->request));
+        ctx->callback(
+            TransportError{std::make_error_code(std::errc::operation_canceled), "ClientError", "transport is stopped"},
+            std::move(ctx->request));
     }
     inflightHandles_.clear();
 }

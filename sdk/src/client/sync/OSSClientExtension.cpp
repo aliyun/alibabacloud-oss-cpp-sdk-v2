@@ -10,27 +10,24 @@
 namespace alibabacloud {
 namespace oss2 {
 
-PutObjectOutcome OSSClient::putObjectFromFile(const models::PutObjectRequest& request,
-                                              const std::string& filePath,
+PutObjectOutcome OSSClient::putObjectFromFile(const models::PutObjectRequest& request, const std::string& filePath,
                                               const OperationOptions* options) {
     auto req = request;
     req.setBody(RequestBody::fromFile(filePath));
     return putObject(req, options);
 }
 
-GetObjectOutcome OSSClient::getObjectToFile(const models::GetObjectRequest& request,
-                                            const std::string& filePath,
+GetObjectOutcome OSSClient::getObjectToFile(const models::GetObjectRequest& request, const std::string& filePath,
                                             const OperationOptions* options) {
     std::int64_t rangeStart = 0;
     std::int64_t rangeEnd = -1;
     if (!request.getRange().empty()) {
         std::vector<std::pair<std::int64_t, std::int64_t>> ranges;
-        if (!utils::ParseRangeHeader(request.getRange(), ranges) ||
-            ranges.size() != 1 || ranges[0].first == -1) {
+        if (!utils::ParseRangeHeader(request.getRange(), ranges) || ranges.size() != 1 || ranges[0].first == -1) {
             return makeUnexpected(OperationError(
-                    ClientErrorCode::ArgumentInvalid,
-                    {{"Code", "ArgumentInvalid"},
-                     {"Message", "Invalid, multi-range, or suffix-range is not supported for getObjectToFile"}}));
+                ClientErrorCode::ArgumentInvalid,
+                {{"Code", "ArgumentInvalid"},
+                 {"Message", "Invalid, multi-range, or suffix-range is not supported for getObjectToFile"}}));
         }
         rangeStart = ranges[0].first;
         rangeEnd = ranges[0].second;
@@ -55,7 +52,7 @@ GetObjectOutcome OSSClient::getObjectToFile(const models::GetObjectRequest& requ
         SinkFactory factory;
         factory.isOneShot = true;
         factory.supplier = [&fileStream, &filePath, offset, crcObserver, progressObs](
-                std::int64_t contentLength, const HeaderCollection&) -> std::shared_ptr<ByteWriter> {
+                               std::int64_t contentLength, const HeaderCollection&) -> std::shared_ptr<ByteWriter> {
             if (offset == 0) {
                 fileStream = std::make_shared<std::ofstream>(filePath, std::ios::binary | std::ios::trunc);
             } else {
@@ -98,9 +95,9 @@ GetObjectOutcome OSSClient::getObjectToFile(const models::GetObjectRequest& requ
                     auto ccrc = crcObserver->crcAsString();
                     if (ccrc != serverCrc) {
                         return makeUnexpected(OperationError(
-                                ClientErrorCode::CrcMismatch,
-                                {{"Code", "CRCInconsistent"},
-                                 {"Message", "crc is inconsistent, client crc:" + ccrc + ", server crc:" + serverCrc}}));
+                            ClientErrorCode::CrcMismatch,
+                            {{"Code", "CRCInconsistent"},
+                             {"Message", "crc is inconsistent, client crc:" + ccrc + ", server crc:" + serverCrc}}));
                     }
                 }
             }
@@ -123,23 +120,19 @@ GetObjectOutcome OSSClient::getObjectToFile(const models::GetObjectRequest& requ
 
 BoolOutcome OSSClient::isObjectExist(const std::string& bucket, const std::string& key,
                                      const OperationOptions* options) {
-    auto outcome = getObjectMeta(
-            models::GetObjectMetaRequest().setBucket(bucket).setKey(key), options);
+    auto outcome = getObjectMeta(models::GetObjectMetaRequest().setBucket(bucket).setKey(key), options);
     if (outcome.has_value()) {
         return true;
     }
     const auto& e = outcome.error();
-    if (e.getCode() == "NoSuchKey" ||
-        (e.getStatusCode() == 404 && e.getCode() == "BadErrorResponse")) {
+    if (e.getCode() == "NoSuchKey" || (e.getStatusCode() == 404 && e.getCode() == "BadErrorResponse")) {
         return false;
     }
     return makeUnexpected(std::move(outcome.error()));
 }
 
-BoolOutcome OSSClient::isBucketExist(const std::string& bucket,
-                                     const OperationOptions* options) {
-    auto outcome = getBucketAcl(
-            models::GetBucketAclRequest().setBucket(bucket), options);
+BoolOutcome OSSClient::isBucketExist(const std::string& bucket, const OperationOptions* options) {
+    auto outcome = getBucketAcl(models::GetBucketAclRequest().setBucket(bucket), options);
     if (outcome.has_value()) {
         return true;
     }

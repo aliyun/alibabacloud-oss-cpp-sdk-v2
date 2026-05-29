@@ -23,5 +23,5 @@ ALIBABACLOUD_OSS_API std::error_code make_error_code(CryptoErrorCode e);
 } // namespace oss2
 } // namespace alibabacloud
 
-template<>
+template <>
 struct std::is_error_code_enum<alibabacloud::oss2::crypto::CryptoErrorCode> : std::true_type {};

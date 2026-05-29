@@ -6,8 +6,10 @@
 #include "alibabacloud/oss2/transport/HttpTypes.h"
 #include "alibabacloud/oss2/transport/winhttp/WinHttpTransportOptions.h"
 
+// clang-format off
 #include <windows.h>
 #include <winhttp.h>
+// clang-format on
 
 #include <cstdint>
 #include <map>
@@ -48,24 +50,20 @@ HeaderMap parseResponseHeaders(const std::string& rawHeaders);
 
 // --- Shared helpers for sync/async clients ---
 
-WinHttpHandle openSession(const ConnectionOptions& connOpts,
-                           unsigned int maxConnsPerServer,
-                           long connectTimeout, long requestTimeout);
+WinHttpHandle openSession(const ConnectionOptions& connOpts, unsigned int maxConnsPerServer, long connectTimeout,
+                          long requestTimeout);
 
 struct RequestHandles {
     WinHttpHandle hConnect;
     WinHttpHandle hRequest;
 };
 
-std::optional<TransportError> openRequest(HINTERNET hSession,
-                                           const std::string& uri,
-                                           const std::string& method,
-                                           RequestHandles& out);
+std::optional<TransportError> openRequest(HINTERNET hSession, const std::string& uri, const std::string& method,
+                                          RequestHandles& out);
 
 void applyRequestOptions(HINTERNET hRequest, const ConnectionOptions& connOpts);
 
-int64_t resolveContentLength(const HeaderCollection& headers,
-                              const std::shared_ptr<ByteContent>& body);
+int64_t resolveContentLength(const HeaderCollection& headers, const std::shared_ptr<ByteContent>& body);
 
 void addRequestHeaders(HINTERNET hRequest, const HeaderCollection& headers);
 
@@ -76,12 +74,10 @@ struct ResponseSink {
     std::shared_ptr<std::stringstream> defaultSink;
 };
 
-ResponseSink createResponseSink(long statusCode,
-                                 const std::optional<SinkFactory>& factory,
-                                 const HeaderCollection& headers);
+ResponseSink createResponseSink(long statusCode, const std::optional<SinkFactory>& factory,
+                                const HeaderCollection& headers);
 
-void finalizeResponseBody(ResponseMessage& response, long statusCode,
-                           const std::optional<SinkFactory>& factory,
-                           const std::shared_ptr<std::stringstream>& defaultSink);
+void finalizeResponseBody(ResponseMessage& response, long statusCode, const std::optional<SinkFactory>& factory,
+                          const std::shared_ptr<std::stringstream>& defaultSink);
 
 } // namespace alibabacloud::oss2::transport::winhttp

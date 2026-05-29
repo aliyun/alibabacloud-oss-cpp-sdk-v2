@@ -3,8 +3,7 @@
 namespace alibabacloud {
 namespace oss2 {
 
-DefaultScheduledExecutor::DefaultScheduledExecutor()
-    : impl_(std::make_shared<Impl>()) {
+DefaultScheduledExecutor::DefaultScheduledExecutor() : impl_(std::make_shared<Impl>()) {
     impl_->thread = std::thread([impl = impl_]() { run(impl); });
 }
 

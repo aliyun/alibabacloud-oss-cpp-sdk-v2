@@ -36,35 +36,31 @@ AsyncClientImpl::AsyncClientImpl(const struct ClientConfiguration& config, const
     allFns.insert(allFns.end(), fns.begin(), fns.end());
     init(config, allFns);
 
-    scheduler_ = config.scheduledExecutor
-            ? config.scheduledExecutor
-            : std::make_shared<DefaultScheduledExecutor>();
+    scheduler_ = config.scheduledExecutor ? config.scheduledExecutor : std::make_shared<DefaultScheduledExecutor>();
 
     stack_ = std::make_shared<AsyncExecuteStack>(
-            options_.asyncHttpTransport,
-            [this](const std::shared_ptr<AsyncExecuteState>& state) {
-                onOperationFinished(state);
-            });
+        options_.asyncHttpTransport,
+        [this](const std::shared_ptr<AsyncExecuteState>& state) { onOperationFinished(state); });
 
     stack_->Push(
-            [retryer = options_.retryer]
-            (std::unique_ptr<AsyncExecuteMiddleware> next) -> std::unique_ptr<AsyncExecuteMiddleware> {
-                return std::make_unique<RetryerAsyncMiddleware>(std::move(next), retryer);
-            },
-            "Retryer");
+        [retryer = options_.retryer](
+            std::unique_ptr<AsyncExecuteMiddleware> next) -> std::unique_ptr<AsyncExecuteMiddleware> {
+            return std::make_unique<RetryerAsyncMiddleware>(std::move(next), retryer);
+        },
+        "Retryer");
 
     stack_->Push(
-            [signer = options_.signer, provider = options_.credentialsProvider]
-            (std::unique_ptr<AsyncExecuteMiddleware> next) -> std::unique_ptr<AsyncExecuteMiddleware> {
-                return std::make_unique<SignerAsyncMiddleware>(std::move(next), signer, provider);
-            },
-            "Signer");
+        [signer = options_.signer, provider = options_.credentialsProvider](
+            std::unique_ptr<AsyncExecuteMiddleware> next) -> std::unique_ptr<AsyncExecuteMiddleware> {
+            return std::make_unique<SignerAsyncMiddleware>(std::move(next), signer, provider);
+        },
+        "Signer");
 
     stack_->Push(
-            [](std::unique_ptr<AsyncExecuteMiddleware> next) -> std::unique_ptr<AsyncExecuteMiddleware> {
-                return std::make_unique<ResponseCheckerAsyncMiddleware>(std::move(next));
-            },
-            "ResponseChecker");
+        [](std::unique_ptr<AsyncExecuteMiddleware> next) -> std::unique_ptr<AsyncExecuteMiddleware> {
+            return std::make_unique<ResponseCheckerAsyncMiddleware>(std::move(next));
+        },
+        "ResponseChecker");
 
     stack_->Apply();
 }
@@ -73,16 +69,13 @@ AsyncClientImpl::~AsyncClientImpl() {
     options_.asyncHttpTransport = nullptr;
 }
 
-void AsyncClientImpl::ExecuteAsync(const OperationInput& input,
-                                    OperationCallback callback,
-                                    const OperationOptions* opts,
-                                    const OperationInnerOptions* innerOpts) {
+void AsyncClientImpl::ExecuteAsync(const OperationInput& input, OperationCallback callback,
+                                   const OperationOptions* opts, const OperationInnerOptions* innerOpts) {
     ExecuteContext context;
 
     verifyOperation(input, context);
     if (context.errorContext.error) {
-        callback(OperationError(context.errorContext.error,
-                                std::move(context.errorContext.errorFields)));
+        callback(OperationError(context.errorContext.error, std::move(context.errorContext.errorFields)));
         return;
     }
 
@@ -105,9 +98,7 @@ void AsyncClientImpl::ExecuteAsync(const OperationInput& input,
 
 void AsyncClientImpl::onOperationFinished(const std::shared_ptr<AsyncExecuteState>& state) {
     if (state->action == ResponseAction::Continue) {
-        scheduler_->schedule(state->retryDelay, [this, state]() {
-            stack_->executeAsync(state);
-        });
+        scheduler_->schedule(state->retryDelay, [this, state]() { stack_->executeAsync(state); });
         return;
     }
 
@@ -115,8 +106,7 @@ void AsyncClientImpl::onOperationFinished(const std::shared_ptr<AsyncExecuteStat
         auto buildResult = [&]() -> OperationResult {
             if (state->context.errorContext.error || state->response == nullptr) {
                 auto err = OperationError{state->opName, std::move(state->request->method),
-                                          std::move(state->request->uri),
-                                          state->context.errorContext.error,
+                                          std::move(state->request->uri), state->context.errorContext.error,
                                           std::move(state->context.errorContext.errorFields)};
                 if (state->response != nullptr) {
                     err.setResponseResult(static_cast<int>(state->response->statusCode),
@@ -126,9 +116,9 @@ void AsyncClientImpl::onOperationFinished(const std::shared_ptr<AsyncExecuteStat
                 return err;
             }
             return OperationOutput{
-                    static_cast<int>(state->response->statusCode),
-                    std::move(state->response->headers),
-                    std::move(state->response->body),
+                static_cast<int>(state->response->statusCode),
+                std::move(state->response->headers),
+                std::move(state->response->body),
             };
         };
         state->callback(buildResult());

@@ -10,7 +10,7 @@ namespace detail {
 class TeeByteSource final : public ByteSource {
   public:
     TeeByteSource(std::unique_ptr<ByteSource> source, std::vector<StreamObserver*> sinks)
-            : source_(std::move(source)), sinks_(std::move(sinks)) {}
+        : source_(std::move(source)), sinks_(std::move(sinks)) {}
 
   private:
     std::size_t onRead(std::uint8_t* buffer, std::size_t count) override {

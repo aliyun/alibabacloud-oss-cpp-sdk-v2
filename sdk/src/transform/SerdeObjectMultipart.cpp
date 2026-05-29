@@ -208,7 +208,7 @@ inline static models::ListPartResultXml toListPartResult(const thirdparty::tinyx
 }
 
 inline static models::InitiateMultipartUploadResultXml toInitiateMultipartUploadResultXml(
-        const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* root) {
     const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::InitiateMultipartUploadResultXml();
 
@@ -237,7 +237,7 @@ inline static models::InitiateMultipartUploadResultXml toInitiateMultipartUpload
 
 
 inline static models::ListMultipartUploadsResultXml toListMultipartUploadsResult(
-        const thirdparty::tinyxml2::XMLElement* root) {
+    const thirdparty::tinyxml2::XMLElement* root) {
     const thirdparty::tinyxml2::XMLElement* node;
     auto result = models::ListMultipartUploadsResultXml();
 
@@ -308,7 +308,7 @@ OperationInput fromInitiateMultipartUpload(const models::InitiateMultipartUpload
     auto input = OperationInput{"InitiateMultipartUpload", "POST"};
 
     // Default Headers
-    //input.headers.emplace("Content-Type", "application/xml");
+    // input.headers.emplace("Content-Type", "application/xml");
 
     // Default Parameters
     input.parameters.emplace("uploads", "");
@@ -355,8 +355,8 @@ Outcome<models::InitiateMultipartUploadResult, OperationError> toInitiateMultipa
         } else {
             auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
-                                                {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
-                                                {"Message", doc.ErrorStr()},
+                                            {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
+                                            {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
             return makeUnexpected(std::move(opErr));
@@ -435,7 +435,8 @@ OperationInput fromCompleteMultipartUpload(const models::CompleteMultipartUpload
     return input;
 }
 
-Outcome<models::CompleteMultipartUploadResult, OperationError> toCompleteMultipartUpload(OperationOutput&& output, bool hasCallback) {
+Outcome<models::CompleteMultipartUploadResult, OperationError> toCompleteMultipartUpload(OperationOutput&& output,
+                                                                                         bool hasCallback) {
     if (output.body != nullptr) {
         std::istreambuf_iterator<char> isb(*output.body.get()), end;
         std::string str(isb, end);
@@ -455,8 +456,8 @@ Outcome<models::CompleteMultipartUploadResult, OperationError> toCompleteMultipa
             if (root == nullptr) {
                 auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                             {
-                                                    {"Code", "XMLError"},
-                                                    {"Message", "RootElement is null"},
+                                                {"Code", "XMLError"},
+                                                {"Message", "RootElement is null"},
                                             }};
                 return makeUnexpected(std::move(opErr));
             }
@@ -492,8 +493,8 @@ Outcome<models::CompleteMultipartUploadResult, OperationError> toCompleteMultipa
         } else {
             auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
-                                                {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
-                                                {"Message", doc.ErrorStr()},
+                                            {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
+                                            {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
             return makeUnexpected(std::move(opErr));
@@ -521,12 +522,12 @@ OperationInput fromUploadPartCopy(const models::UploadPartCopyRequest& request) 
     if (!request.getSourceKey().empty()) {
         std::string source;
         source.append("/");
-        source.append(request.getSourceBucket().empty()?request.getBucket():request.getSourceBucket());
+        source.append(request.getSourceBucket().empty() ? request.getBucket() : request.getSourceBucket());
         source.append("/").append(utils::UrlEncode(request.getSourceKey()));
         if (!request.getSourceVersionId().empty()) {
             source.append("?versionId=").append(request.getSourceVersionId());
         }
-        input.headers.insert_or_assign("x-oss-copy-source",  source);
+        input.headers.insert_or_assign("x-oss-copy-source", source);
     }
 
     // parameters
@@ -560,8 +561,8 @@ Outcome<models::UploadPartCopyResult, OperationError> toUploadPartCopy(Operation
         } else {
             auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
-                                                {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
-                                                {"Message", doc.ErrorStr()},
+                                            {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
+                                            {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
             return makeUnexpected(std::move(opErr));
@@ -654,8 +655,8 @@ Outcome<models::ListMultipartUploadsResult, OperationError> toListMultipartUploa
         } else {
             auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
-                                                {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
-                                                {"Message", doc.ErrorStr()},
+                                            {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
+                                            {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
             return makeUnexpected(std::move(opErr));
@@ -710,8 +711,8 @@ Outcome<models::ListPartsResult, OperationError> toListParts(OperationOutput&& o
         } else {
             auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
-                                                {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
-                                                {"Message", doc.ErrorStr()},
+                                            {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
+                                            {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
             return makeUnexpected(std::move(opErr));

@@ -41,7 +41,7 @@
 
 namespace alibabacloud {
 namespace oss2 {
-namespace utils {    
+namespace utils {
 /* 64-bit CRC polynomial with these coefficients, but reversed:
     64, 62, 57, 55, 54, 53, 52, 47, 46, 45, 40, 39, 38, 37, 35, 33, 32,
     31, 29, 27, 24, 23, 22, 21, 19, 17, 13, 12, 10, 9, 7, 4, 1, 0 */
@@ -62,8 +62,9 @@ static void crc64_init(uint64_t table[][256]) {
     /* generate CRC-64's for all single byte sequences */
     for (n = 0; n < 256; n++) {
         crc = n;
-        for (k = 0; k < 8; k++)
+        for (k = 0; k < 8; k++) {
             crc = crc & 1 ? POLY ^ (crc >> 1) : crc >> 1;
+        }
         table[0][n] = crc;
     }
 
@@ -100,9 +101,11 @@ static void crc64_big_init(void) {
     unsigned k, n;
 
     crc64_init(crc64_table);
-    for (k = 0; k < 8; k++)
-        for (n = 0; n < 256; n++)
+    for (k = 0; k < 8; k++) {
+        for (n = 0; n < 256; n++) {
             crc64_table[k][n] = rev8(crc64_table[k][n]);
+        }
+    }
 }
 
 /* Calculate a CRC-64 eight bytes at a time on a little-endian architecture. */
@@ -116,9 +119,9 @@ static uint64_t crc64_little(uint64_t crc, void* buf, size_t len) {
     }
     while (len >= 8) {
         crc ^= *reinterpret_cast<uint64_t*>(next);
-        crc = crc64_table[7][crc & 0xff] ^ crc64_table[6][(crc >> 8) & 0xff] ^ crc64_table[5][(crc >> 16) & 0xff] ^
-              crc64_table[4][(crc >> 24) & 0xff] ^ crc64_table[3][(crc >> 32) & 0xff] ^
-              crc64_table[2][(crc >> 40) & 0xff] ^ crc64_table[1][(crc >> 48) & 0xff] ^ crc64_table[0][crc >> 56];
+        crc = crc64_table[7][crc & 0xff] ^ crc64_table[6][(crc >> 8) & 0xff] ^ crc64_table[5][(crc >> 16) & 0xff]
+            ^ crc64_table[4][(crc >> 24) & 0xff] ^ crc64_table[3][(crc >> 32) & 0xff]
+            ^ crc64_table[2][(crc >> 40) & 0xff] ^ crc64_table[1][(crc >> 48) & 0xff] ^ crc64_table[0][crc >> 56];
         next += 8;
         len -= 8;
     }
@@ -140,9 +143,9 @@ static uint64_t crc64_big(uint64_t crc, void* buf, size_t len) {
     }
     while (len >= 8) {
         crc ^= *reinterpret_cast<uint64_t*>(next);
-        crc = crc64_table[0][crc & 0xff] ^ crc64_table[1][(crc >> 8) & 0xff] ^ crc64_table[2][(crc >> 16) & 0xff] ^
-              crc64_table[3][(crc >> 24) & 0xff] ^ crc64_table[4][(crc >> 32) & 0xff] ^
-              crc64_table[5][(crc >> 40) & 0xff] ^ crc64_table[6][(crc >> 48) & 0xff] ^ crc64_table[7][crc >> 56];
+        crc = crc64_table[0][crc & 0xff] ^ crc64_table[1][(crc >> 8) & 0xff] ^ crc64_table[2][(crc >> 16) & 0xff]
+            ^ crc64_table[3][(crc >> 24) & 0xff] ^ crc64_table[4][(crc >> 32) & 0xff]
+            ^ crc64_table[5][(crc >> 40) & 0xff] ^ crc64_table[6][(crc >> 48) & 0xff] ^ crc64_table[7][crc >> 56];
         next += 8;
         len -= 8;
     }
@@ -168,8 +171,9 @@ static uint64_t gf2_matrix_times(uint64_t* mat, uint64_t vec) {
 
     sum = 0;
     while (vec) {
-        if (vec & 1)
+        if (vec & 1) {
             sum ^= *mat;
+        }
         vec >>= 1;
         mat++;
     }
@@ -179,8 +183,9 @@ static uint64_t gf2_matrix_times(uint64_t* mat, uint64_t vec) {
 static void gf2_matrix_square(uint64_t* square, uint64_t* mat) {
     unsigned n;
 
-    for (n = 0; n < GF2_DIM; n++)
+    for (n = 0; n < GF2_DIM; n++) {
         square[n] = gf2_matrix_times(mat, mat[n]);
+    }
 }
 
 /* Return the CRC-64 of two sequential blocks, where crc1 is the CRC-64 of the
@@ -193,8 +198,9 @@ static uint64_t crc64_combine(uint64_t crc1, uint64_t crc2, uintmax_t len2) {
     uint64_t odd[GF2_DIM];  /* odd-power-of-two zeros operator */
 
     /* degenerate case */
-    if (len2 == 0)
+    if (len2 == 0) {
         return crc1;
+    }
 
     /* put operator for one zero bit in odd */
     odd[0] = POLY; /* CRC-64 polynomial */
@@ -215,18 +221,21 @@ static uint64_t crc64_combine(uint64_t crc1, uint64_t crc2, uintmax_t len2) {
     do {
         /* apply zeros operator for this bit of len2 */
         gf2_matrix_square(even, odd);
-        if (len2 & 1)
+        if (len2 & 1) {
             crc1 = gf2_matrix_times(even, crc1);
+        }
         len2 >>= 1;
 
         /* if no more bits set, then done */
-        if (len2 == 0)
+        if (len2 == 0) {
             break;
+        }
 
         /* another iteration of the loop with odd and even swapped */
         gf2_matrix_square(odd, even);
-        if (len2 & 1)
+        if (len2 & 1) {
             crc1 = gf2_matrix_times(odd, crc1);
+        }
         len2 >>= 1;
 
         /* if no more bits set, then done */
@@ -267,6 +276,6 @@ uint64_t CombineCRC64(uint64_t crc1, uint64_t crc2, uintmax_t len2) {
     return crc64_combine(crc1, crc2, len2);
 }
 
-}
+} // namespace utils
 } // namespace oss2
 } // namespace alibabacloud

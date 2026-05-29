@@ -15,12 +15,17 @@ class Paginator {
   public:
     using OutcomeType = typename OSSClient::OperationTraits<RequestT>::OutcomeType;
 
-    Paginator(std::function<OutcomeType(const RequestT&, const OperationOptions*)> callable,
-              RequestT request, OperationOptions options = {})
-            : callable_(std::move(callable)), request_(std::move(request)),
-              options_(std::move(options)), first_(true), done_(false) {}
+    Paginator(std::function<OutcomeType(const RequestT&, const OperationOptions*)> callable, RequestT request,
+              OperationOptions options = {})
+        : callable_(std::move(callable)),
+          request_(std::move(request)),
+          options_(std::move(options)),
+          first_(true),
+          done_(false) {}
 
-    bool hasNext() const { return first_ || !done_; }
+    bool hasNext() const {
+        return first_ || !done_;
+    }
 
     OutcomeType nextPage() {
         first_ = false;

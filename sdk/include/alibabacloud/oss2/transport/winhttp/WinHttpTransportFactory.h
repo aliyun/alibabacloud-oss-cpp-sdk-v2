@@ -10,10 +10,8 @@ namespace oss2 {
 
 class ALIBABACLOUD_OSS_API WinHttpTransportFactory {
   public:
-    static std::shared_ptr<HttpTransport> createHttpTransport(
-        const WinHttpTransportOptions& options);
-    static std::shared_ptr<AsyncHttpTransport> createAsyncHttpTransport(
-        const WinHttpTransportOptions& options);
+    static std::shared_ptr<HttpTransport> createHttpTransport(const WinHttpTransportOptions& options);
+    static std::shared_ptr<AsyncHttpTransport> createAsyncHttpTransport(const WinHttpTransportOptions& options);
 };
 
 } // namespace oss2

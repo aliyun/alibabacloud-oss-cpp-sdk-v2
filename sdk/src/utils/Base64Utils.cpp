@@ -28,14 +28,17 @@ std::string Base64EncodeUrlSafe(const std::byte* src, std::size_t len) {
     out.resize(thirdparty::base64::encoded_size(len));
     out.resize(thirdparty::base64::encode(&out[0], reinterpret_cast<const void*>(src), len));
 
-    while (out.size() > 0 && *out.rbegin() == '=')
+    while (out.size() > 0 && *out.rbegin() == '=') {
         out.pop_back();
+    }
 
     std::transform(out.begin(), out.end(), out.begin(), [](unsigned char c) {
-        if (c == '+')
+        if (c == '+') {
             return '-';
-        if (c == '/')
+        }
+        if (c == '/') {
             return '_';
+        }
         return (char) c;
     });
     return out;

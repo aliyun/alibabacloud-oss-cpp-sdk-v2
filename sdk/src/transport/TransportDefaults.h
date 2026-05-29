@@ -5,8 +5,8 @@
 namespace alibabacloud::oss2::transport {
 
 // Timeout defaults
-constexpr long kDefaultConnectTimeoutMs = 5000;        // 5s
-constexpr long kDefaultReadWriteTimeoutMs = 10000;     // 10s
+constexpr long kDefaultConnectTimeoutMs = 5000;    // 5s
+constexpr long kDefaultReadWriteTimeoutMs = 10000; // 10s
 
 // Max concurrent connections per host
 constexpr unsigned int kDefaultMaxConnectionsSync = 16;

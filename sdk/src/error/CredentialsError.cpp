@@ -8,18 +8,16 @@ namespace {
 
 class credentials_error_category : public std::error_category {
   public:
-    const char* name() const noexcept override { return "oss2.credentials"; }
+    const char* name() const noexcept override {
+        return "oss2.credentials";
+    }
 
     std::string message(int ev) const override {
         switch (static_cast<CredentialsErrorCode>(ev)) {
-            case CredentialsErrorCode::Empty:
-                return "credentials are empty";
-            case CredentialsErrorCode::FetchError:
-                return "failed to fetch credentials";
-            case CredentialsErrorCode::ProviderNull:
-                return "credentials provider is null";
-            default:
-                return "unknown credentials error";
+            case CredentialsErrorCode::Empty: return "credentials are empty";
+            case CredentialsErrorCode::FetchError: return "failed to fetch credentials";
+            case CredentialsErrorCode::ProviderNull: return "credentials provider is null";
+            default: return "unknown credentials error";
         }
     }
 
@@ -29,8 +27,7 @@ class credentials_error_category : public std::error_category {
             return ec == CredentialsErrorCode::FetchError;
         }
         if (cond == make_error_condition(ErrorCondition::AuthenticationError)) {
-            return ec == CredentialsErrorCode::Empty
-                || ec == CredentialsErrorCode::ProviderNull;
+            return ec == CredentialsErrorCode::Empty || ec == CredentialsErrorCode::ProviderNull;
         }
         return false;
     }

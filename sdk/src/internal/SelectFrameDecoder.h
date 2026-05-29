@@ -27,8 +27,12 @@ class SelectFrameDecodingWriter : public ByteWriter {
   public:
     explicit SelectFrameDecodingWriter(std::shared_ptr<ByteWriter> inner);
 
-    int endStatus() const { return endStatus_; }
-    const std::string& errorMessage() const { return errorMessage_; }
+    int endStatus() const {
+        return endStatus_;
+    }
+    const std::string& errorMessage() const {
+        return errorMessage_;
+    }
 
   private:
     std::size_t onWrite(const std::uint8_t* data, std::size_t n) override;
@@ -60,13 +64,27 @@ class SelectMetaFrameParser : public ByteWriter {
   public:
     SelectMetaFrameParser() = default;
 
-    std::int64_t offset() const { return offset_; }
-    std::int64_t totalScanned() const { return totalScanned_; }
-    std::int32_t status() const { return status_; }
-    std::int32_t splitsCount() const { return splitsCount_; }
-    std::int64_t rowsCount() const { return rowsCount_; }
-    std::int32_t columnsCount() const { return columnsCount_; }
-    const std::string& errorMessage() const { return errorMessage_; }
+    std::int64_t offset() const {
+        return offset_;
+    }
+    std::int64_t totalScanned() const {
+        return totalScanned_;
+    }
+    std::int32_t status() const {
+        return status_;
+    }
+    std::int32_t splitsCount() const {
+        return splitsCount_;
+    }
+    std::int64_t rowsCount() const {
+        return rowsCount_;
+    }
+    std::int32_t columnsCount() const {
+        return columnsCount_;
+    }
+    const std::string& errorMessage() const {
+        return errorMessage_;
+    }
 
   private:
     std::size_t onWrite(const std::uint8_t* data, std::size_t n) override;

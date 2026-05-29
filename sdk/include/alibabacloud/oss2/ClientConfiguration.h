@@ -37,7 +37,6 @@ class ScheduledExecutor;
  * @endcode
  */
 struct ALIBABACLOUD_OSS_API ClientConfiguration {
-
     // ---- Region & Endpoint ----
 
     /// The region in which the bucket is located.

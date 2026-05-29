@@ -1,4 +1,5 @@
 
+#include "OSSClientUtils.h"
 #include "alibabacloud/oss2/OSSClient.h"
 #include "alibabacloud/oss2/io/ByteWriter.h"
 #include "src/internal/ByteStreamUtils.h"
@@ -7,7 +8,6 @@
 #include "src/transform/SerdeObjectBasic.h"
 #include "src/transform/SerdeObjectSelect.h"
 #include "src/utils/Utils.h"
-#include "OSSClientUtils.h"
 
 #include <sstream>
 
@@ -36,7 +36,7 @@ PutObjectOutcome OSSClient::putObject(const models::PutObjectRequest& request, c
             total = len.has_value() ? static_cast<int64_t>(len.value()) : -1;
         }
         innerOpts.uploadObserver.push_back(
-                std::make_shared<internal::ProgressObserver>(request.getProgressCallback().value(), total));
+            std::make_shared<internal::ProgressObserver>(request.getProgressCallback().value(), total));
     }
 
     if (client_->hasFlag(FeatureFlagsType::EnableCRC64CheckUpload) && request.hasBody()) {
@@ -99,8 +99,8 @@ AppendObjectOutcome OSSClient::appendObject(const models::AppendObjectRequest& r
 
     internal::OperationInnerOptions innerOpts;
     std::shared_ptr<internal::CRC64Observer> crcObserver;
-    if (client_->hasFlag(FeatureFlagsType::EnableCRC64CheckUpload)
-        && request.hasBody() && request.getInitHashCRC64().has_value()) {
+    if (client_->hasFlag(FeatureFlagsType::EnableCRC64CheckUpload) && request.hasBody()
+        && request.getInitHashCRC64().has_value()) {
         crcObserver = std::make_shared<internal::CRC64Observer>(request.getInitHashCRC64().value());
         innerOpts.uploadObserver.push_back(crcObserver);
     }
@@ -221,7 +221,8 @@ CleanRestoredObjectOutcome OSSClient::cleanRestoredObject(const models::CleanRes
 
 
 // Object Select
-SelectObjectOutcome OSSClient::selectObject(const models::SelectObjectRequest& request, const OperationOptions* options) {
+SelectObjectOutcome OSSClient::selectObject(const models::SelectObjectRequest& request,
+                                            const OperationOptions* options) {
     requiredField(Bucket);
     requiredField(Key);
     requiredField(Process);
@@ -239,8 +240,8 @@ SelectObjectOutcome OSSClient::selectObject(const models::SelectObjectRequest& r
 
     SinkFactory factory;
     factory.isOneShot = userFactory.has_value() ? userFactory->isOneShot : false;
-    factory.supplier = [userFactory, defaultStream](std::int64_t size, const HeaderCollection& headers)
-            -> std::shared_ptr<ByteWriter> {
+    factory.supplier = [userFactory, defaultStream](std::int64_t size,
+                                                    const HeaderCollection& headers) -> std::shared_ptr<ByteWriter> {
         std::shared_ptr<ByteWriter> userSink;
         if (userFactory.has_value()) {
             userSink = userFactory.value()(size, headers);

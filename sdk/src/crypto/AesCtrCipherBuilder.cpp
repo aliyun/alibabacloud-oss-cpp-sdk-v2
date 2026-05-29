@@ -1,6 +1,6 @@
 #include "AesCtrCipherBuilder.h"
-#include "AesCtrContentCipher.h"
 #include "Aes256Utils.h"
+#include "AesCtrContentCipher.h"
 #include "alibabacloud/oss2/crypto/Error.h"
 #include "alibabacloud/oss2/utils/Base64Utils.h"
 
@@ -15,15 +15,15 @@ constexpr const char* kAesCtrAlgorithm = "AES/CTR/NoPadding";
 bool randomKeyIV(CipherData& cd, int keyLen, int ivLen) {
     cd.key.resize(static_cast<size_t>(keyLen));
     cd.iv.resize(static_cast<size_t>(ivLen));
-    return RandomBytes(reinterpret_cast<unsigned char*>(cd.key.data()), cd.key.size()) &&
-           RandomBytes(reinterpret_cast<unsigned char*>(cd.iv.data()), cd.iv.size());
+    return RandomBytes(reinterpret_cast<unsigned char*>(cd.key.data()), cd.key.size())
+        && RandomBytes(reinterpret_cast<unsigned char*>(cd.iv.data()), cd.iv.size());
 }
 
 } // namespace
 
 AesCtrCipherBuilder::AesCtrCipherBuilder(std::shared_ptr<MasterCipher> masterCipher)
-    : masterCipher_(masterCipher)
-    , metadata_{masterCipher->getWrapAlgorithm(), kAesCtrAlgorithm, masterCipher->getMatDesc()} {}
+    : masterCipher_(masterCipher),
+      metadata_{masterCipher->getWrapAlgorithm(), kAesCtrAlgorithm, masterCipher->getMatDesc()} {}
 
 ContentCipherResult AesCtrCipherBuilder::create() {
     CipherData cd;
@@ -76,8 +76,7 @@ int AesCtrCipherBuilder::getAlignLen() const {
     return 16;
 }
 
-std::unique_ptr<ContentCipherBuilder> CreateAesCtrCipherBuilder(
-    std::shared_ptr<MasterCipher> masterCipher) {
+std::unique_ptr<ContentCipherBuilder> CreateAesCtrCipherBuilder(std::shared_ptr<MasterCipher> masterCipher) {
     return std::make_unique<AesCtrCipherBuilder>(std::move(masterCipher));
 }
 

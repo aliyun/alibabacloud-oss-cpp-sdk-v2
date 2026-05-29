@@ -4,12 +4,12 @@
 #include "alibabacloud/oss2/Types.h"
 
 #include <array>
+#include <cstddef>
 #include <ctime>
 #include <iostream>
 #include <map>
-#include <string>
-#include <cstddef>
 #include <stdint.h>
+#include <string>
 
 namespace alibabacloud {
 namespace oss2 {
@@ -22,7 +22,7 @@ std::string UrlEncodePath(const std::string& src);
 
 std::string ToQueryString(const ParameterCollection& parameters);
 ParameterCollection ToEncodedParameters(const std::string& url);
-bool ParseRangeHeader(const std::string &s, std::vector<std::pair<std::int64_t, std::int64_t>> &ranges);
+bool ParseRangeHeader(const std::string& s, std::vector<std::pair<std::int64_t, std::int64_t>>& ranges);
 
 // basd64 utils
 std::string Base64Encode(const std::string& src);

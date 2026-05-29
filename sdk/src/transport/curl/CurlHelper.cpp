@@ -41,8 +41,8 @@ size_t recvBodyCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
     if (io->recvFirstData) {
         long response_code = 0;
         curl_easy_getinfo(io->curl, CURLINFO_RESPONSE_CODE, &response_code);
-        if (response_code / 100 != 2 || response_code == 203 ||
-            io->sinkFactory == nullptr || !io->sinkFactory->has_value()) {
+        if (response_code / 100 != 2 || response_code == 203 || io->sinkFactory == nullptr
+            || !io->sinkFactory->has_value()) {
             io->defaultSink = std::make_shared<std::stringstream>();
             io->userSink = std::make_shared<OStreamWriter>(io->defaultSink);
             io->sink = io->userSink.get();
@@ -102,18 +102,21 @@ size_t recvHeadersCallback(char* buffer, size_t size, size_t nitems, void* userd
 }
 
 bool headerNameEquals(const std::string& header, const std::string& expect) {
-    return (expect.length() == header.length()) &&
-           std::equal(header.begin(), header.end(), expect.begin(),
+    return (expect.length() == header.length())
+        && std::equal(header.begin(), header.end(), expect.begin(),
                       [](char a, char b) { return ::tolower(a) == ::tolower(b); });
 }
 
-curl_slist* buildHeaderList(const HeaderCollection& headers,
-                            const std::shared_ptr<ByteContent>& body,
+curl_slist* buildHeaderList(const HeaderCollection& headers, const std::shared_ptr<ByteContent>& body,
                             int64_t& contentLength) {
     curl_slist* list = nullptr;
     for (const auto& [k, v] : headers) {
-        if (v.empty()) continue;
-        if (headerNameEquals(k, "Content-Length")) continue;
+        if (v.empty()) {
+            continue;
+        }
+        if (headerNameEquals(k, "Content-Length")) {
+            continue;
+        }
         std::string str = k;
         str.append(": ").append(v);
         list = curl_slist_append(list, str.c_str());
@@ -141,8 +144,7 @@ curl_slist* buildHeaderList(const HeaderCollection& headers,
     return list;
 }
 
-void applyHttpMethod(CURL* curl, const std::string& method,
-                     const std::shared_ptr<ByteContent>& body,
+void applyHttpMethod(CURL* curl, const std::string& method, const std::shared_ptr<ByteContent>& body,
                      int64_t contentLength) {
     if ("HEAD" == method) {
         curl_easy_setopt(curl, CURLOPT_NOBODY, 1);
@@ -169,8 +171,7 @@ void applyHttpMethod(CURL* curl, const std::string& method,
     }
 }
 
-void applyClientOptions(CURL* curl, const ClientOptions& opts,
-                        const RequestMessage* request) {
+void applyClientOptions(CURL* curl, const ClientOptions& opts, const RequestMessage* request) {
     if (opts.verifySSL) {
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
@@ -262,19 +263,19 @@ std::string curlVersionString() {
 
 static TransportErrorCode curlCodeToTransportError(int curlCode) {
     switch (curlCode) {
-        case 5:  return TransportErrorCode::DnsError;          // CURLE_COULDNT_RESOLVE_PROXY
-        case 6:  return TransportErrorCode::DnsError;          // CURLE_COULDNT_RESOLVE_HOST
-        case 7:  return TransportErrorCode::ConnectionFailed;  // CURLE_COULDNT_CONNECT
-        case 18: return TransportErrorCode::PartialTransfer;   // CURLE_PARTIAL_FILE
-        case 23: return TransportErrorCode::SendRecvError;     // CURLE_WRITE_ERROR
-        case 28: return TransportErrorCode::Timeout;           // CURLE_OPERATION_TIMEDOUT
-        case 35: return TransportErrorCode::ConnectionFailed;  // CURLE_SSL_CONNECT_ERROR
-        case 51: return TransportErrorCode::SslError;          // CURLE_PEER_FAILED_VERIFICATION
-        case 53: return TransportErrorCode::SslError;          // CURLE_SSL_ENGINE_NOTFOUND
-        case 55: return TransportErrorCode::SendRecvError;     // CURLE_SEND_ERROR
-        case 56: return TransportErrorCode::SendRecvError;     // CURLE_RECV_ERROR
-        case 52: return TransportErrorCode::SendRecvError;     // CURLE_GOT_NOTHING
-        case 65: return TransportErrorCode::SendRecvError;     // CURLE_SEND_FAIL_REWIND
+        case 5: return TransportErrorCode::DnsError;          // CURLE_COULDNT_RESOLVE_PROXY
+        case 6: return TransportErrorCode::DnsError;          // CURLE_COULDNT_RESOLVE_HOST
+        case 7: return TransportErrorCode::ConnectionFailed;  // CURLE_COULDNT_CONNECT
+        case 18: return TransportErrorCode::PartialTransfer;  // CURLE_PARTIAL_FILE
+        case 23: return TransportErrorCode::SendRecvError;    // CURLE_WRITE_ERROR
+        case 28: return TransportErrorCode::Timeout;          // CURLE_OPERATION_TIMEDOUT
+        case 35: return TransportErrorCode::ConnectionFailed; // CURLE_SSL_CONNECT_ERROR
+        case 51: return TransportErrorCode::SslError;         // CURLE_PEER_FAILED_VERIFICATION
+        case 53: return TransportErrorCode::SslError;         // CURLE_SSL_ENGINE_NOTFOUND
+        case 55: return TransportErrorCode::SendRecvError;    // CURLE_SEND_ERROR
+        case 56: return TransportErrorCode::SendRecvError;    // CURLE_RECV_ERROR
+        case 52: return TransportErrorCode::SendRecvError;    // CURLE_GOT_NOTHING
+        case 65: return TransportErrorCode::SendRecvError;    // CURLE_SEND_FAIL_REWIND
         default: return TransportErrorCode::Unknown;
     }
 }
@@ -317,11 +318,10 @@ static int progressCallback(void* userdata, double, double, double, double) {
 }
 #endif
 
-TransportError buildTransportError(CURLcode res, const char* errbuf,
-                                    const TransferIO& io) {
+TransportError buildTransportError(CURLcode res, const char* errbuf, const TransferIO& io) {
     if (res == CURLE_ABORTED_BY_CALLBACK && shouldAbortTransfer(&io)) {
-        return TransportError{make_error_code(TransportErrorCode::Canceled),
-                              "RequestCanceled", "Request canceled by CancellationToken"};
+        return TransportError{make_error_code(TransportErrorCode::Canceled), "RequestCanceled",
+                              "Request canceled by CancellationToken"};
     }
 
     std::stringstream ss;
@@ -336,9 +336,7 @@ TransportError buildTransportError(CURLcode res, const char* errbuf,
         }
     }
 
-    return TransportError{make_transport_error_code(res),
-                          "CURLcode " + std::to_string(res),
-                          ss.str()};
+    return TransportError{make_transport_error_code(res), "CURLcode " + std::to_string(res), ss.str()};
 }
 
 void applyRequestOptions(CURL* curl, TransferIO* io) {

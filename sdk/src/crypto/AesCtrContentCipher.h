@@ -12,9 +12,8 @@ class AesCtrContentCipher : public ContentCipher {
 
     std::shared_ptr<ByteContent> encryptContent(std::shared_ptr<ByteContent> body) override;
 
-    std::shared_ptr<ByteWriter> decryptContent(
-        std::shared_ptr<ByteWriter> writer,
-        int64_t encryptedContentLen) override;
+    std::shared_ptr<ByteWriter> decryptContent(std::shared_ptr<ByteWriter> writer,
+                                               int64_t encryptedContentLen) override;
 
     int64_t getEncryptedLen(int64_t plainLen) const override;
 

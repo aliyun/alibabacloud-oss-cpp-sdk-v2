@@ -1,12 +1,12 @@
 
 #include "ClientImpl.h"
-#include "src/internal/OSSUtils.h"
 #include "ResponseCheckerExecuteMiddleware.h"
 #include "RetryerExecuteMiddleware.h"
 #include "SignerExecuteMiddleware.h"
-#include "alibabacloud/oss2/credentials/CredentialsProvider.h"
 #include "alibabacloud/oss2/Error.h"
+#include "alibabacloud/oss2/credentials/CredentialsProvider.h"
 #include "alibabacloud/oss2/utils/Executor.h"
+#include "src/internal/OSSUtils.h"
 #include "src/transport/HttpTransportFactory.h"
 #include "src/utils/Utils.h"
 
@@ -18,7 +18,7 @@ namespace oss2 {
 namespace internal {
 
 ClientImpl::ClientImpl(const struct ClientConfiguration& config, const ClientOptionsFns& fns)
-        : disableState_(std::make_shared<DisableState>()), executor_(config.executor) {
+    : disableState_(std::make_shared<DisableState>()), executor_(config.executor) {
     ClientOptionsFns allFns;
     allFns.reserve(fns.size() + 1);
     allFns.push_back([&config, s = disableState_](ClientOptions& opts) {
@@ -44,30 +44,30 @@ ClientImpl::ClientImpl(const struct ClientConfiguration& config, const ClientOpt
         return s->flag.load();
     };
 
-    executeStack_ = std::make_unique<ExecuteStack>(
-            [transport = options_.httpTransport]() -> std::unique_ptr<ExecuteMiddleware> {
-                return std::make_unique<TransportExecuteMiddleware>(transport);
-            });
+    executeStack_ =
+        std::make_unique<ExecuteStack>([transport = options_.httpTransport]() -> std::unique_ptr<ExecuteMiddleware> {
+            return std::make_unique<TransportExecuteMiddleware>(transport);
+        });
 
     executeStack_->Push(
-            [retryer = options_.retryer, clientWaitFor = std::move(clientWaitFor)](
-                    std::unique_ptr<ExecuteMiddleware> handle) -> std::unique_ptr<ExecuteMiddleware> {
-                return std::make_unique<RetryerExecuteMiddleware>(std::move(handle), retryer, clientWaitFor);
-            },
-            "Retryer");
+        [retryer = options_.retryer, clientWaitFor = std::move(clientWaitFor)](
+            std::unique_ptr<ExecuteMiddleware> handle) -> std::unique_ptr<ExecuteMiddleware> {
+            return std::make_unique<RetryerExecuteMiddleware>(std::move(handle), retryer, clientWaitFor);
+        },
+        "Retryer");
 
     executeStack_->Push(
-            [signer = options_.signer, provider = options_.credentialsProvider](
-                    std::unique_ptr<ExecuteMiddleware> handle) -> std::unique_ptr<ExecuteMiddleware> {
-                return std::make_unique<SignerExecuteMiddleware>(std::move(handle), signer, provider);
-            },
-            "Signer");
+        [signer = options_.signer, provider = options_.credentialsProvider](
+            std::unique_ptr<ExecuteMiddleware> handle) -> std::unique_ptr<ExecuteMiddleware> {
+            return std::make_unique<SignerExecuteMiddleware>(std::move(handle), signer, provider);
+        },
+        "Signer");
 
     executeStack_->Push(
-            [](std::unique_ptr<ExecuteMiddleware> handle) -> std::unique_ptr<ExecuteMiddleware> {
-                return std::make_unique<ResponseCheckerExecuteMiddleware>(std::move(handle));
-            },
-            "ResponseChecker");
+        [](std::unique_ptr<ExecuteMiddleware> handle) -> std::unique_ptr<ExecuteMiddleware> {
+            return std::make_unique<ResponseCheckerExecuteMiddleware>(std::move(handle));
+        },
+        "ResponseChecker");
 
     executeStack_->Apply();
 }
@@ -105,9 +105,9 @@ OperationResult ClientImpl::Execute(const OperationInput& input, const Operation
     }
 
     return OperationOutput{
-            static_cast<int>(response->statusCode),
-            std::move(response->headers),
-            std::move(response->body),
+        static_cast<int>(response->statusCode),
+        std::move(response->headers),
+        std::move(response->body),
     };
 }
 
@@ -142,8 +142,7 @@ PresignInnerResult ClientImpl::Presign(const OperationInput& input, const Operat
 
         if (!cred.hasKeys()) {
             auto code = cred.isErrorRetryable() ? CredentialsErrorCode::FetchError : CredentialsErrorCode::Empty;
-            updateError(context, code, "CredentialsError",
-                        cred.getError().value_or("Credentials is null or empty."));
+            updateError(context, code, "CredentialsError", cred.getError().value_or("Credentials is null or empty."));
             break;
         }
 
@@ -167,8 +166,8 @@ PresignInnerResult ClientImpl::Presign(const OperationInput& input, const Operat
 
         for (auto& [k, v] : request->headers) {
             const auto low = utils::ToLower(k.c_str());
-            if (low == "content-type" || low == "content-md5" || (std::strncmp(low.c_str(), "x-oss-", 6) == 0) ||
-                (additionalKeys.find(low) != additionalKeys.end())) {
+            if (low == "content-type" || low == "content-md5" || (std::strncmp(low.c_str(), "x-oss-", 6) == 0)
+                || (additionalKeys.find(low) != additionalKeys.end())) {
                 signedHeaders.emplace(k, v);
             }
         }
@@ -181,7 +180,7 @@ PresignInnerResult ClientImpl::Presign(const OperationInput& input, const Operat
                               context.errorContext.error, std::move(context.errorContext.errorFields)};
     }
     return PresignInnerOutput{std::move(request->uri), request->method, context.signingContext.expirationInEpoch,
-                                std::move(signedHeaders)};
+                              std::move(signedHeaders)};
 }
 
 bool ClientImpl::hasExecutor() const {

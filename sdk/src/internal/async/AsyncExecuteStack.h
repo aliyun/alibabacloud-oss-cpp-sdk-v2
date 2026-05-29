@@ -18,7 +18,7 @@ namespace internal {
 class AsyncExecuteStack {
   public:
     using CreateMiddleware =
-            std::function<std::unique_ptr<AsyncExecuteMiddleware>(std::unique_ptr<AsyncExecuteMiddleware>)>;
+        std::function<std::unique_ptr<AsyncExecuteMiddleware>(std::unique_ptr<AsyncExecuteMiddleware>)>;
     using OnFinished = OnFinishedAsyncMiddleware::OnFinished;
 
     AsyncExecuteStack(std::shared_ptr<AsyncHttpTransport> transport, OnFinished onFinished);

@@ -1,9 +1,9 @@
 
 #include "Utils.h"
 #include <algorithm>
+#include <cctype>
 #include <charconv>
 #include <sstream>
-#include <cctype>
 
 
 namespace alibabacloud {
@@ -58,8 +58,8 @@ std::string UrlDecode(const std::string& src) {
             hex[0] = *(i + 1);
             hex[1] = *(i + 2);
 
-            if (std::isxdigit(static_cast<unsigned char>(hex[0])) &&
-                std::isxdigit(static_cast<unsigned char>(hex[1]))) {
+            if (std::isxdigit(static_cast<unsigned char>(hex[0]))
+                && std::isxdigit(static_cast<unsigned char>(hex[1]))) {
                 hex[2] = 0;
                 i += 2;
                 auto hexAsInteger = strtol(hex, nullptr, 16);
@@ -134,22 +134,27 @@ std::string ToQueryString(const ParameterCollection& parameters) {
     return ss.str();
 }
 
-bool ParseRangeHeader(const std::string& s,
-                      std::vector<std::pair<std::int64_t, std::int64_t>>& ranges) {
+bool ParseRangeHeader(const std::string& s, std::vector<std::pair<std::int64_t, std::int64_t>>& ranges) {
     constexpr std::string_view kPrefix = "bytes=";
-    if (s.size() <= kPrefix.size() ||
-        std::string_view(s).substr(0, kPrefix.size()) != kPrefix) {
+    if (s.size() <= kPrefix.size() || std::string_view(s).substr(0, kPrefix.size()) != kPrefix) {
         return false;
     }
 
     auto trim = [](std::string_view sv) {
-        while (!sv.empty() && (sv.front() == ' ' || sv.front() == '\t')) sv.remove_prefix(1);
-        while (!sv.empty() && (sv.back()  == ' ' || sv.back()  == '\t')) sv.remove_suffix(1);
+        while (!sv.empty() && (sv.front() == ' ' || sv.front() == '\t')) {
+            sv.remove_prefix(1);
+        }
+        while (!sv.empty() && (sv.back() == ' ' || sv.back() == '\t')) {
+            sv.remove_suffix(1);
+        }
         return sv;
     };
 
     auto parseSide = [](std::string_view sv, std::int64_t& out) -> bool {
-        if (sv.empty()) { out = -1; return true; }
+        if (sv.empty()) {
+            out = -1;
+            return true;
+        }
         auto [ptr, ec] = std::from_chars(sv.data(), sv.data() + sv.size(), out);
         return ec == std::errc{} && ptr == sv.data() + sv.size() && out >= 0;
     };
@@ -157,19 +162,31 @@ bool ParseRangeHeader(const std::string& s,
     std::string_view body = std::string_view(s).substr(kPrefix.size());
     while (!body.empty()) {
         auto comma = body.find(',');
-        auto item  = trim(comma == std::string_view::npos ? body : body.substr(0, comma));
+        auto item = trim(comma == std::string_view::npos ? body : body.substr(0, comma));
 
         auto dash = item.find('-');
-        if (dash == std::string_view::npos) return false;
+        if (dash == std::string_view::npos) {
+            return false;
+        }
 
         std::int64_t first = -1, last = -1;
-        if (!parseSide(item.substr(0, dash),  first)) return false;
-        if (!parseSide(item.substr(dash + 1), last))  return false;
-        if (first == -1 && last == -1) return false;
-        if (first != -1 && last != -1 && first > last) return false;
+        if (!parseSide(item.substr(0, dash), first)) {
+            return false;
+        }
+        if (!parseSide(item.substr(dash + 1), last)) {
+            return false;
+        }
+        if (first == -1 && last == -1) {
+            return false;
+        }
+        if (first != -1 && last != -1 && first > last) {
+            return false;
+        }
 
         ranges.emplace_back(first, last);
-        if (comma == std::string_view::npos) break;
+        if (comma == std::string_view::npos) {
+            break;
+        }
         body.remove_prefix(comma + 1);
     }
     return !ranges.empty();

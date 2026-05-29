@@ -11,10 +11,8 @@ namespace internal {
 
 class RetryerAsyncMiddleware final : public AsyncExecuteMiddleware {
   public:
-    RetryerAsyncMiddleware(std::unique_ptr<AsyncExecuteMiddleware> next,
-                           std::shared_ptr<Retryer> retryer)
-            : next_(std::move(next)),
-              retryer_(std::move(retryer)) {}
+    RetryerAsyncMiddleware(std::unique_ptr<AsyncExecuteMiddleware> next, std::shared_ptr<Retryer> retryer)
+        : next_(std::move(next)), retryer_(std::move(retryer)) {}
 
     void handleRequest(const std::shared_ptr<AsyncExecuteState>& state) override {
         state->action = ResponseAction::Stop;
@@ -32,13 +30,12 @@ class RetryerAsyncMiddleware final : public AsyncExecuteMiddleware {
                 if (state->request->body != nullptr && state->request->body->isOneShot()) {
                     canRetry = false;
                 }
-                if (state->context.transportContext.sinkFactory.has_value() &&
-                    state->context.transportContext.sinkFactory.value().isOneShot) {
+                if (state->context.transportContext.sinkFactory.has_value()
+                    && state->context.transportContext.sinkFactory.value().isOneShot) {
                     canRetry = false;
                 }
                 if (canRetry && retryer_->isErrorRetryable(state->context.errorContext.error)) {
-                    state->retryDelay = retryer_->calcDelayTime(
-                            state->context.errorContext.error, state->retries + 1);
+                    state->retryDelay = retryer_->calcDelayTime(state->context.errorContext.error, state->retries + 1);
                     state->retries++;
 
                     state->context.errorContext.errorFields.clear();

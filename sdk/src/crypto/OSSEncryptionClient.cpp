@@ -1,6 +1,6 @@
 #include "alibabacloud/oss2/crypto/OSSEncryptionClient.h"
-#include "alibabacloud/oss2/crypto/ContentCipher.h"
 #include "AesCtrCipherBuilder.h"
+#include "alibabacloud/oss2/crypto/ContentCipher.h"
 #include "alibabacloud/oss2/io/ByteWriter.h"
 #include "alibabacloud/oss2/utils/Base64Utils.h"
 #include "src/utils/Utils.h"
@@ -20,7 +20,8 @@ constexpr const char* kCseWrapAlgHeader = "x-oss-meta-client-side-encryption-wra
 constexpr const char* kCseMatDescHeader = "x-oss-meta-client-side-encryption-matdesc";
 constexpr const char* kCseDataSizeHeader = "x-oss-meta-client-side-encryption-data-size";
 constexpr const char* kCsePartSizeHeader = "x-oss-meta-client-side-encryption-part-size";
-constexpr const char* kCseUnencryptedContentLengthHeader = "x-oss-meta-client-side-encryption-unencrypted-content-length";
+constexpr const char* kCseUnencryptedContentLengthHeader =
+    "x-oss-meta-client-side-encryption-unencrypted-content-length";
 constexpr const char* kCseUnencryptedContentMD5Header = "x-oss-meta-client-side-encryption-unencrypted-content-md5";
 
 class ErrorWriter final : public ByteWriter {
@@ -41,8 +42,7 @@ class DiscardWriter final : public ByteWriter {
     std::size_t onWrite(const std::uint8_t* data, std::size_t n) override {
         std::size_t skip = 0;
         if (remaining_ > 0) {
-            skip = static_cast<std::size_t>(
-                std::min(remaining_, static_cast<int64_t>(n)));
+            skip = static_cast<std::size_t>(std::min(remaining_, static_cast<int64_t>(n)));
             data += skip;
             n -= skip;
             remaining_ -= static_cast<int64_t>(skip);
@@ -54,24 +54,34 @@ class DiscardWriter final : public ByteWriter {
         return skip;
     }
 
-    int iostate() const override { return inner_->state(); }
+    int iostate() const override {
+        return inner_->state();
+    }
 
     std::shared_ptr<ByteWriter> inner_;
     int64_t remaining_;
 };
 
 std::string adjustContentLength(int64_t contentLength, int64_t discardCount) {
-    if (contentLength < 0) return {};
+    if (contentLength < 0) {
+        return {};
+    }
     return std::to_string(contentLength - discardCount);
 }
 
 std::string adjustContentRange(const std::string& contentRange, int64_t discardCount) {
-    if (contentRange.empty()) return {};
+    if (contentRange.empty()) {
+        return {};
+    }
     // "bytes start-end/total"
     auto space = contentRange.find(' ');
-    if (space == std::string::npos) return {};
+    if (space == std::string::npos) {
+        return {};
+    }
     auto dash = contentRange.find('-', space);
-    if (dash == std::string::npos) return {};
+    if (dash == std::string::npos) {
+        return {};
+    }
     int64_t start = std::strtoll(contentRange.c_str() + space + 1, nullptr, 10);
     start += discardCount;
     std::string tail = contentRange.substr(dash);
@@ -82,8 +92,8 @@ OperationError makeClientError(ClientErrorCode code, const std::string& message)
     std::string codeStr;
     switch (code) {
         case ClientErrorCode::EncryptionFailure: codeStr = "EncryptionFailure"; break;
-        case ClientErrorCode::ArgumentInvalid:   codeStr = "ArgumentInvalid"; break;
-        default:                                 codeStr = "ClientError"; break;
+        case ClientErrorCode::ArgumentInvalid: codeStr = "ArgumentInvalid"; break;
+        default: codeStr = "ClientError"; break;
     }
     return OperationError(code, {{"Code", codeStr}, {"Message", message}});
 }
@@ -94,10 +104,8 @@ struct CryptoHeaderOptions {
     std::optional<int64_t> dataSize;
 };
 
-void addCryptoHeaders(HeaderCollection& meta,
-                      const std::unique_ptr<crypto::ContentCipher>& cc,
-                      const crypto::CipherMetadata& cm,
-                      const CryptoHeaderOptions& opts = {}) {
+void addCryptoHeaders(HeaderCollection& meta, const std::unique_ptr<crypto::ContentCipher>& cc,
+                      const crypto::CipherMetadata& cm, const CryptoHeaderOptions& opts = {}) {
     const auto& cd = cc->getCipherData();
     meta["client-side-encryption-key"] = utils::Base64Encode(cd.encryptedKey);
     meta["client-side-encryption-start"] = utils::Base64Encode(cd.encryptedIV);
@@ -106,10 +114,8 @@ void addCryptoHeaders(HeaderCollection& meta,
     if (!cm.matDesc.empty()) {
         meta["client-side-encryption-matdesc"] = cm.matDesc;
     }
-    if (opts.plainContentLen.has_value() &&
-        cc->getEncryptedLen(*opts.plainContentLen) != *opts.plainContentLen) {
-        meta["client-side-encryption-unencrypted-content-length"] =
-            std::to_string(*opts.plainContentLen);
+    if (opts.plainContentLen.has_value() && cc->getEncryptedLen(*opts.plainContentLen) != *opts.plainContentLen) {
+        meta["client-side-encryption-unencrypted-content-length"] = std::to_string(*opts.plainContentLen);
     }
     if (opts.partSize.has_value()) {
         meta["client-side-encryption-part-size"] = std::to_string(*opts.partSize);
@@ -136,29 +142,25 @@ crypto::Envelope getEnvelopeFromHeaders(const HeaderCollection& headers) {
 }
 
 bool hasEnvelope(const crypto::Envelope& env) {
-    return !env.iv.empty() && !env.cipherKey.empty() &&
-           !env.cekAlg.empty() && !env.wrapAlg.empty();
+    return !env.iv.empty() && !env.cipherKey.empty() && !env.cekAlg.empty() && !env.wrapAlg.empty();
 }
 
-std::optional<OperationError> validateMultiPartContext(
-        const std::shared_ptr<crypto::EncryptionMultiPartContext>& ctx) {
+std::optional<OperationError> validateMultiPartContext(const std::shared_ptr<crypto::EncryptionMultiPartContext>& ctx) {
     if (!ctx) {
-        return makeClientError(
-                ClientErrorCode::ArgumentInvalid,
-                "CseMultiPartContext is required for encrypted uploadPart");
+        return makeClientError(ClientErrorCode::ArgumentInvalid,
+                               "CseMultiPartContext is required for encrypted uploadPart");
     }
     int64_t partSize = ctx->getPartSize();
     int64_t alignLen = ctx->getContentCipher().getAlignLen();
     if (partSize <= 0 || partSize % alignLen != 0) {
         return makeClientError(
-                ClientErrorCode::ArgumentInvalid,
-                "CseMultiPartContext partSize must be a positive multiple of " + std::to_string(alignLen));
+            ClientErrorCode::ArgumentInvalid,
+            "CseMultiPartContext partSize must be a positive multiple of " + std::to_string(alignLen));
     }
     return std::nullopt;
 }
 
-std::unique_ptr<crypto::ContentCipherBuilder> resolveCipherBuilder(
-        crypto::EncryptionConfiguration& encConfig) {
+std::unique_ptr<crypto::ContentCipherBuilder> resolveCipherBuilder(crypto::EncryptionConfiguration& encConfig) {
     if (encConfig.masterCipher) {
         return crypto::CreateAesCtrCipherBuilder(std::move(encConfig.masterCipher));
     }
@@ -176,16 +178,13 @@ struct OSSEncryptionClient::Impl {
     Impl(const ClientConfiguration& config, ClientOptionsFns& fns, std::unique_ptr<crypto::ContentCipherBuilder> b)
         : client(config, fns), ccBuilder(std::move(b)) {}
 
-    void fillCryptoHeaders(HeaderCollection& meta,
-                           const std::unique_ptr<crypto::ContentCipher>& cc,
+    void fillCryptoHeaders(HeaderCollection& meta, const std::unique_ptr<crypto::ContentCipher>& cc,
                            const CryptoHeaderOptions& opts = {}) {
         addCryptoHeaders(meta, cc, ccBuilder->getCipherMetadata(), opts);
     }
 
-    std::shared_ptr<ByteWriter> buildDecryptWriter(
-            std::shared_ptr<ByteWriter> writer,
-            const HeaderCollection& headers,
-            int64_t alignedStart) {
+    std::shared_ptr<ByteWriter> buildDecryptWriter(std::shared_ptr<ByteWriter> writer, const HeaderCollection& headers,
+                                                   int64_t alignedStart) {
         auto envelope = getEnvelopeFromHeaders(headers);
         if (!hasEnvelope(envelope)) {
             return writer;
@@ -206,8 +205,7 @@ OSSEncryptionClient::OSSEncryptionClient(const ClientConfiguration& config,
                                          crypto::EncryptionConfiguration encryptionConfig)
     : impl_(std::make_shared<Impl>(config, resolveCipherBuilder(encryptionConfig))) {}
 
-OSSEncryptionClient::OSSEncryptionClient(const ClientConfiguration& config,
-                                         ClientOptionsFns& fns,
+OSSEncryptionClient::OSSEncryptionClient(const ClientConfiguration& config, ClientOptionsFns& fns,
                                          crypto::EncryptionConfiguration encryptionConfig)
     : impl_(std::make_shared<Impl>(config, fns, resolveCipherBuilder(encryptionConfig))) {}
 
@@ -215,19 +213,23 @@ OSSEncryptionClient::~OSSEncryptionClient() = default;
 OSSEncryptionClient::OSSEncryptionClient(OSSEncryptionClient&&) noexcept = default;
 OSSEncryptionClient& OSSEncryptionClient::operator=(OSSEncryptionClient&&) noexcept = default;
 
-OSSClient& OSSEncryptionClient::unwrap() { return impl_->client; }
-const OSSClient& OSSEncryptionClient::unwrap() const { return impl_->client; }
+OSSClient& OSSEncryptionClient::unwrap() {
+    return impl_->client;
+}
+const OSSClient& OSSEncryptionClient::unwrap() const {
+    return impl_->client;
+}
 
 PutObjectOutcome OSSEncryptionClient::putObject(const models::PutObjectRequest& request,
-                                                 const OperationOptions* options) {
+                                                const OperationOptions* options) {
     if (!impl_->ccBuilder) {
-        return makeUnexpected(makeClientError(
-                ClientErrorCode::ArgumentInvalid, "EncryptionConfiguration has no contentCipherBuilder or masterCipher"));
+        return makeUnexpected(makeClientError(ClientErrorCode::ArgumentInvalid,
+                                              "EncryptionConfiguration has no contentCipherBuilder or masterCipher"));
     }
     auto ccResult = impl_->ccBuilder->create();
     if (auto* ec = std::get_if<std::error_code>(&ccResult)) {
-        return makeUnexpected(makeClientError(
-                ClientErrorCode::EncryptionFailure, "Failed to create content cipher: " + ec->message()));
+        return makeUnexpected(
+            makeClientError(ClientErrorCode::EncryptionFailure, "Failed to create content cipher: " + ec->message()));
     }
     auto& cc = std::get<std::unique_ptr<crypto::ContentCipher>>(ccResult);
 
@@ -248,20 +250,19 @@ PutObjectOutcome OSSEncryptionClient::putObject(const models::PutObjectRequest& 
 }
 
 GetObjectOutcome OSSEncryptionClient::getObject(const models::GetObjectRequest& request,
-                                                 const OperationOptions* options) {
+                                                const OperationOptions* options) {
     if (!impl_->ccBuilder) {
-        return makeUnexpected(makeClientError(
-                ClientErrorCode::ArgumentInvalid, "EncryptionConfiguration has no contentCipherBuilder or masterCipher"));
+        return makeUnexpected(makeClientError(ClientErrorCode::ArgumentInvalid,
+                                              "EncryptionConfiguration has no contentCipherBuilder or masterCipher"));
     }
     int64_t rangeStart = 0;
     int64_t rangeEnd = -1;
     if (!request.getRange().empty()) {
         std::vector<std::pair<int64_t, int64_t>> ranges;
-        if (!utils::ParseRangeHeader(request.getRange(), ranges) ||
-            ranges.size() != 1 || ranges[0].first == -1) {
-            return makeUnexpected(makeClientError(
-                    ClientErrorCode::ArgumentInvalid,
-                    "Invalid, multi-range, or suffix-range is not supported for encrypted getObject"));
+        if (!utils::ParseRangeHeader(request.getRange(), ranges) || ranges.size() != 1 || ranges[0].first == -1) {
+            return makeUnexpected(
+                makeClientError(ClientErrorCode::ArgumentInvalid,
+                                "Invalid, multi-range, or suffix-range is not supported for encrypted getObject"));
         }
         rangeStart = ranges[0].first;
         rangeEnd = ranges[0].second;
@@ -274,7 +275,9 @@ GetObjectOutcome OSSEncryptionClient::getObject(const models::GetObjectRequest& 
     models::GetObjectRequest req = request;
     if (rangeStart > 0 || rangeEnd >= 0) {
         std::string newRange = "bytes=" + std::to_string(alignedStart) + "-";
-        if (rangeEnd >= 0) newRange += std::to_string(rangeEnd);
+        if (rangeEnd >= 0) {
+            newRange += std::to_string(rangeEnd);
+        }
         req.setRange(std::move(newRange));
         req.setRangeBehavior("standard");
     }
@@ -290,7 +293,7 @@ GetObjectOutcome OSSEncryptionClient::getObject(const models::GetObjectRequest& 
         decryptFactory.isOneShot = userFactory->isOneShot;
     }
     decryptFactory.supplier = [this, userFactory, discardCount, alignedStart, defaultStream](
-            std::int64_t size, const HeaderCollection& headers) -> std::shared_ptr<ByteWriter> {
+                                  std::int64_t size, const HeaderCollection& headers) -> std::shared_ptr<ByteWriter> {
         std::shared_ptr<ByteWriter> writer;
         if (userFactory.has_value()) {
             writer = (*userFactory)(size, headers);
@@ -314,35 +317,33 @@ GetObjectOutcome OSSEncryptionClient::getObject(const models::GetObjectRequest& 
             outcome->setBody(defaultStream);
         }
         if (discardCount > 0) {
-            outcome->overwriteRange(
-                adjustContentLength(outcome->getContentLength(), discardCount),
-                adjustContentRange(outcome->getContentRange(), discardCount));
+            outcome->overwriteRange(adjustContentLength(outcome->getContentLength(), discardCount),
+                                    adjustContentRange(outcome->getContentRange(), discardCount));
         }
     }
     return outcome;
 }
 
 InitiateMultipartUploadOutcome OSSEncryptionClient::initiateMultipartUpload(
-        const models::InitiateMultipartUploadRequest& request,
-        const OperationOptions* options) {
+    const models::InitiateMultipartUploadRequest& request, const OperationOptions* options) {
     if (!impl_->ccBuilder) {
-        return makeUnexpected(makeClientError(
-                ClientErrorCode::ArgumentInvalid, "EncryptionConfiguration has no contentCipherBuilder or masterCipher"));
+        return makeUnexpected(makeClientError(ClientErrorCode::ArgumentInvalid,
+                                              "EncryptionConfiguration has no contentCipherBuilder or masterCipher"));
     }
     int64_t alignLen = impl_->ccBuilder->getAlignLen();
     auto partSizeOpt = request.getCsePartSize();
     auto dataSizeOpt = request.getCseDataSize();
-    if (!partSizeOpt.has_value() || !dataSizeOpt.has_value() ||
-        *partSizeOpt % alignLen != 0 || *partSizeOpt < 102400) {
-        return makeUnexpected(makeClientError(
-                ClientErrorCode::ArgumentInvalid,
-                "csePartSize and cseDataSize are required, csePartSize must be a multiple of " + std::to_string(alignLen) + " and >= 102400"));
+    if (!partSizeOpt.has_value() || !dataSizeOpt.has_value() || *partSizeOpt % alignLen != 0 || *partSizeOpt < 102400) {
+        return makeUnexpected(
+            makeClientError(ClientErrorCode::ArgumentInvalid,
+                            "csePartSize and cseDataSize are required, csePartSize must be a multiple of "
+                                + std::to_string(alignLen) + " and >= 102400"));
     }
 
     auto ccResult = impl_->ccBuilder->create();
     if (auto* ec = std::get_if<std::error_code>(&ccResult)) {
-        return makeUnexpected(makeClientError(
-                ClientErrorCode::EncryptionFailure, "Failed to create content cipher: " + ec->message()));
+        return makeUnexpected(
+            makeClientError(ClientErrorCode::EncryptionFailure, "Failed to create content cipher: " + ec->message()));
     }
     auto& cc = std::get<std::unique_ptr<crypto::ContentCipher>>(ccResult);
 
@@ -360,7 +361,7 @@ InitiateMultipartUploadOutcome OSSEncryptionClient::initiateMultipartUpload(
 }
 
 UploadPartOutcome OSSEncryptionClient::uploadPart(const models::UploadPartRequest& request,
-                                                   const OperationOptions* options) {
+                                                  const OperationOptions* options) {
     auto& ctx = request.getCseMultiPartContext();
     if (auto err = validateMultiPartContext(ctx)) {
         return makeUnexpected(std::move(*err));
@@ -379,29 +380,27 @@ UploadPartOutcome OSSEncryptionClient::uploadPart(const models::UploadPartReques
 }
 
 CompleteMultipartUploadOutcome OSSEncryptionClient::completeMultipartUpload(
-        const models::CompleteMultipartUploadRequest& request,
-        const OperationOptions* options) {
+    const models::CompleteMultipartUploadRequest& request, const OperationOptions* options) {
     return impl_->client.completeMultipartUpload(request, options);
 }
 
 AbortMultipartUploadOutcome OSSEncryptionClient::abortMultipartUpload(
-        const models::AbortMultipartUploadRequest& request,
-        const OperationOptions* options) {
+    const models::AbortMultipartUploadRequest& request, const OperationOptions* options) {
     return impl_->client.abortMultipartUpload(request, options);
 }
 
 ListPartsOutcome OSSEncryptionClient::listParts(const models::ListPartsRequest& request,
-                                                 const OperationOptions* options) {
+                                                const OperationOptions* options) {
     return impl_->client.listParts(request, options);
 }
 
 HeadObjectOutcome OSSEncryptionClient::headObject(const models::HeadObjectRequest& request,
-                                                   const OperationOptions* options) {
+                                                  const OperationOptions* options) {
     return impl_->client.headObject(request, options);
 }
 
 GetObjectMetaOutcome OSSEncryptionClient::getObjectMeta(const models::GetObjectMetaRequest& request,
-                                                         const OperationOptions* options) {
+                                                        const OperationOptions* options) {
     return impl_->client.getObjectMeta(request, options);
 }
 

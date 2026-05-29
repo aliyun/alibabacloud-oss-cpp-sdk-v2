@@ -5,13 +5,12 @@
 namespace alibabacloud {
 namespace oss2 {
 
-std::shared_ptr<HttpTransport> CurlTransportFactory::createHttpTransport(
-        const CurlTransportOptions& options) {
+std::shared_ptr<HttpTransport> CurlTransportFactory::createHttpTransport(const CurlTransportOptions& options) {
     return std::make_shared<transport::curl::CurlHttpClient>(options);
 }
 
 std::shared_ptr<AsyncHttpTransport> CurlTransportFactory::createAsyncHttpTransport(
-        const CurlTransportOptions& options) {
+    const CurlTransportOptions& options) {
     return std::make_shared<transport::curl::CurlMultiTransport>(options);
 }
 

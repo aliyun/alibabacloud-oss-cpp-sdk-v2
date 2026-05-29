@@ -2,8 +2,10 @@
 
 #include "alibabacloud/oss2/utils/Cancellation.h"
 
+// clang-format off
 #include <windows.h>
 #include <winhttp.h>
+// clang-format on
 
 #include <atomic>
 #include <cstdint>
@@ -25,20 +27,16 @@ class WinHttpAction {
 
     bool registerCallback(HINTERNET hRequest);
 
-    bool waitForAction(std::function<bool()> initiateAction,
-                       DWORD expectedStatus,
-                       const std::optional<CancellationToken>& token,
-                       const std::function<bool()>& isDisabled = {});
+    bool waitForAction(std::function<bool()> initiateAction, DWORD expectedStatus,
+                       const std::optional<CancellationToken>& token, const std::function<bool()>& isDisabled = {});
 
     DWORD getError() const;
     DWORD getBytesAvailable() const;
     DWORD getBytesRead() const;
 
   private:
-    static void CALLBACK statusCallback(
-        HINTERNET hInternet, DWORD_PTR dwContext,
-        DWORD dwInternetStatus, LPVOID lpvStatusInformation,
-        DWORD dwStatusInformationLength);
+    static void CALLBACK statusCallback(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus,
+                                        LPVOID lpvStatusInformation, DWORD dwStatusInformationLength);
 
     void onStatus(DWORD internetStatus, LPVOID statusInfo, DWORD statusInfoLength);
 

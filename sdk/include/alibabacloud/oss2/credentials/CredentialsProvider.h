@@ -35,7 +35,7 @@ class ALIBABACLOUD_OSS_API CredentialsProvider {
 class ALIBABACLOUD_OSS_API StaticCredentialsProvider final : public CredentialsProvider {
   public:
     StaticCredentialsProvider(std::string accessKeyId, std::string accessKeySecret, std::string sessionToken = "")
-            : credentials_(Credentials(std::move(accessKeyId), std::move(accessKeySecret), std::move(sessionToken))) {}
+        : credentials_(Credentials(std::move(accessKeyId), std::move(accessKeySecret), std::move(sessionToken))) {}
 
 
     Credentials getCredentials() override {
@@ -60,8 +60,7 @@ class ALIBABACLOUD_OSS_API EnvironmentVariableCredentialsProvider final : public
 /// defining a new class.
 class ALIBABACLOUD_OSS_API CredentialsProviderFunc final : public CredentialsProvider {
   public:
-    explicit CredentialsProviderFunc(std::function<Credentials()> func)
-            : func_(std::move(func)) {}
+    explicit CredentialsProviderFunc(std::function<Credentials()> func) : func_(std::move(func)) {}
 
     Credentials getCredentials() override {
         return func_();

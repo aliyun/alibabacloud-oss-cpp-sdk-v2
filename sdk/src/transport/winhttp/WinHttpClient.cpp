@@ -13,9 +13,11 @@ struct AsyncHandleGuard {
     ~AsyncHandleGuard() {
         if (handle) {
             action.waitForAction(
-                [this]() { WinHttpCloseHandle(handle.release()); return true; },
-                WINHTTP_CALLBACK_STATUS_HANDLE_CLOSING,
-                std::nullopt);
+                [this]() {
+                    WinHttpCloseHandle(handle.release());
+                    return true;
+                },
+                WINHTTP_CALLBACK_STATUS_HANDLE_CLOSING, std::nullopt);
         }
     }
 };
@@ -23,16 +25,14 @@ struct AsyncHandleGuard {
 
 static const char* TAG = "WinHttpClient";
 
-WinHttpClient::WinHttpClient(const HttpTransportOptions& options)
-    : isRequestDisabled_(options.isRequestDisabled) {
+WinHttpClient::WinHttpClient(const HttpTransportOptions& options) : isRequestDisabled_(options.isRequestDisabled) {
     connOpts_ = buildConnectionOptions(options);
     long connectTimeout = options.connectTimeout.value_or(kDefaultConnectTimeoutMs);
     long requestTimeout = options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs);
     hSession_ = openSession(connOpts_, kDefaultMaxConnectionsSync, connectTimeout, requestTimeout);
 }
 
-WinHttpClient::WinHttpClient(const WinHttpTransportOptions& options)
-    : isRequestDisabled_(options.isRequestDisabled) {
+WinHttpClient::WinHttpClient(const WinHttpTransportOptions& options) : isRequestDisabled_(options.isRequestDisabled) {
     connOpts_ = buildConnectionOptions(options);
     long connectTimeout = options.connectTimeout.value_or(kDefaultConnectTimeoutMs);
     long requestTimeout = options.readWriteTimeout.value_or(kDefaultReadWriteTimeoutMs);
@@ -46,8 +46,8 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
     OSS_LOG(LogLevel::LogDebug, TAG, "request(%p) enter Send", request.get());
 
     if (!hSession_) {
-        return TransportError{make_error_code(TransportErrorCode::ConnectionFailed),
-                              "WinHttpError", "WinHttp session is not initialized"};
+        return TransportError{make_error_code(TransportErrorCode::ConnectionFailed), "WinHttpError",
+                              "WinHttp session is not initialized"};
     }
 
     auto response = std::make_unique<ResponseMessage>();
@@ -76,8 +76,8 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
 
     auto makeWaitError = [&]() -> TransportError {
         if (isAborted()) {
-            return TransportError{make_error_code(TransportErrorCode::Canceled),
-                                  "RequestCanceled", "Request canceled by CancellationToken"};
+            return TransportError{make_error_code(TransportErrorCode::Canceled), "RequestCanceled",
+                                  "Request canceled by CancellationToken"};
         }
         DWORD winErr = action.getError();
         if (winErr == ERROR_WINHTTP_TIMEOUT) {
@@ -101,14 +101,11 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
 
     if (!action.waitForAction(
             [&]() {
-                return WinHttpSendRequest(handles.hRequest.get(),
-                    WINHTTP_NO_ADDITIONAL_HEADERS, 0,
-                    WINHTTP_NO_REQUEST_DATA, 0,
-                    totalLength, actionPtr) != 0;
+                return WinHttpSendRequest(handles.hRequest.get(), WINHTTP_NO_ADDITIONAL_HEADERS, 0,
+                                          WINHTTP_NO_REQUEST_DATA, 0, totalLength, actionPtr)
+                    != 0;
             },
-            WINHTTP_CALLBACK_STATUS_SENDREQUEST_COMPLETE,
-            options.cancellationToken,
-            isRequestDisabled_)) {
+            WINHTTP_CALLBACK_STATUS_SENDREQUEST_COMPLETE, options.cancellationToken, isRequestDisabled_)) {
         return makeWaitError();
     }
 
@@ -121,33 +118,29 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
                 if (got < kWriteBufferLength) {
                     auto st = source->state();
                     if (st != 0 && (st & std::ios::eofbit) == 0) {
-                        return TransportError{make_error_code(TransportErrorCode::SendRecvError),
-                                              "ReadBodyError", "Failed to read request body"};
+                        return TransportError{make_error_code(TransportErrorCode::SendRecvError), "ReadBodyError",
+                                              "Failed to read request body"};
                     }
                 }
-                if (got == 0) break;
+                if (got == 0) {
+                    break;
+                }
 
                 if (!action.waitForAction(
                         [&]() {
-                            return WinHttpWriteData(handles.hRequest.get(), buffer,
-                                static_cast<DWORD>(got), nullptr) != 0;
+                            return WinHttpWriteData(handles.hRequest.get(), buffer, static_cast<DWORD>(got), nullptr)
+                                != 0;
                         },
-                        WINHTTP_CALLBACK_STATUS_WRITE_COMPLETE,
-                        options.cancellationToken,
-                        isRequestDisabled_)) {
+                        WINHTTP_CALLBACK_STATUS_WRITE_COMPLETE, options.cancellationToken, isRequestDisabled_)) {
                     return makeWaitError();
                 }
             }
         }
     }
 
-    if (!action.waitForAction(
-            [&]() {
-                return WinHttpReceiveResponse(handles.hRequest.get(), nullptr) != 0;
-            },
-            WINHTTP_CALLBACK_STATUS_HEADERS_AVAILABLE,
-            options.cancellationToken,
-            isRequestDisabled_)) {
+    if (!action.waitForAction([&]() { return WinHttpReceiveResponse(handles.hRequest.get(), nullptr) != 0; },
+                              WINHTTP_CALLBACK_STATUS_HEADERS_AVAILABLE, options.cancellationToken,
+                              isRequestDisabled_)) {
         return makeWaitError();
     }
 
@@ -158,30 +151,28 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
 
         char readBuf[kWriteBufferLength];
         for (;;) {
-            if (!action.waitForAction(
-                    [&]() {
-                        return WinHttpQueryDataAvailable(handles.hRequest.get(), nullptr) != 0;
-                    },
-                    WINHTTP_CALLBACK_STATUS_DATA_AVAILABLE,
-                    options.cancellationToken,
-                    isRequestDisabled_)) {
-                if (isAborted()) return makeWaitError();
+            if (!action.waitForAction([&]() { return WinHttpQueryDataAvailable(handles.hRequest.get(), nullptr) != 0; },
+                                      WINHTTP_CALLBACK_STATUS_DATA_AVAILABLE, options.cancellationToken,
+                                      isRequestDisabled_)) {
+                if (isAborted()) {
+                    return makeWaitError();
+                }
                 break;
             }
 
             DWORD available = action.getBytesAvailable();
-            if (available == 0) break;
+            if (available == 0) {
+                break;
+            }
 
             while (available > 0) {
                 DWORD toRead = (std::min)(available, static_cast<DWORD>(kWriteBufferLength));
                 if (!action.waitForAction(
-                        [&]() {
-                            return WinHttpReadData(handles.hRequest.get(), readBuf, toRead, nullptr) != 0;
-                        },
-                        WINHTTP_CALLBACK_STATUS_READ_COMPLETE,
-                        options.cancellationToken,
-                        isRequestDisabled_)) {
-                    if (isAborted()) return makeWaitError();
+                        [&]() { return WinHttpReadData(handles.hRequest.get(), readBuf, toRead, nullptr) != 0; },
+                        WINHTTP_CALLBACK_STATUS_READ_COMPLETE, options.cancellationToken, isRequestDisabled_)) {
+                    if (isAborted()) {
+                        return makeWaitError();
+                    }
                     available = 0;
                     break;
                 }
@@ -193,8 +184,8 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
                 }
                 rs.sink->write(reinterpret_cast<const std::uint8_t*>(readBuf), bytesRead);
                 if (rs.sink->bad()) {
-                    return TransportError{make_error_code(TransportErrorCode::SendRecvError),
-                                          "WriteStreamError", "Failed to write response body to output stream"};
+                    return TransportError{make_error_code(TransportErrorCode::SendRecvError), "WriteStreamError",
+                                          "Failed to write response body to output stream"};
                 }
                 available -= bytesRead;
             }
@@ -203,8 +194,7 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
         finalizeResponseBody(*response, response->statusCode, options.sinkFactory, rs.defaultSink);
     }
 
-    OSS_LOG(LogLevel::LogDebug, TAG, "request(%p) leave Send, ResponseCode:%ld",
-            request.get(), response->statusCode);
+    OSS_LOG(LogLevel::LogDebug, TAG, "request(%p) leave Send, ResponseCode:%ld", request.get(), response->statusCode);
 
     return response;
 }

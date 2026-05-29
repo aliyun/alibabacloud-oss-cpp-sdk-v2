@@ -19,8 +19,7 @@ class ALIBABACLOUD_OSS_API HttpTransport {
 
 class ALIBABACLOUD_OSS_API AsyncHttpTransport {
   public:
-    virtual void sendAsync(std::unique_ptr<RequestMessage> request,
-                           const RequestOptions& options,
+    virtual void sendAsync(std::unique_ptr<RequestMessage> request, const RequestOptions& options,
                            RequestCallback callback) = 0;
     virtual std::string getName() const = 0;
     virtual ~AsyncHttpTransport() = default;
@@ -37,8 +36,7 @@ class NopHttpTransport : public HttpTransport {
 
 class NopAsyncHttpTransport : public AsyncHttpTransport {
   public:
-    void sendAsync(std::unique_ptr<RequestMessage> request,
-                   const RequestOptions& options,
+    void sendAsync(std::unique_ptr<RequestMessage> request, const RequestOptions& options,
                    RequestCallback callback) override;
     std::string getName() const override {
         return "NopAsyncHttpTransport";

@@ -2,8 +2,8 @@
 
 #include "src/thirdparty/tinyxml2/tinyxml2.hpp"
 
-#include <string>
 #include <cstdint>
+#include <string>
 
 namespace alibabacloud {
 namespace oss2 {

@@ -10,10 +10,8 @@ namespace oss2 {
 
 class ALIBABACLOUD_OSS_API CurlTransportFactory {
   public:
-    static std::shared_ptr<HttpTransport> createHttpTransport(
-        const CurlTransportOptions& options);
-    static std::shared_ptr<AsyncHttpTransport> createAsyncHttpTransport(
-        const CurlTransportOptions& options);
+    static std::shared_ptr<HttpTransport> createHttpTransport(const CurlTransportOptions& options);
+    static std::shared_ptr<AsyncHttpTransport> createAsyncHttpTransport(const CurlTransportOptions& options);
 };
 
 } // namespace oss2

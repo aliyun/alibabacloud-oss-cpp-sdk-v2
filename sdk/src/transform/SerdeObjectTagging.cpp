@@ -194,8 +194,8 @@ Outcome<models::GetObjectTaggingResult, OperationError> toGetObjectTagging(Opera
         } else {
             auto opErr = OperationError{SerdeErrorCode::DeserializationFailed,
                                         {
-                                                {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
-                                                {"Message", doc.ErrorStr()},
+                                            {"Code", "XMLError:" + std::to_string(static_cast<int>(xml_err))},
+                                            {"Message", doc.ErrorStr()},
                                         }};
             opErr.setResponseResult(output.statusCode, std::move(output.headers), std::move(str));
             return makeUnexpected(std::move(opErr));

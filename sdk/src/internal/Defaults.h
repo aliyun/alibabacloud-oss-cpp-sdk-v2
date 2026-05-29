@@ -19,11 +19,10 @@ constexpr long MAX_ATTEMPTS = 3;
 constexpr std::chrono::milliseconds BASE_DELAY = std::chrono::milliseconds(200);
 constexpr std::chrono::milliseconds MAX_BACKOFF = std::chrono::milliseconds(20000);
 
-constexpr int FEATURE_FLAGS =
-    static_cast<int>(FeatureFlagsType::CorrectClockSkew) |
-    static_cast<int>(FeatureFlagsType::AutoDetectMimeType) |
-    static_cast<int>(FeatureFlagsType::EnableCRC64CheckUpload) |
-    static_cast<int>(FeatureFlagsType::EnableCRC64CheckDownload);
+constexpr int FEATURE_FLAGS = static_cast<int>(FeatureFlagsType::CorrectClockSkew)
+    | static_cast<int>(FeatureFlagsType::AutoDetectMimeType)
+    | static_cast<int>(FeatureFlagsType::EnableCRC64CheckUpload)
+    | static_cast<int>(FeatureFlagsType::EnableCRC64CheckDownload);
 
 } // namespace defaults
 } // namespace internal

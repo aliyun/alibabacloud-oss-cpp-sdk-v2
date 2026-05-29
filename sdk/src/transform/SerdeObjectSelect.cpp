@@ -261,9 +261,9 @@ Outcome<models::CreateSelectObjectMetaResult, OperationError> toCreateSelectObje
         internal::SelectMetaFrameParser parser;
         parser.write(reinterpret_cast<const uint8_t*>(raw.data()), raw.size());
         if (parser.fail()) {
-            return makeUnexpected(OperationError(
-                SerdeErrorCode::DeserializationFailed,
-                {{"Code", "SelectMetaFrameError"}, {"Message", parser.errorMessage()}}));
+            return makeUnexpected(
+                OperationError(SerdeErrorCode::DeserializationFailed,
+                               {{"Code", "SelectMetaFrameError"}, {"Message", parser.errorMessage()}}));
         }
         models::SelectObjectMeta meta;
         meta.offset = parser.offset();

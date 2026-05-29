@@ -22,7 +22,7 @@ class ALIBABACLOUD_OSS_API EncryptionMultiPartContext {
     static std::shared_ptr<EncryptionMultiPartContext> create(int64_t partSize, int64_t dataSize,
                                                               std::unique_ptr<ContentCipher> contentCipher) {
         return std::shared_ptr<EncryptionMultiPartContext>(
-                new EncryptionMultiPartContext(partSize, dataSize, std::move(contentCipher)));
+            new EncryptionMultiPartContext(partSize, dataSize, std::move(contentCipher)));
     }
 
     int64_t getPartSize() const {
@@ -37,7 +37,7 @@ class ALIBABACLOUD_OSS_API EncryptionMultiPartContext {
 
   private:
     EncryptionMultiPartContext(int64_t partSize, int64_t dataSize, std::unique_ptr<ContentCipher> cc)
-            : partSize_(partSize), dataSize_(dataSize), contentCipher_(std::move(cc)) {}
+        : partSize_(partSize), dataSize_(dataSize), contentCipher_(std::move(cc)) {}
 
     int64_t partSize_;
     int64_t dataSize_;
@@ -81,7 +81,8 @@ class ALIBABACLOUD_OSS_API OSSEncryptionClient {
 
     HeadObjectOutcome headObject(const models::HeadObjectRequest& request, const OperationOptions* options = nullptr);
 
-    GetObjectMetaOutcome getObjectMeta(const models::GetObjectMetaRequest& request, const OperationOptions* options = nullptr);
+    GetObjectMetaOutcome getObjectMeta(const models::GetObjectMetaRequest& request,
+                                       const OperationOptions* options = nullptr);
 
   private:
     struct Impl;

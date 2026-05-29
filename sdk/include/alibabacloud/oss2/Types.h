@@ -58,19 +58,21 @@ enum class FeatureFlagsType {
     EnableCRC64CheckDownload = (1 << 3),
 };
 
+// clang-format off
 struct ALIBABACLOUD_OSS_API caseSensitiveLess {
     bool operator()(const std::string& lhs, const std::string& rhs) const {
         return lhs < rhs;
-    } // namespace oss2
-};    // namespace alibabacloud
+    }
+};
 
 struct ALIBABACLOUD_OSS_API caseInsensitiveLess {
     bool operator()(const std::string& lhs, const std::string& rhs) const {
         auto first1 = lhs.begin(), last1 = lhs.end();
         auto first2 = rhs.begin(), last2 = rhs.end();
         while (first1 != last1) {
-            if (first2 == last2)
+            if (first2 == last2) {
                 return false;
+            }
             auto first1_ch = ::tolower(*first1);
             auto first2_ch = ::tolower(*first2);
             if (first1_ch != first2_ch) {
@@ -82,6 +84,7 @@ struct ALIBABACLOUD_OSS_API caseInsensitiveLess {
         return (first2 != last2);
     }
 };
+// clang-format on
 
 struct ALIBABACLOUD_OSS_API ProgressCallback {
     void operator()(std::size_t increment, std::size_t transferred, std::int64_t total) const {
@@ -90,7 +93,7 @@ struct ALIBABACLOUD_OSS_API ProgressCallback {
         }
     }
     std::function<void(std::size_t increment, std::size_t transferred, std::int64_t total, std::uintptr_t userdata)>
-            callback;
+        callback;
     std::uintptr_t userdata{};
 };
 
@@ -117,12 +120,10 @@ struct ALIBABACLOUD_OSS_API SinkFactory {
 
 /// Convenience helper to create a SinkFactory from a simple supplier that
 /// only needs the content length and does not inspect response headers.
-inline SinkFactory makeSinkFactory(
-    std::function<std::shared_ptr<ByteWriter>(std::int64_t)> fn,
-    bool isOneShot = false) {
-    return SinkFactory{[fn = std::move(fn)](std::int64_t size, const HeaderCollection&) {
-        return fn(size);
-    }, isOneShot};
+inline SinkFactory makeSinkFactory(std::function<std::shared_ptr<ByteWriter>(std::int64_t)> fn,
+                                   bool isOneShot = false) {
+    return SinkFactory{[fn = std::move(fn)](std::int64_t size, const HeaderCollection&) { return fn(size); },
+                       isOneShot};
 }
 
 
@@ -155,7 +156,7 @@ class ALIBABACLOUD_OSS_API RequestModel {
 
     /// Constructs a request with pre-populated headers and parameters.
     RequestModel(HeaderCollection headers, ParameterCollection parameters)
-            : headers_(std::move(headers)), parameters_(std::move(parameters)) {}
+        : headers_(std::move(headers)), parameters_(std::move(parameters)) {}
 
     virtual ~RequestModel() = default;
 
@@ -229,7 +230,7 @@ class ALIBABACLOUD_OSS_API ResultModel {
 
     /// Constructs a result from an HTTP status code and response headers.
     ResultModel(int statusCode, HeaderCollection headers)
-            : status_(""), statusCode_(statusCode), headers_(std::move(headers)) {}
+        : status_(""), statusCode_(statusCode), headers_(std::move(headers)) {}
     virtual ~ResultModel() = default;
 
     /// Returns all HTTP response headers from the OSS server.
@@ -249,8 +250,8 @@ class ALIBABACLOUD_OSS_API ResultModel {
     }
 
   protected:
-    std::string status_;     ///< Reserved status string.
-    int statusCode_{};       ///< HTTP status code.
+    std::string status_;       ///< Reserved status string.
+    int statusCode_{};         ///< HTTP status code.
     HeaderCollection headers_; ///< HTTP response headers.
 
     /// @name Header lookup helpers for subclasses

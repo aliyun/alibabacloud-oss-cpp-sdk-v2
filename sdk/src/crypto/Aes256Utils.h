@@ -9,7 +9,7 @@ namespace oss2 {
 namespace crypto {
 
 class AesCtrCipher {
-public:
+  public:
     AesCtrCipher(const std::string& key, const std::string& iv);
     ~AesCtrCipher();
 
@@ -18,7 +18,7 @@ public:
 
     size_t process(const uint8_t* in, uint8_t* out, size_t len);
 
-private:
+  private:
     void* ctx_;
 };
 
