@@ -18,6 +18,9 @@ on:
       - 'cmake/**'
       - '.github/workflows/linux-analysis.yml'
 
+permissions:
+  contents: read
+
 jobs:
   cppcheck:
     name: Cppcheck Static Analysis

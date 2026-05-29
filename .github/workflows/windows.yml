@@ -18,6 +18,9 @@ on:
       - 'cmake/**'
       - '.github/workflows/windows.yml'
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Windows (${{ matrix.compiler }}, ${{ matrix.std }})

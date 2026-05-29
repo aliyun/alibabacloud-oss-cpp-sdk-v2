@@ -18,6 +18,9 @@ on:
       - 'cmake/**'
       - '.github/workflows/linux-crypto.yml'
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Linux (${{ matrix.crypto }}, ${{ matrix.curl }})

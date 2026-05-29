@@ -18,6 +18,9 @@ on:
       - 'cmake/**'
       - '.github/workflows/mingw.yml'
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: MinGW (x86_64)
