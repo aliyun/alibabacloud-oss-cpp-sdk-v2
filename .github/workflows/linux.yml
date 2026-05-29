@@ -18,6 +18,9 @@ on:
       - 'cmake/**'
       - '.github/workflows/linux.yml'
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Ubuntu (${{ matrix.compiler }}, ${{ matrix.std }})

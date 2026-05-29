@@ -18,6 +18,9 @@ on:
       - 'cmake/**'
       - '.github/workflows/macos.yml'
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: macOS (${{ matrix.compiler }}, ${{ matrix.std }})

@@ -18,6 +18,9 @@ on:
       - 'cmake/**'
       - '.github/workflows/std-expected.yml'
 
+permissions:
+  contents: read
+
 jobs:
   linux:
     name: Linux (GCC 13, C++23)
