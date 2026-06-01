@@ -1,0 +1,22 @@
+# ChangeLog - Alibaba Cloud OSS SDK for C++ v2
+
+## Version: 0.1.0 (beta) Date: 2026-06-01
+### Changes
+- Feature：Add credentials provider
+- Feature：Add retryer
+- Feature：Add signer v1 and signer v4
+- Feature：Add http client based on libcurl and WinHTTP
+- Feature：Add bucket's basic api
+- Feature：Add object's basic api
+- Feature：Add multipart upload api
+- Feature：Add select object api
+- Feature：Add describe regions api
+- Feature：Add presigner
+- Feature：Add paginator
+- Feature：Add PutObjectFromFile/GetObjectToFile api
+- Feature：Add IsObjectExist/IsBucketExist api
+- Feature：Add CRC64 integrity check
+- Feature：Add additional headers option
+- Feature：Add user agent option
+- Feature：Add encryption client
+- Feature：Add sync and async client
