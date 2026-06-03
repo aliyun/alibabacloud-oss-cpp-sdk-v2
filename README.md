@@ -88,10 +88,17 @@ cmake --build build
 ### Install via vcpkg
 
 ```bash
-vcpkg install alibabacloud-oss-cpp-sdk-v2
+vcpkg install alibabacloud-oss-cpp-sdk-v2[curl]
+
+# Or on Windows with WinHTTP
+vcpkg install alibabacloud-oss-cpp-sdk-v2[winhttp]
 ```
 
-Available features: `curl` (default), `winhttp`, `openssl`, `mbedtls`, `rtti`, `encryption`.
+Available features: `curl`, `winhttp`, `openssl`, `mbedtls`, `rtti`, `encryption`.
+
+**Note:**
+- An HTTP transport (`curl` or `winhttp`) must be explicitly specified. Both can be enabled simultaneously.
+- When both `openssl` and `mbedtls` are enabled, `openssl` takes precedence.
 
 ### Using CMake in your project
 

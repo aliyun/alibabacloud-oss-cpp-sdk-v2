@@ -1,7 +1,7 @@
 {
   "name": "alibabacloud-oss-cpp-sdk-v2",
-  "version-semver": "0.1.0",
-  "description": "Alibaba Cloud OSS SDK for C++",
+  "version": "0.1.0",
+  "description": "Alibaba Cloud OSS SDK for C++ v2",
   "homepage": "https://github.com/aliyun/alibabacloud-oss-cpp-sdk-v2",
   "license": "Apache-2.0",
   "dependencies": [
@@ -13,9 +13,6 @@
       "name": "vcpkg-cmake-config",
       "host": true
     }
-  ],
-  "default-features": [
-    "curl"
   ],
   "features": {
     "curl": {
@@ -30,14 +27,17 @@
         }
       ]
     },
-    "winhttp": {
-      "description": "WinHTTP transport (Windows only)",
-      "supports": "windows"
-    },
-    "openssl": {
-      "description": "Use OpenSSL for hash",
+    "encryption": {
+      "description": "Enable client-side encryption",
       "dependencies": [
-        "openssl"
+        {
+          "name": "alibabacloud-oss-cpp-sdk-v2",
+          "default-features": false,
+          "features": [
+            "openssl"
+          ],
+          "platform": "!windows"
+        }
       ]
     },
     "mbedtls": {
@@ -46,11 +46,18 @@
         "mbedtls"
       ]
     },
-    "encryption": {
-      "description": "Enable client-side encryption (on non-Windows, also enable openssl or mbedtls)"
+    "openssl": {
+      "description": "Use OpenSSL for hash",
+      "dependencies": [
+        "openssl"
+      ]
     },
     "rtti": {
       "description": "Build with run-time type information"
+    },
+    "winhttp": {
+      "description": "WinHTTP transport (Windows only)",
+      "supports": "windows"
     }
   }
 }
