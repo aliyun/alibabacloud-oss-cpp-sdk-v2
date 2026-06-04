@@ -26,8 +26,8 @@ jobs:
       - name: Verify version consistency
         run: |
           VERSION=$(cat VERSION | tr -d '[:space:]')
-          VCPKG_ROOT_VERSION=$(jq -r '."version-semver"' vcpkg.json)
-          VCPKG_PORT_VERSION=$(jq -r '."version-semver"' vcpkg/vcpkg.json)
+          VCPKG_ROOT_VERSION=$(jq -r '.version // ."version-semver"' vcpkg.json)
+          VCPKG_PORT_VERSION=$(jq -r '.version // ."version-semver"' vcpkg/vcpkg.json)
 
           echo "VERSION file:       $VERSION"
           echo "vcpkg.json:         $VCPKG_ROOT_VERSION"
