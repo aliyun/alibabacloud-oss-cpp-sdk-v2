@@ -28,6 +28,7 @@ struct AsyncRequestContext {
     State state{State::SendRequest};
 
     std::optional<TransportError> error;
+    std::unique_ptr<HttpMetrics> metrics;
 
     bool checkCancelled() {
         if (options.cancellationToken.has_value() && options.cancellationToken->isCanceled()) {
@@ -41,6 +42,10 @@ struct AsyncRequestContext {
 
     void closeHandle() {
         state = State::CloseHandle;
+        if (!error.has_value()) {
+            afterRequestMetrics(metrics.get(), handles.hRequest.get());
+            response->metrics = std::move(metrics);
+        }
         if (handles.hRequest) {
             WinHttpCloseHandle(handles.hRequest.release());
         } else {
@@ -252,6 +257,8 @@ struct AsyncRequestContext {
 
     bool start(HINTERNET hSession, const ConnectionOptions& connOpts) {
         response = std::make_unique<ResponseMessage>();
+        metrics = makeHttpMetrics(connOpts.collectMetrics);
+        beforeRequestMetrics(metrics.get());
 
         auto err = openRequest(hSession, request->uri, request->method, handles);
         if (err.has_value()) {

@@ -51,6 +51,7 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
     }
 
     auto response = std::make_unique<ResponseMessage>();
+    auto metrics = makeHttpMetrics(connOpts_.collectMetrics);
 
     RequestHandles handles;
     auto err = openRequest(hSession_.get(), request->uri, request->method, handles);
@@ -85,6 +86,8 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
         }
         return makeWinHttpError(TransportErrorCode::SendRecvError, winErr);
     };
+
+    beforeRequestMetrics(metrics.get());
 
     applyRequestOptions(handles.hRequest.get(), connOpts_);
 
@@ -193,6 +196,9 @@ ResponseResult WinHttpClient::send(std::unique_ptr<RequestMessage>& request, con
 
         finalizeResponseBody(*response, response->statusCode, options.sinkFactory, rs.defaultSink);
     }
+
+    afterRequestMetrics(metrics.get(), handles.hRequest.get());
+    response->metrics = std::move(metrics);
 
     OSS_LOG(LogLevel::LogDebug, TAG, "request(%p) leave Send, ResponseCode:%ld", request.get(), response->statusCode);
 

@@ -75,6 +75,7 @@ struct ClientOptions {
     std::string proxyPassword;
     bool enabledRedirect{false};
     bool enableVerbose{false};
+    bool collectMetrics{false};
     std::function<void(void*, const RequestMessage*)> requestInterceptor;
     std::function<bool()> isRequestDisabled;
 };
@@ -93,5 +94,9 @@ std::string curlVersionString();
 std::error_code make_transport_error_code(int curlCode);
 
 TransportError buildTransportError(CURLcode res, const char* errbuf, const TransferIO& io);
+
+std::unique_ptr<HttpMetrics> makeHttpMetrics(bool enabled);
+void beforeRequestMetrics(HttpMetrics* metrics);
+void afterRequestMetrics(HttpMetrics* metrics, CURL* curl);
 
 } // namespace alibabacloud::oss2::transport::curl

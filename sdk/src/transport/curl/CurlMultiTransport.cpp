@@ -22,6 +22,8 @@ struct AsyncTransferContext {
 
     TransferIO io;
     char errbuf[CURL_ERROR_SIZE]{};
+
+    std::unique_ptr<HttpMetrics> metrics;
 };
 
 std::string CurlMultiTransport::getName() const {
@@ -134,6 +136,9 @@ void CurlMultiTransport::sendAsync(std::unique_ptr<RequestMessage> request, cons
 void CurlMultiTransport::setupCurlHandle(AsyncTransferContext* ctx) {
     CURL* curl = ctx->io.curl;
 
+    ctx->metrics = makeHttpMetrics(clientOpts_.collectMetrics);
+    beforeRequestMetrics(ctx->metrics.get());
+
     int64_t contentLength = -1;
     curl_slist* list = buildHeaderList(ctx->request->headers, ctx->request->body, contentLength);
     ctx->headers = list;
@@ -196,11 +201,14 @@ void CurlMultiTransport::processCompleted() {
         ctx->io.curl = nullptr;
         ctx->headers = nullptr;
 
+        afterRequestMetrics(ctx->metrics.get(), curl);
+
         if (res == CURLE_OK) {
             long response_code = 0;
             curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
             ctx->response->statusCode = response_code;
             ctx->response->body = ctx->io.defaultSink;
+            ctx->response->metrics = std::move(ctx->metrics);
 
             OSS_LOG(LogLevel::LogDebug, TAG, "completed async request, CURLcode:%d, ResponseCode:%d", res,
                     response_code);
