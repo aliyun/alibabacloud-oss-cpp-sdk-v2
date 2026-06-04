@@ -94,6 +94,13 @@ vcpkg install alibabacloud-oss-cpp-sdk-v2[curl]
 vcpkg install alibabacloud-oss-cpp-sdk-v2[winhttp]
 ```
 
+You can also install from the source tree using an overlay port:
+
+```bash
+git clone https://github.com/aliyun/alibabacloud-oss-cpp-sdk-v2.git
+vcpkg install alibabacloud-oss-cpp-sdk-v2[curl] --overlay-ports=alibabacloud-oss-cpp-sdk-v2/vcpkg --head
+```
+
 Available features: `curl`, `winhttp`, `openssl`, `mbedtls`, `rtti`, `encryption`.
 
 **Note:**
