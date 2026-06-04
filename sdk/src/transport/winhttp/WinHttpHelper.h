@@ -40,6 +40,7 @@ struct ConnectionOptions {
     unsigned int proxyPort{};
     std::string proxyUserName;
     std::string proxyPassword;
+    bool collectMetrics{false};
 };
 
 ConnectionOptions buildConnectionOptions(const HttpTransportOptions& options);
@@ -79,5 +80,9 @@ ResponseSink createResponseSink(long statusCode, const std::optional<SinkFactory
 
 void finalizeResponseBody(ResponseMessage& response, long statusCode, const std::optional<SinkFactory>& factory,
                           const std::shared_ptr<std::stringstream>& defaultSink);
+
+std::unique_ptr<HttpMetrics> makeHttpMetrics(bool enabled);
+void beforeRequestMetrics(HttpMetrics* metrics);
+void afterRequestMetrics(HttpMetrics* metrics, HINTERNET hRequest);
 
 } // namespace alibabacloud::oss2::transport::winhttp

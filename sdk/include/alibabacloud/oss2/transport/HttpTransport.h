@@ -56,6 +56,8 @@ struct ALIBABACLOUD_OSS_API HttpTransportOptions {
     std::optional<std::string> proxyHost;
     // Client-level check: returns true when request processing is disabled
     std::function<bool()> isRequestDisabled;
+    // Enable HTTP transport metrics collection
+    bool collectMetrics{false};
 };
 
 } // namespace oss2

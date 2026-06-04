@@ -596,4 +596,76 @@ TEST(RecvBodyCallbackTest, FirstDataNoSinkFactoryUsesDefaultSink) {
     curl_easy_cleanup(curl);
 }
 
+// ========== makeHttpMetrics ==========
+
+TEST(CurlHelperTest, MakeHttpMetrics_Enabled) {
+    auto metrics = makeHttpMetrics(true);
+    ASSERT_NE(metrics, nullptr);
+    EXPECT_EQ(metrics->dnsLookup.count(), 0);
+    EXPECT_EQ(metrics->connect.count(), 0);
+    EXPECT_EQ(metrics->tlsHandshake.count(), 0);
+    EXPECT_EQ(metrics->startTransfer.count(), 0);
+    EXPECT_EQ(metrics->total.count(), 0);
+    EXPECT_FALSE(metrics->connectionReused);
+}
+
+TEST(CurlHelperTest, MakeHttpMetrics_Disabled) {
+    auto metrics = makeHttpMetrics(false);
+    EXPECT_EQ(metrics, nullptr);
+}
+
+// ========== beforeRequestMetrics ==========
+
+TEST(CurlHelperTest, BeforeRequestMetrics_SetsRequestStart) {
+    auto metrics = makeHttpMetrics(true);
+    auto before = std::chrono::system_clock::now();
+    beforeRequestMetrics(metrics.get());
+    auto after = std::chrono::system_clock::now();
+    EXPECT_GE(metrics->requestStart, before);
+    EXPECT_LE(metrics->requestStart, after);
+}
+
+TEST(CurlHelperTest, BeforeRequestMetrics_NullIsNoop) {
+    beforeRequestMetrics(nullptr);
+}
+
+// ========== afterRequestMetrics ==========
+
+TEST(CurlHelperTest, AfterRequestMetrics_NullMetricsIsNoop) {
+    CURL* curl = curl_easy_init();
+    afterRequestMetrics(nullptr, curl);
+    curl_easy_cleanup(curl);
+}
+
+TEST(CurlHelperTest, AfterRequestMetrics_PopulatesFields) {
+    auto metrics = makeHttpMetrics(true);
+    CURL* curl = curl_easy_init();
+    afterRequestMetrics(metrics.get(), curl);
+    EXPECT_EQ(metrics->total.count(), 0);
+    EXPECT_TRUE(metrics->connectionReused);
+    curl_easy_cleanup(curl);
+}
+
+// ========== buildClientOptions collectMetrics ==========
+
+TEST(CurlHelperTest, BuildConnOpts_HttpTransportOptions_CollectMetricsDefault) {
+    HttpTransportOptions opts;
+    auto conn = buildClientOptions(opts);
+    EXPECT_FALSE(conn.collectMetrics);
+}
+
+TEST(CurlHelperTest, BuildConnOpts_HttpTransportOptions_CollectMetricsEnabled) {
+    HttpTransportOptions opts;
+    opts.collectMetrics = true;
+    auto conn = buildClientOptions(opts);
+    EXPECT_TRUE(conn.collectMetrics);
+}
+
+TEST(CurlHelperTest, BuildConnOpts_CurlTransportOptions_CollectMetrics) {
+    CurlTransportOptions opts;
+    opts.collectMetrics = true;
+    auto conn = buildClientOptions(opts);
+    EXPECT_TRUE(conn.collectMetrics);
+}
+
 } // namespace alibabacloud::oss2::transport::curl

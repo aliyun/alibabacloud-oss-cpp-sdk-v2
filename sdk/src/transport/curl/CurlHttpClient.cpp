@@ -36,8 +36,12 @@ ResponseResult CurlHttpClient::send(std::unique_ptr<RequestMessage>& request, co
 
     auto response = std::make_unique<ResponseMessage>();
 
+    auto metrics = makeHttpMetrics(clientOpts_.collectMetrics);
+
     CURL* curl = curlContainer_->Acquire();
     OSS_LOG(LogLevel::LogDebug, TAG, "request(%p) acquire curl handle:%p", request.get(), curl);
+
+    beforeRequestMetrics(metrics.get());
 
     auto sinkFactory = options.sinkFactory;
 
@@ -78,6 +82,8 @@ ResponseResult CurlHttpClient::send(std::unique_ptr<RequestMessage>& request, co
     errbuf[0] = 0;
 
     CURLcode res = curl_easy_perform(curl);
+    afterRequestMetrics(metrics.get(), curl);
+
     long response_code = 0;
     if (res == CURLE_OK) {
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
@@ -91,6 +97,7 @@ ResponseResult CurlHttpClient::send(std::unique_ptr<RequestMessage>& request, co
 
     response->statusCode = response_code;
     response->body = io.defaultSink;
+    response->metrics = std::move(metrics);
 
     curlContainer_->Release(curl, false);
 

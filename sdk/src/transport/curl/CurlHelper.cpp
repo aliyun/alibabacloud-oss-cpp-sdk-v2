@@ -221,6 +221,7 @@ ClientOptions buildClientOptions(const HttpTransportOptions& options) {
     if (options.isRequestDisabled) {
         opts.isRequestDisabled = options.isRequestDisabled;
     }
+    opts.collectMetrics = options.collectMetrics;
     return opts;
 }
 
@@ -349,6 +350,35 @@ void applyRequestOptions(CURL* curl, TransferIO* io) {
         curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, io);
         curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
     }
+}
+
+std::unique_ptr<HttpMetrics> makeHttpMetrics(bool enabled) {
+    if (!enabled) return nullptr;
+    return std::make_unique<HttpMetrics>();
+}
+
+void beforeRequestMetrics(HttpMetrics* metrics) {
+    if (!metrics) return;
+    metrics->requestStart = std::chrono::system_clock::now();
+}
+
+void afterRequestMetrics(HttpMetrics* metrics, CURL* curl) {
+    if (!metrics) return;
+    auto toMicros = [](double seconds) {
+        return std::chrono::microseconds(static_cast<int64_t>(seconds * 1e6));
+    };
+    double val;
+    curl_easy_getinfo(curl, CURLINFO_NAMELOOKUP_TIME, &val);
+    metrics->dnsLookup = toMicros(val);
+    curl_easy_getinfo(curl, CURLINFO_CONNECT_TIME, &val);
+    metrics->connect = toMicros(val);
+    curl_easy_getinfo(curl, CURLINFO_APPCONNECT_TIME, &val);
+    metrics->tlsHandshake = toMicros(val);
+    curl_easy_getinfo(curl, CURLINFO_STARTTRANSFER_TIME, &val);
+    metrics->startTransfer = toMicros(val);
+    curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &val);
+    metrics->total = toMicros(val);
+    metrics->connectionReused = (metrics->connect.count() == 0);
 }
 
 } // namespace alibabacloud::oss2::transport::curl

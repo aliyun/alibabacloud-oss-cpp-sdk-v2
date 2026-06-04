@@ -4,10 +4,23 @@
 #include "alibabacloud/oss2/io/ByteStream.h"
 #include "alibabacloud/oss2/utils/Cancellation.h"
 
+#include <chrono>
+#include <memory>
+
 namespace alibabacloud {
 namespace oss2 {
 
 enum class HttpMethod { Get, Head, Post, Put, Delete, Connect, Options, Patch, Trace };
+
+struct ALIBABACLOUD_OSS_API HttpMetrics {
+    std::chrono::system_clock::time_point requestStart;
+    std::chrono::microseconds dnsLookup{0};
+    std::chrono::microseconds connect{0};
+    std::chrono::microseconds tlsHandshake{0};
+    std::chrono::microseconds startTransfer{0};
+    std::chrono::microseconds total{0};
+    bool connectionReused{false};
+};
 
 struct ALIBABACLOUD_OSS_API RequestOptions {
     std::optional<SinkFactory> sinkFactory;
@@ -32,6 +45,7 @@ struct ALIBABACLOUD_OSS_API ResponseMessage {
     std::string reason;
     HeaderCollection headers;
     std::shared_ptr<std::iostream> body;
+    std::unique_ptr<HttpMetrics> metrics;
 };
 
 // C++23 Expected<T>

@@ -64,6 +64,7 @@ ConnectionOptions buildConnectionOptions(const HttpTransportOptions& options) {
     if (options.proxyHost.has_value() && !options.proxyHost.value().empty()) {
         opts.proxyHost = options.proxyHost.value();
     }
+    opts.collectMetrics = options.collectMetrics;
     return opts;
 }
 
@@ -301,6 +302,35 @@ void finalizeResponseBody(ResponseMessage& response, long statusCode, const std:
     if (isError || !factory.has_value()) {
         response.body = defaultSink;
     }
+}
+
+std::unique_ptr<HttpMetrics> makeHttpMetrics(bool enabled) {
+    if (!enabled) return nullptr;
+    return std::make_unique<HttpMetrics>();
+}
+
+void beforeRequestMetrics(HttpMetrics* metrics) {
+    if (!metrics) return;
+    metrics->requestStart = std::chrono::system_clock::now();
+}
+
+void afterRequestMetrics(HttpMetrics* metrics, HINTERNET hRequest) {
+    if (!metrics || !hRequest) return;
+#ifdef WINHTTP_OPTION_REQUEST_TIMES
+    WINHTTP_REQUEST_TIMES times{};
+    DWORD size = sizeof(times);
+    if (!WinHttpQueryOption(hRequest, WINHTTP_OPTION_REQUEST_TIMES, &times, &size)) return;
+    auto delta = [&](WINHTTP_REQUEST_TIME_ENTRY s, WINHTTP_REQUEST_TIME_ENTRY e) {
+        if (times.rgullTimes[e] < times.rgullTimes[s]) return std::chrono::microseconds(0);
+        return std::chrono::microseconds(static_cast<int64_t>((times.rgullTimes[e] - times.rgullTimes[s]) / 10));
+    };
+    metrics->dnsLookup = delta(WinHttpNameResolutionStart, WinHttpNameResolutionEnd);
+    metrics->connect = delta(WinHttpConnectionEstablishmentStart, WinHttpConnectionEstablishmentEnd);
+    metrics->tlsHandshake = delta(WinHttpTlsHandshakeClientLeg1Start, WinHttpTlsHandshakeClientLeg1End);
+    metrics->startTransfer = delta(WinHttpSendRequestStart, WinHttpReceiveResponseHeadersEnd);
+    metrics->total = delta(WinHttpSendRequestStart, WinHttpReceiveResponseEnd);
+    metrics->connectionReused = (metrics->connect.count() == 0 && metrics->dnsLookup.count() == 0);
+#endif
 }
 
 } // namespace alibabacloud::oss2::transport::winhttp

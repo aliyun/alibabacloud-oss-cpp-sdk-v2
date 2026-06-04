@@ -235,4 +235,71 @@ TEST(WinHttpHelperTest, DefaultConstants) {
     EXPECT_EQ(kWriteBufferLength, 64u * 1024u);
 }
 
+// ========== makeHttpMetrics ==========
+
+TEST(WinHttpHelperTest, MakeHttpMetrics_Enabled) {
+    auto metrics = makeHttpMetrics(true);
+    ASSERT_NE(metrics, nullptr);
+    EXPECT_EQ(metrics->dnsLookup.count(), 0);
+    EXPECT_EQ(metrics->connect.count(), 0);
+    EXPECT_EQ(metrics->tlsHandshake.count(), 0);
+    EXPECT_EQ(metrics->startTransfer.count(), 0);
+    EXPECT_EQ(metrics->total.count(), 0);
+    EXPECT_FALSE(metrics->connectionReused);
+}
+
+TEST(WinHttpHelperTest, MakeHttpMetrics_Disabled) {
+    auto metrics = makeHttpMetrics(false);
+    EXPECT_EQ(metrics, nullptr);
+}
+
+// ========== beforeRequestMetrics ==========
+
+TEST(WinHttpHelperTest, BeforeRequestMetrics_SetsRequestStart) {
+    auto metrics = makeHttpMetrics(true);
+    auto before = std::chrono::system_clock::now();
+    beforeRequestMetrics(metrics.get());
+    auto after = std::chrono::system_clock::now();
+    EXPECT_GE(metrics->requestStart, before);
+    EXPECT_LE(metrics->requestStart, after);
+}
+
+TEST(WinHttpHelperTest, BeforeRequestMetrics_NullIsNoop) {
+    beforeRequestMetrics(nullptr);
+}
+
+// ========== afterRequestMetrics ==========
+
+TEST(WinHttpHelperTest, AfterRequestMetrics_NullMetricsIsNoop) {
+    afterRequestMetrics(nullptr, nullptr);
+}
+
+TEST(WinHttpHelperTest, AfterRequestMetrics_NullHandleIsNoop) {
+    auto metrics = makeHttpMetrics(true);
+    afterRequestMetrics(metrics.get(), nullptr);
+    EXPECT_EQ(metrics->total.count(), 0);
+}
+
+// ========== buildConnectionOptions collectMetrics ==========
+
+TEST(WinHttpHelperTest, BuildConnOpts_HttpTransportOptions_CollectMetricsDefault) {
+    HttpTransportOptions opts;
+    auto conn = buildConnectionOptions(opts);
+    EXPECT_FALSE(conn.collectMetrics);
+}
+
+TEST(WinHttpHelperTest, BuildConnOpts_HttpTransportOptions_CollectMetricsEnabled) {
+    HttpTransportOptions opts;
+    opts.collectMetrics = true;
+    auto conn = buildConnectionOptions(opts);
+    EXPECT_TRUE(conn.collectMetrics);
+}
+
+TEST(WinHttpHelperTest, BuildConnOpts_WinHttpTransportOptions_CollectMetrics) {
+    WinHttpTransportOptions opts;
+    opts.collectMetrics = true;
+    auto conn = buildConnectionOptions(opts);
+    EXPECT_TRUE(conn.collectMetrics);
+}
+
 } // namespace alibabacloud::oss2::transport::winhttp
