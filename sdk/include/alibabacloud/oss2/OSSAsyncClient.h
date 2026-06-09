@@ -320,6 +320,15 @@ class ALIBABACLOUD_OSS_API OSSAsyncClient final {
                                   const CleanRestoredObjectAsyncCallback& callback,
                                   const OperationOptions* options = nullptr);
 
+    // Process Object
+    void processObjectAsync(const models::ProcessObjectRequest& request,
+                            const ProcessObjectAsyncCallback& callback,
+                            const OperationOptions* options = nullptr);
+
+    void asyncProcessObjectAsync(const models::AsyncProcessObjectRequest& request,
+                                 const AsyncProcessObjectAsyncCallback& callback,
+                                 const OperationOptions* options = nullptr);
+
     // Object Select
 
     /**
@@ -769,6 +778,20 @@ struct OSSAsyncClient::OperationTraits<models::CleanRestoredObjectRequest> {
     using OutcomeType = CleanRestoredObjectOutcome;
     using CallbackType = CleanRestoredObjectAsyncCallback;
     static constexpr auto method = &OSSAsyncClient::cleanRestoredObjectAsync;
+};
+
+template <>
+struct OSSAsyncClient::OperationTraits<models::ProcessObjectRequest> {
+    using OutcomeType = ProcessObjectOutcome;
+    using CallbackType = ProcessObjectAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::processObjectAsync;
+};
+
+template <>
+struct OSSAsyncClient::OperationTraits<models::AsyncProcessObjectRequest> {
+    using OutcomeType = AsyncProcessObjectOutcome;
+    using CallbackType = AsyncProcessObjectAsyncCallback;
+    static constexpr auto method = &OSSAsyncClient::asyncProcessObjectAsync;
 };
 
 // Object Acl

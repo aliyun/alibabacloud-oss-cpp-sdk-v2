@@ -1871,6 +1871,129 @@ class ALIBABACLOUD_OSS_API CleanRestoredObjectResult final : public ResultModel 
 };
 
 
+// The request for the ProcessObject operation.
+class ALIBABACLOUD_OSS_API ProcessObjectRequest final : public RequestModel {
+  public:
+    ProcessObjectRequest() = default;
+
+    // The name of the bucket.
+    inline const std::string& getBucket() const {
+        return bucket_;
+    }
+    template <typename ValueT = std::string>
+    ProcessObjectRequest& setBucket(ValueT&& value) {
+        bucket_ = std::forward<ValueT>(value);
+        return *this;
+    }
+
+    // The full path of the object.
+    inline const std::string& getKey() const {
+        return key_;
+    }
+    template <typename ValueT = std::string>
+    ProcessObjectRequest& setKey(ValueT&& value) {
+        key_ = std::forward<ValueT>(value);
+        return *this;
+    }
+
+    // The image or video processing instruction, e.g. "image/resize,w_100|sys/saveas,o_{base64},b_{base64}".
+    inline const std::string& getProcess() const {
+        return process_;
+    }
+    template <typename ValueT = std::string>
+    ProcessObjectRequest& setProcess(ValueT&& value) {
+        process_ = std::forward<ValueT>(value);
+        return *this;
+    }
+
+  private:
+    std::string bucket_;
+    std::string key_;
+    std::string process_;
+};
+
+/// The result for the ProcessObject operation.
+class ALIBABACLOUD_OSS_API ProcessObjectResult final : public ResultModel {
+  public:
+    ProcessObjectResult() = default;
+    ProcessObjectResult(int statusCode, HeaderCollection headers) : ResultModel(statusCode, std::move(headers)) {}
+
+    // The raw JSON response body.
+    inline const std::string& getBody() const {
+        return body_;
+    }
+    template <typename ValueT = std::string>
+    ProcessObjectResult& setBody(ValueT&& value) {
+        body_ = std::forward<ValueT>(value);
+        return *this;
+    }
+
+  private:
+    std::string body_;
+};
+
+// The request for the AsyncProcessObject operation.
+class ALIBABACLOUD_OSS_API AsyncProcessObjectRequest final : public RequestModel {
+  public:
+    AsyncProcessObjectRequest() = default;
+
+    // The name of the bucket.
+    inline const std::string& getBucket() const {
+        return bucket_;
+    }
+    template <typename ValueT = std::string>
+    AsyncProcessObjectRequest& setBucket(ValueT&& value) {
+        bucket_ = std::forward<ValueT>(value);
+        return *this;
+    }
+
+    // The full path of the object.
+    inline const std::string& getKey() const {
+        return key_;
+    }
+    template <typename ValueT = std::string>
+    AsyncProcessObjectRequest& setKey(ValueT&& value) {
+        key_ = std::forward<ValueT>(value);
+        return *this;
+    }
+
+    // The async processing instruction, e.g. "video/convert,f_mp4|sys/saveas,o_{base64},b_{base64}".
+    inline const std::string& getProcess() const {
+        return process_;
+    }
+    template <typename ValueT = std::string>
+    AsyncProcessObjectRequest& setProcess(ValueT&& value) {
+        process_ = std::forward<ValueT>(value);
+        return *this;
+    }
+
+  private:
+    std::string bucket_;
+    std::string key_;
+    std::string process_;
+};
+
+/// The result for the AsyncProcessObject operation.
+class ALIBABACLOUD_OSS_API AsyncProcessObjectResult final : public ResultModel {
+  public:
+    AsyncProcessObjectResult() = default;
+    AsyncProcessObjectResult(int statusCode, HeaderCollection headers) : ResultModel(statusCode, std::move(headers)) {}
+
+    // The raw JSON response body.
+    inline const std::string& getBody() const {
+        return body_;
+    }
+    template <typename ValueT = std::string>
+    AsyncProcessObjectResult& setBody(ValueT&& value) {
+        body_ = std::forward<ValueT>(value);
+        return *this;
+    }
+
+  private:
+    std::string body_;
+};
+
+
 } // namespace models
 } // namespace oss2
 } // namespace alibabacloud

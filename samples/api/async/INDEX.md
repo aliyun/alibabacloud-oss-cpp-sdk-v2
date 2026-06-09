@@ -88,6 +88,13 @@ auto& result = outcome.value();
 | Query versioning state | GetBucketVersioning.cpp | asyncCall |
 | List object versions | ListObjectVersions.cpp | asyncCall |
 
+## Data Processing
+
+| Use Case | File | Patterns |
+|----------|------|----------|
+| Process an object (e.g. image resize) | ProcessObject.cpp | Callback + asyncCall |
+| Async process (e.g. video transcode) | AsyncProcessObject.cpp | Callback + asyncCall |
+
 ## Extension
 
 | Use Case | File | Patterns |

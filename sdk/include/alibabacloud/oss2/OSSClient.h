@@ -331,6 +331,27 @@ class ALIBABACLOUD_OSS_API OSSClient final {
     CleanRestoredObjectOutcome cleanRestoredObject(const models::CleanRestoredObjectRequest& request,
                                                    const OperationOptions* options = nullptr);
 
+    // Process Object
+    /**
+     * @brief Applies process on the specified object (e.g., image resize, watermark).
+     *
+     * @param request The request parameter to send
+     * @param options Optional, operation options
+     * @return The result instance
+     */
+    ProcessObjectOutcome processObject(const models::ProcessObjectRequest& request,
+                                       const OperationOptions* options = nullptr);
+
+    /**
+     * @brief Applies async process on the specified object (e.g., video transcode).
+     *
+     * @param request The request parameter to send
+     * @param options Optional, operation options
+     * @return The result instance
+     */
+    AsyncProcessObjectOutcome asyncProcessObject(const models::AsyncProcessObjectRequest& request,
+                                                  const OperationOptions* options = nullptr);
+
     // Object Acl
     /**
      * @brief You can call this operation to modify the ACL of an object.
@@ -850,6 +871,18 @@ template <>
 struct OSSClient::OperationTraits<models::CleanRestoredObjectRequest> {
     using OutcomeType = CleanRestoredObjectOutcome;
     static constexpr auto method = &OSSClient::cleanRestoredObject;
+};
+
+template <>
+struct OSSClient::OperationTraits<models::ProcessObjectRequest> {
+    using OutcomeType = ProcessObjectOutcome;
+    static constexpr auto method = &OSSClient::processObject;
+};
+
+template <>
+struct OSSClient::OperationTraits<models::AsyncProcessObjectRequest> {
+    using OutcomeType = AsyncProcessObjectOutcome;
+    static constexpr auto method = &OSSClient::asyncProcessObject;
 };
 
 // Object Acl

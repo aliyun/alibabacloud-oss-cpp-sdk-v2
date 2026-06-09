@@ -593,6 +593,72 @@ Outcome<models::CleanRestoredObjectResult, OperationError> toCleanRestoredObject
 }
 
 
+OperationInput fromProcessObject(const models::ProcessObjectRequest& request) {
+    auto input = OperationInput{"ProcessObject", "POST"};
+    input.headers.emplace("Content-Type", "application/xml");
+    input.parameters.emplace("x-oss-process", "");
+
+    for (const auto& [k, v] : request.getHeaders()) {
+        input.headers.insert_or_assign(k, v);
+    }
+    for (const auto& [k, v] : request.getParameters()) {
+        input.parameters.insert_or_assign(k, v);
+    }
+
+    std::string bodyStr = "x-oss-process=" + request.getProcess();
+    input.body = RequestBody::fromString(std::move(bodyStr));
+    input.bucket = request.getBucket();
+    input.key = request.getKey();
+
+    return input;
+}
+
+Outcome<models::ProcessObjectResult, OperationError> toProcessObject(OperationOutput&& output) {
+    auto result = models::ProcessObjectResult(output.statusCode, std::move(output.headers));
+    if (output.body) {
+        std::istreambuf_iterator<char> isb(*output.body), end;
+        std::string body(isb, end);
+        if (!body.empty()) {
+            result.setBody(std::move(body));
+        }
+    }
+    return result;
+}
+
+
+OperationInput fromAsyncProcessObject(const models::AsyncProcessObjectRequest& request) {
+    auto input = OperationInput{"AsyncProcessObject", "POST"};
+    input.headers.emplace("Content-Type", "application/xml");
+    input.parameters.emplace("x-oss-async-process", "");
+
+    for (const auto& [k, v] : request.getHeaders()) {
+        input.headers.insert_or_assign(k, v);
+    }
+    for (const auto& [k, v] : request.getParameters()) {
+        input.parameters.insert_or_assign(k, v);
+    }
+
+    std::string bodyStr = "x-oss-async-process=" + request.getProcess();
+    input.body = RequestBody::fromString(std::move(bodyStr));
+    input.bucket = request.getBucket();
+    input.key = request.getKey();
+
+    return input;
+}
+
+Outcome<models::AsyncProcessObjectResult, OperationError> toAsyncProcessObject(OperationOutput&& output) {
+    auto result = models::AsyncProcessObjectResult(output.statusCode, std::move(output.headers));
+    if (output.body) {
+        std::istreambuf_iterator<char> isb(*output.body), end;
+        std::string body(isb, end);
+        if (!body.empty()) {
+            result.setBody(std::move(body));
+        }
+    }
+    return result;
+}
+
+
 } // namespace transform
 } // namespace oss2
 } // namespace alibabacloud

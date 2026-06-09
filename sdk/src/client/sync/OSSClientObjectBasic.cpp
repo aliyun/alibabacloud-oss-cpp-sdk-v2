@@ -219,6 +219,32 @@ CleanRestoredObjectOutcome OSSClient::cleanRestoredObject(const models::CleanRes
     return transform::toCleanRestoredObject(std::move(std::get<OperationOutput>(result)));
 }
 
+ProcessObjectOutcome OSSClient::processObject(const models::ProcessObjectRequest& request,
+                                              const OperationOptions* options) {
+    requiredField(Bucket);
+    requiredField(Key);
+
+    auto input = transform::fromProcessObject(request);
+    auto result = client_->Execute(input, options);
+    if (std::holds_alternative<OperationError>(result)) {
+        return makeUnexpected(std::get<OperationError>(result));
+    }
+    return transform::toProcessObject(std::move(std::get<OperationOutput>(result)));
+}
+
+AsyncProcessObjectOutcome OSSClient::asyncProcessObject(const models::AsyncProcessObjectRequest& request,
+                                                        const OperationOptions* options) {
+    requiredField(Bucket);
+    requiredField(Key);
+
+    auto input = transform::fromAsyncProcessObject(request);
+    auto result = client_->Execute(input, options);
+    if (std::holds_alternative<OperationError>(result)) {
+        return makeUnexpected(std::get<OperationError>(result));
+    }
+    return transform::toAsyncProcessObject(std::move(std::get<OperationOutput>(result)));
+}
+
 
 // Object Select
 SelectObjectOutcome OSSClient::selectObject(const models::SelectObjectRequest& request,

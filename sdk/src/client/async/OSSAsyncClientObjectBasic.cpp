@@ -277,6 +277,44 @@ void OSSAsyncClient::cleanRestoredObjectAsync(const models::CleanRestoredObjectR
         options);
 }
 
+void OSSAsyncClient::processObjectAsync(const models::ProcessObjectRequest& request,
+                                        const ProcessObjectAsyncCallback& callback,
+                                        const OperationOptions* options) {
+    requiredFieldAsync(Bucket);
+    requiredFieldAsync(Key);
+
+    auto input = transform::fromProcessObject(request);
+    client_->ExecuteAsync(
+        input,
+        [callback](OperationResult result) {
+            if (std::holds_alternative<OperationError>(result)) {
+                callback(makeUnexpected(std::get<OperationError>(std::move(result))));
+                return;
+            }
+            callback(transform::toProcessObject(std::move(std::get<OperationOutput>(result))));
+        },
+        options);
+}
+
+void OSSAsyncClient::asyncProcessObjectAsync(const models::AsyncProcessObjectRequest& request,
+                                             const AsyncProcessObjectAsyncCallback& callback,
+                                             const OperationOptions* options) {
+    requiredFieldAsync(Bucket);
+    requiredFieldAsync(Key);
+
+    auto input = transform::fromAsyncProcessObject(request);
+    client_->ExecuteAsync(
+        input,
+        [callback](OperationResult result) {
+            if (std::holds_alternative<OperationError>(result)) {
+                callback(makeUnexpected(std::get<OperationError>(std::move(result))));
+                return;
+            }
+            callback(transform::toAsyncProcessObject(std::move(std::get<OperationOutput>(result))));
+        },
+        options);
+}
+
 
 // Object Select
 
