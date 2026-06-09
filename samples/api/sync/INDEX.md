@@ -105,6 +105,13 @@ auto& result = outcome.value();
 | Presign HeadObject | PresignHeadObject.cpp | `client.presign(HeadObjectRequest)` |
 | Presign UploadPart | PresignUploadPart.cpp | `client.presign(UploadPartRequest)` |
 
+## Data Processing
+
+| Use Case | File | Key API |
+|----------|------|---------|
+| Process an object (e.g. image resize) | ProcessObject.cpp | `client.processObject()` |
+| Async process (e.g. video transcode) | AsyncProcessObject.cpp | `client.asyncProcessObject()` |
+
 ## Extension
 
 | Use Case | File | Key API |

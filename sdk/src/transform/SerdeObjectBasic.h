@@ -52,6 +52,14 @@ Outcome<models::RestoreObjectResult, OperationError> toRestoreObject(OperationOu
 OperationInput fromCleanRestoredObject(const models::CleanRestoredObjectRequest& request);
 Outcome<models::CleanRestoredObjectResult, OperationError> toCleanRestoredObject(OperationOutput&& output);
 
+
+OperationInput fromProcessObject(const models::ProcessObjectRequest& request);
+Outcome<models::ProcessObjectResult, OperationError> toProcessObject(OperationOutput&& output);
+
+
+OperationInput fromAsyncProcessObject(const models::AsyncProcessObjectRequest& request);
+Outcome<models::AsyncProcessObjectResult, OperationError> toAsyncProcessObject(OperationOutput&& output);
+
 } // namespace transform
 } // namespace oss2
 } // namespace alibabacloud

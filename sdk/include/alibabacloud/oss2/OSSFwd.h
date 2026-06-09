@@ -76,6 +76,10 @@ using RestoreObjectOutcome = Outcome<models::RestoreObjectResult, OperationError
 
 using CleanRestoredObjectOutcome = Outcome<models::CleanRestoredObjectResult, OperationError>;
 
+using ProcessObjectOutcome = Outcome<models::ProcessObjectResult, OperationError>;
+
+using AsyncProcessObjectOutcome = Outcome<models::AsyncProcessObjectResult, OperationError>;
+
 using PutObjectAclOutcome = Outcome<models::PutObjectAclResult, OperationError>;
 
 using GetObjectAclOutcome = Outcome<models::GetObjectAclResult, OperationError>;
@@ -140,6 +144,8 @@ using HeadObjectAsyncCallback = std::function<void(HeadObjectOutcome)>;
 using GetObjectMetaAsyncCallback = std::function<void(GetObjectMetaOutcome)>;
 using RestoreObjectAsyncCallback = std::function<void(RestoreObjectOutcome)>;
 using CleanRestoredObjectAsyncCallback = std::function<void(CleanRestoredObjectOutcome)>;
+using ProcessObjectAsyncCallback = std::function<void(ProcessObjectOutcome)>;
+using AsyncProcessObjectAsyncCallback = std::function<void(AsyncProcessObjectOutcome)>;
 using PutObjectAclAsyncCallback = std::function<void(PutObjectAclOutcome)>;
 using GetObjectAclAsyncCallback = std::function<void(GetObjectAclOutcome)>;
 using PutSymlinkAsyncCallback = std::function<void(PutSymlinkOutcome)>;
