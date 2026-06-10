@@ -18,6 +18,10 @@ on:
       - 'cmake/**'
       - '.github/workflows/macos.yml'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
