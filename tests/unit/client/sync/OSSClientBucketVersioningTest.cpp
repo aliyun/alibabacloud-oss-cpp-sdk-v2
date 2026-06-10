@@ -192,7 +192,11 @@ TEST(OSSClientBucketVersioningTest, GetBucketVersioning_ErrorXml) {
     EXPECT_FALSE(outcome.has_value());
     auto& error = outcome.error();
 
+#ifdef ALIBABACLOUD_OSS_HAS_TINYXML2
+    EXPECT_EQ("XMLError:8", error.getCode());
+#else
     EXPECT_EQ("XMLError:10", error.getCode());
+#endif
     EXPECT_EQ("ERROR", error.getSnapshot());
     EXPECT_EQ("id-1234", error.getRequestId());
 }

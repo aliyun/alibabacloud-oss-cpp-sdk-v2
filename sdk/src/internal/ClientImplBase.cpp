@@ -9,7 +9,7 @@
 #include "alibabacloud/oss2/signer/SignerV1.h"
 #include "alibabacloud/oss2/signer/SignerV4.h"
 #include "alibabacloud/oss2/transport/HttpTransport.h"
-#include "src/thirdparty/tinyxml2/tinyxml2.hpp"
+#include "src/utils/Tinyxml2Utils.h"
 #include "src/utils/Utils.h"
 
 #include <cstdlib>

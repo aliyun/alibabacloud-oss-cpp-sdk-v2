@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/thirdparty/tinyxml2/tinyxml2.hpp"
+#include "src/utils/Tinyxml2Utils.h"
 
 #include <cstdint>
 #include <string>

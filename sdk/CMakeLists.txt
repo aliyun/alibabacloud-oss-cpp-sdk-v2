@@ -10,6 +10,7 @@ endif()
 
 set(ALIBABACLOUD_OSS_USE_STD_EXPECTED ${USE_STD_EXPECTED})
 set(ALIBABACLOUD_OSS_HAS_ENCRYPTION ${ENABLE_ENCRYPTION})
+set(ALIBABACLOUD_OSS_HAS_TINYXML2 ${USE_SYSTEM_TINYXML2})
 configure_file(src/Config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/alibabacloud/oss2/Config.h)
 
 #common header
@@ -68,8 +69,11 @@ endif()
 # external source
 file(GLOB sdk_thirdparty_src
     "src/thirdparty/base64/*.cpp"
-    "src/thirdparty/tinyxml2/*.cpp"
 )
+if(NOT USE_SYSTEM_TINYXML2)
+    file(GLOB sdk_thirdparty_tinyxml2_src "src/thirdparty/tinyxml2/*.cpp")
+    list(APPEND sdk_thirdparty_src ${sdk_thirdparty_tinyxml2_src})
+endif()
 
 if(USE_SYSTEM_OPENSSL)
     set(sdk_utils_hash_src
@@ -175,6 +179,10 @@ elseif(USE_SYSTEM_MBEDTLS)
     target_link_libraries(${PROJECT_NAME} PRIVATE MbedTLS::mbedcrypto)
 elseif(ENABLE_ENCRYPTION AND WIN32)
     target_link_libraries(${PROJECT_NAME} PRIVATE bcrypt crypt32 ncrypt)
+endif()
+
+if(USE_SYSTEM_TINYXML2)
+    target_link_libraries(${PROJECT_NAME} PRIVATE tinyxml2::tinyxml2)
 endif()
 
 find_package(Threads REQUIRED)

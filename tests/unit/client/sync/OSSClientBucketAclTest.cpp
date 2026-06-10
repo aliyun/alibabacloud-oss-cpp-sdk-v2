@@ -107,8 +107,13 @@ TEST(OSSClientBucketAclTest, GetBucketAcl_ErrorXml) {
     EXPECT_FALSE(outcome.has_value());
     auto& error = outcome.error();
 
+#ifdef ALIBABACLOUD_OSS_HAS_TINYXML2
+    EXPECT_EQ("XMLError:8", error.getCode());
+    EXPECT_EQ("Error=XML_ERROR_PARSING_TEXT ErrorID=8 (0x8) Line number=1", error.getMessage());
+#else
     EXPECT_EQ("XMLError:10", error.getCode());
     EXPECT_EQ("Error=XML_ERROR_PARSING_TEXT ErrorID=10 (0xa) Line number=1", error.getMessage());
+#endif
     EXPECT_EQ("ERROR", error.getSnapshot());
     EXPECT_EQ("id-1234", error.getRequestId());
 }

@@ -57,6 +57,9 @@ target_link_libraries(${PROJECT_NAME} cpp-sdk-v2)
 if(USE_CURL_TRANSPORT)
     target_link_libraries(${PROJECT_NAME} ${CURL_LIB})
 endif()
+if(USE_SYSTEM_TINYXML2)
+    target_link_libraries(${PROJECT_NAME} tinyxml2::tinyxml2)
+endif()
 
 target_compile_options(${PROJECT_NAME}
     PRIVATE "${SDK_COMPILER_FLAGS}")

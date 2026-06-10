@@ -31,7 +31,11 @@ TEST(SerdeUtilsTest, ToBool) {
     EXPECT_EQ(true, toBool(elem));
 
     elem->SetText("True");
+#ifdef ALIBABACLOUD_OSS_HAS_TINYXML2
+    EXPECT_EQ(true, toBool(elem));
+#else
     EXPECT_EQ(false, toBool(elem));
+#endif
 
     elem->SetText("false");
     EXPECT_EQ(false, toBool(elem));
