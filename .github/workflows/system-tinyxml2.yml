@@ -57,21 +57,35 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libssl-dev libcurl4-openssl-dev libtinyxml2-dev
 
-      - name: Configure CMake
+      - name: Configure CMake (static)
         run: |
-          cmake -B build \
+          cmake -B build-static \
             -DBUILD_TESTS=ON \
             -DBUILD_SAMPLES=ON \
             -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=OFF \
             -DUSE_SYSTEM_CURL=ON \
             -DUSE_SYSTEM_TINYXML2=ON
 
-      - name: Build
-        run: cmake --build build -j$(nproc)
+      - name: Build (static)
+        run: cmake --build build-static -j$(nproc)
 
-      - name: Test
-        working-directory: build
+      - name: Test (static)
+        working-directory: build-static
         run: ctest -V --output-on-failure -R cpp-sdk-unittest
+
+      - name: Configure CMake (shared)
+        run: |
+          cmake -B build-shared \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_SAMPLES=OFF \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=ON \
+            -DUSE_SYSTEM_CURL=ON \
+            -DUSE_SYSTEM_TINYXML2=ON
+
+      - name: Build (shared)
+        run: cmake --build build-shared -j$(nproc)
 
   macos:
     name: macOS (AppleClang)
@@ -83,21 +97,35 @@ jobs:
       - name: Install dependencies
         run: brew install curl tinyxml2
 
-      - name: Configure CMake
+      - name: Configure CMake (static)
         run: |
-          cmake -B build \
+          cmake -B build-static \
             -DBUILD_TESTS=ON \
             -DBUILD_SAMPLES=ON \
             -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=OFF \
             -DUSE_SYSTEM_CURL=ON \
             -DUSE_SYSTEM_TINYXML2=ON
 
-      - name: Build
-        run: cmake --build build -j$(sysctl -n hw.ncpu)
+      - name: Build (static)
+        run: cmake --build build-static -j$(sysctl -n hw.ncpu)
 
-      - name: Test
-        working-directory: build
+      - name: Test (static)
+        working-directory: build-static
         run: ctest -V --output-on-failure -R cpp-sdk-unittest
+
+      - name: Configure CMake (shared)
+        run: |
+          cmake -B build-shared \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_SAMPLES=OFF \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=ON \
+            -DUSE_SYSTEM_CURL=ON \
+            -DUSE_SYSTEM_TINYXML2=ON
+
+      - name: Build (shared)
+        run: cmake --build build-shared -j$(sysctl -n hw.ncpu)
 
   windows:
     name: Windows (MSVC)
@@ -109,23 +137,41 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Configure CMake
+      - name: Configure CMake (static)
         shell: bash
         run: |
-          cmake -B build \
+          cmake -B build-static \
             -A x64 \
             -DBUILD_TESTS=ON \
             -DBUILD_SAMPLES=ON \
             -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=OFF \
             -DUSE_SYSTEM_TINYXML2=ON \
             -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
             -DVCPKG_MANIFEST_FEATURES="tinyxml2"
 
-      - name: Build
+      - name: Build (static)
         shell: bash
-        run: cmake --build build --config Release -j
+        run: cmake --build build-static --config Release -j
 
-      - name: Test
-        working-directory: build
+      - name: Test (static)
+        working-directory: build-static
         shell: bash
         run: ctest -C Release -V --output-on-failure -R cpp-sdk-unittest
+
+      - name: Configure CMake (shared)
+        shell: bash
+        run: |
+          cmake -B build-shared \
+            -A x64 \
+            -DBUILD_TESTS=OFF \
+            -DBUILD_SAMPLES=OFF \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=ON \
+            -DUSE_SYSTEM_TINYXML2=ON \
+            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_MANIFEST_FEATURES="tinyxml2"
+
+      - name: Build (shared)
+        shell: bash
+        run: cmake --build build-shared --config Release -j
