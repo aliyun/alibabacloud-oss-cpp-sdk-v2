@@ -1,0 +1,131 @@
+name: System tinyxml2 CI
+
+on:
+  push:
+    branches: [main, 'dev-*']
+    paths:
+      - 'sdk/**'
+      - 'tests/**'
+      - 'CMakeLists.txt'
+      - 'cmake/**'
+      - 'vcpkg.json'
+      - 'vcpkg/**'
+      - '.github/workflows/system-tinyxml2.yml'
+  pull_request:
+    branches: [main, 'dev-*']
+    paths:
+      - 'sdk/**'
+      - 'tests/**'
+      - 'CMakeLists.txt'
+      - 'cmake/**'
+      - 'vcpkg.json'
+      - 'vcpkg/**'
+      - '.github/workflows/system-tinyxml2.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    name: Linux (${{ matrix.compiler }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up compiler
+        run: |
+          if [ "${{ matrix.compiler }}" = "gcc" ]; then
+            echo "CC=gcc" >> $GITHUB_ENV
+            echo "CXX=g++" >> $GITHUB_ENV
+          else
+            echo "CC=clang" >> $GITHUB_ENV
+            echo "CXX=clang++" >> $GITHUB_ENV
+          fi
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev libcurl4-openssl-dev libtinyxml2-dev
+
+      - name: Configure CMake
+        run: |
+          cmake -B build \
+            -DBUILD_TESTS=ON \
+            -DBUILD_SAMPLES=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DUSE_SYSTEM_CURL=ON \
+            -DUSE_SYSTEM_TINYXML2=ON
+
+      - name: Build
+        run: cmake --build build -j$(nproc)
+
+      - name: Test
+        working-directory: build
+        run: ctest -V --output-on-failure -R cpp-sdk-unittest
+
+  macos:
+    name: macOS (AppleClang)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: brew install curl tinyxml2
+
+      - name: Configure CMake
+        run: |
+          cmake -B build \
+            -DBUILD_TESTS=ON \
+            -DBUILD_SAMPLES=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DUSE_SYSTEM_CURL=ON \
+            -DUSE_SYSTEM_TINYXML2=ON
+
+      - name: Build
+        run: cmake --build build -j$(sysctl -n hw.ncpu)
+
+      - name: Test
+        working-directory: build
+        run: ctest -V --output-on-failure -R cpp-sdk-unittest
+
+  windows:
+    name: Windows (MSVC)
+    runs-on: windows-latest
+    env:
+      VCPKG_DEFAULT_TRIPLET: x64-windows
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure CMake
+        shell: bash
+        run: |
+          cmake -B build \
+            -A x64 \
+            -DBUILD_TESTS=ON \
+            -DBUILD_SAMPLES=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DUSE_SYSTEM_TINYXML2=ON \
+            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_MANIFEST_FEATURES="tinyxml2"
+
+      - name: Build
+        shell: bash
+        run: cmake --build build --config Release -j
+
+      - name: Test
+        working-directory: build
+        shell: bash
+        run: ctest -C Release -V --output-on-failure -R cpp-sdk-unittest

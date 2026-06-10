@@ -15,6 +15,7 @@ vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
         mbedtls     USE_SYSTEM_MBEDTLS
         encryption  ENABLE_ENCRYPTION
         rtti        ENABLE_RTTI
+        tinyxml2    USE_SYSTEM_TINYXML2
 )
 
 if("openssl" IN_LIST FEATURES AND "mbedtls" IN_LIST FEATURES)

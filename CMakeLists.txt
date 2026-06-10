@@ -38,6 +38,7 @@ sdk_option(ENABLE_RTTI "Flag to enable/disable building code with RTTI informati
 sdk_option(USE_SYSTEM_CURL "If enabled we will use the curl lib already installed on this system." OFF)
 sdk_option(USE_SYSTEM_OPENSSL "If enabled we will use the openssl lib already installed on this system." OFF)
 sdk_option(USE_SYSTEM_MBEDTLS "If enabled we will use the mbedtls lib already installed on this system." OFF)
+sdk_option(USE_SYSTEM_TINYXML2 "If enabled we will use the tinyxml2 lib already installed on this system." OFF)
 
 sdk_option(USE_CURL_TRANSPORT "Compile curl transport support" ON)
 sdk_option(USE_WINHTTP_TRANSPORT "Compile WinHTTP transport support (Windows only)" OFF)
@@ -113,6 +114,12 @@ if(USE_SYSTEM_MBEDTLS)
         find_package(MbedTLS REQUIRED)
     endif()
     message(STATUS "Using system mbedTLS for hash")
+endif()
+
+#Find dependency Library tinyxml2
+if(USE_SYSTEM_TINYXML2)
+    find_package(tinyxml2 CONFIG REQUIRED)
+    message(STATUS "Using system tinyxml2")
 endif()
 
 #Find dependency Library curl
