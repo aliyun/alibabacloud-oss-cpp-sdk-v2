@@ -13,8 +13,8 @@ namespace transform {
 inline static std::string toXmlText(const models::CSVInputFormat& value, const std::string& tag) {
     std::string str;
     str.append("<").append(tag).append(">");
-    if (value.headerInfo.has_value()) {
-        str.append(toXmlText(value.headerInfo.value(), "FileHeaderInfo"));
+    if (value.fileHeaderInfo.has_value()) {
+        str.append(toXmlText(value.fileHeaderInfo.value(), "FileHeaderInfo"));
     }
     if (value.recordDelimiter.has_value()) {
         str.append(toXmlText(value.recordDelimiter.value(), "RecordDelimiter"));
@@ -22,11 +22,11 @@ inline static std::string toXmlText(const models::CSVInputFormat& value, const s
     if (value.fieldDelimiter.has_value()) {
         str.append(toXmlText(value.fieldDelimiter.value(), "FieldDelimiter"));
     }
-    if (value.quoteChar.has_value()) {
-        str.append(toXmlText(value.quoteChar.value(), "QuoteCharacter"));
+    if (value.quoteCharacter.has_value()) {
+        str.append(toXmlText(value.quoteCharacter.value(), "QuoteCharacter"));
     }
-    if (value.commentChar.has_value()) {
-        str.append(toXmlText(value.commentChar.value(), "CommentCharacter"));
+    if (value.commentCharacter.has_value()) {
+        str.append(toXmlText(value.commentCharacter.value(), "CommentCharacter"));
     }
     if (value.allowQuotedRecordDelimiter.has_value()) {
         str.append(toXmlText(value.allowQuotedRecordDelimiter.value(), "AllowQuotedRecordDelimiter"));
@@ -41,8 +41,8 @@ inline static std::string toXmlText(const models::CSVInputFormat& value, const s
 inline static std::string toXmlText(const models::JSONInputFormat& value, const std::string& tag) {
     std::string str;
     str.append("<").append(tag).append(">");
-    if (value.jsonType.has_value()) {
-        str.append(toXmlText(value.jsonType.value(), "Type"));
+    if (value.type.has_value()) {
+        str.append(toXmlText(value.type.value(), "Type"));
     }
     if (value.parseJsonNumberAsString.has_value()) {
         str.append(toXmlText(value.parseJsonNumberAsString.value(), "ParseJsonNumberAsString"));
@@ -78,9 +78,6 @@ inline static std::string toXmlText(const models::CSVOutputFormat& value, const 
     }
     if (value.fieldDelimiter.has_value()) {
         str.append(toXmlText(value.fieldDelimiter.value(), "FieldDelimiter"));
-    }
-    if (value.quoteChar.has_value()) {
-        str.append(toXmlText(value.quoteChar.value(), "QuoteCharacter"));
     }
     str.append("</").append(tag).append(">");
     return str;
