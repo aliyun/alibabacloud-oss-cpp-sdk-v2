@@ -41,23 +41,23 @@ inline constexpr char GZIP[] = "GZIP";
 // All delimiter values are base64-encoded strings.
 struct ALIBABACLOUD_OSS_API CSVInputFormat final {
     // How to handle the first row: "None", "Ignore", or "Use"
-    std::optional<std::string> headerInfo;
+    std::optional<std::string> fileHeaderInfo;
     // Base64-encoded record delimiter (e.g., "Cg==" for "\n")
     std::optional<std::string> recordDelimiter;
     // Base64-encoded field delimiter (e.g., "LA==" for ",")
     std::optional<std::string> fieldDelimiter;
     // Base64-encoded quote character
-    std::optional<std::string> quoteChar;
+    std::optional<std::string> quoteCharacter;
     // Base64-encoded comment character
-    std::optional<std::string> commentChar;
+    std::optional<std::string> commentCharacter;
     // Whether to allow record delimiters within quoted fields
     std::optional<bool> allowQuotedRecordDelimiter;
     // Row range ("line-range=start-end") or split range ("split-range=start-end")
     std::optional<std::string> range;
 
     template <typename ValueT = std::string>
-    CSVInputFormat& setHeaderInfo(ValueT&& value) {
-        headerInfo = std::forward<ValueT>(value);
+    CSVInputFormat& setFileHeaderInfo(ValueT&& value) {
+        fileHeaderInfo = std::forward<ValueT>(value);
         return *this;
     }
     template <typename ValueT = std::string>
@@ -71,13 +71,13 @@ struct ALIBABACLOUD_OSS_API CSVInputFormat final {
         return *this;
     }
     template <typename ValueT = std::string>
-    CSVInputFormat& setQuoteChar(ValueT&& value) {
-        quoteChar = std::forward<ValueT>(value);
+    CSVInputFormat& setQuoteCharacter(ValueT&& value) {
+        quoteCharacter = std::forward<ValueT>(value);
         return *this;
     }
     template <typename ValueT = std::string>
-    CSVInputFormat& setCommentChar(ValueT&& value) {
-        commentChar = std::forward<ValueT>(value);
+    CSVInputFormat& setCommentCharacter(ValueT&& value) {
+        commentCharacter = std::forward<ValueT>(value);
         return *this;
     }
     template <typename ValueT = bool>
@@ -96,15 +96,15 @@ struct ALIBABACLOUD_OSS_API CSVInputFormat final {
 // JSON format parameters for InputSerialization.
 struct ALIBABACLOUD_OSS_API JSONInputFormat final {
     // JSON document type: "DOCUMENT" or "LINES"
-    std::optional<std::string> jsonType;
+    std::optional<std::string> type;
     // Whether to parse JSON numbers as strings to preserve precision
     std::optional<bool> parseJsonNumberAsString;
     // Row range ("line-range=start-end") or split range ("split-range=start-end")
     std::optional<std::string> range;
 
     template <typename ValueT = std::string>
-    JSONInputFormat& setJsonType(ValueT&& value) {
-        jsonType = std::forward<ValueT>(value);
+    JSONInputFormat& setType(ValueT&& value) {
+        type = std::forward<ValueT>(value);
         return *this;
     }
     template <typename ValueT = bool>
@@ -153,7 +153,6 @@ struct ALIBABACLOUD_OSS_API InputSerialization final {
 struct ALIBABACLOUD_OSS_API CSVOutputFormat final {
     std::optional<std::string> recordDelimiter;
     std::optional<std::string> fieldDelimiter;
-    std::optional<std::string> quoteChar;
 
     template <typename ValueT = std::string>
     CSVOutputFormat& setRecordDelimiter(ValueT&& value) {
@@ -163,11 +162,6 @@ struct ALIBABACLOUD_OSS_API CSVOutputFormat final {
     template <typename ValueT = std::string>
     CSVOutputFormat& setFieldDelimiter(ValueT&& value) {
         fieldDelimiter = std::forward<ValueT>(value);
-        return *this;
-    }
-    template <typename ValueT = std::string>
-    CSVOutputFormat& setQuoteChar(ValueT&& value) {
-        quoteChar = std::forward<ValueT>(value);
         return *this;
     }
 };

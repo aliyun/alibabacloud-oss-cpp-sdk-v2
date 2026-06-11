@@ -30,7 +30,7 @@ TEST(SerdeObjectSelectTest, FromSelectObjectBasicCSV) {
     models::InputSerialization input;
     input.setCompressionType("NONE");
     models::CSVInputFormat csvInput;
-    csvInput.setHeaderInfo("Use");
+    csvInput.setFileHeaderInfo("Use");
     csvInput.setRecordDelimiter("Cg==");  // base64 of "\n"
     csvInput.setFieldDelimiter("LA==");   // base64 of ","
     input.setCsv(csvInput);
@@ -80,7 +80,7 @@ TEST(SerdeObjectSelectTest, FromSelectObjectJSON) {
 
     models::InputSerialization input;
     models::JSONInputFormat jsonInput;
-    jsonInput.setJsonType("LINES");
+    jsonInput.setType("LINES");
     jsonInput.setParseJsonNumberAsString(true);
     input.setJson(jsonInput);
     selectReq.setInputSerialization(input);
@@ -135,7 +135,7 @@ TEST(SerdeObjectSelectTest, FromCreateSelectObjectMetaCSV) {
     models::CSVInputFormat csvInput;
     csvInput.setRecordDelimiter("Cg==");
     csvInput.setFieldDelimiter("LA==");
-    csvInput.setQuoteChar("Ig==");
+    csvInput.setQuoteCharacter("Ig==");
     input.setCsv(csvInput);
     metaReq.setInputSerialization(input);
     metaReq.setOverwriteIfExists(true);
@@ -165,7 +165,7 @@ TEST(SerdeObjectSelectTest, FromCreateSelectObjectMetaJSON) {
     models::JSONMetaRequest metaReq;
     models::InputSerialization input;
     models::JSONInputFormat jsonInput;
-    jsonInput.setJsonType("LINES");
+    jsonInput.setType("LINES");
     input.setJson(jsonInput);
     metaReq.setInputSerialization(input);
     metaReq.setOverwriteIfExists(false);
