@@ -55,6 +55,12 @@
     "rtti": {
       "description": "Build with run-time type information"
     },
+    "tinyxml2": {
+      "description": "Use system tinyxml2 instead of vendored copy",
+      "dependencies": [
+        "tinyxml2"
+      ]
+    },
     "winhttp": {
       "description": "WinHTTP transport (Windows only)",
       "supports": "windows"
