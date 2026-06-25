@@ -27,13 +27,24 @@ permissions:
 
 jobs:
   build:
-    name: macOS (${{ matrix.compiler }}, ${{ matrix.std }})
-    runs-on: macos-latest
+    name: macOS (${{ matrix.compiler }}, ${{ matrix.std }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         compiler: [clang, gcc]
         std: [c++17, c++20]
+        os: [macos-latest]
+        exclude:
+          - compiler: gcc
+            os: macos-latest
+        include:
+          - compiler: gcc
+            std: c++17
+            os: macos-13
+          - compiler: gcc
+            std: c++20
+            os: macos-13
 
     steps:
       - name: Checkout repository
