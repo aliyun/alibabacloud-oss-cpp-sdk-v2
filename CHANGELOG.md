@@ -1,5 +1,13 @@
 # ChangeLog - Alibaba Cloud OSS SDK for C++ v2
 
+## Version: 0.1.1 Date: 2026-06-26
+### Changes
+- Feature: Add ProcessObject and AsyncProcessObject APIs
+- Feature: Add HTTP transport metrics collection
+- Feature: Add USE_SYSTEM_TINYXML2 option to support external tinyxml2
+- BreakChange: Rename SelectObject model fields to align with OSS XML element names
+
+
 ## Version: 0.1.0 (beta) Date: 2026-06-01
 ### Changes
 - Feature：Add credentials provider
