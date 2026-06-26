@@ -71,6 +71,7 @@ sudo cmake --install .
 | `USE_SYSTEM_CURL` | `OFF` | Use system-installed libcurl |
 | `USE_SYSTEM_OPENSSL` | `OFF` | Use system-installed OpenSSL |
 | `USE_SYSTEM_MBEDTLS` | `OFF` | Use system-installed mbedTLS |
+| `USE_SYSTEM_TINYXML2` | `OFF` | Use system-installed tinyxml2 |
 | `USE_STD_EXPECTED` | `OFF` | Use `std::expected` instead of custom `Outcome` (requires C++23) |
 | `ENABLE_ENCRYPTION` | `OFF` | Enable client-side encryption (requires OpenSSL, mbedTLS, or Windows) |
 | `ENABLE_RTTI` | `OFF` | Enable/disable building code with RTTI information |
@@ -101,7 +102,7 @@ git clone https://github.com/aliyun/alibabacloud-oss-cpp-sdk-v2.git
 vcpkg install alibabacloud-oss-cpp-sdk-v2[curl] --overlay-ports=alibabacloud-oss-cpp-sdk-v2/vcpkg --head
 ```
 
-Available features: `curl`, `winhttp`, `openssl`, `mbedtls`, `rtti`, `encryption`.
+Available features: `curl`, `winhttp`, `openssl`, `mbedtls`, `rtti`, `encryption`, `tinyxml2`.
 
 **Note:**
 - An HTTP transport (`curl` or `winhttp`) must be explicitly specified. Both can be enabled simultaneously.
