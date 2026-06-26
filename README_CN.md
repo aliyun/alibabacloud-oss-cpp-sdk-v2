@@ -71,6 +71,7 @@ sudo cmake --install .
 | `USE_SYSTEM_CURL` | `OFF` | 使用系统已安装的 libcurl |
 | `USE_SYSTEM_OPENSSL` | `OFF` | 使用系统已安装的 OpenSSL |
 | `USE_SYSTEM_MBEDTLS` | `OFF` | 使用系统已安装的 mbedTLS |
+| `USE_SYSTEM_TINYXML2` | `OFF` | 使用系统已安装的 tinyxml2 |
 | `USE_STD_EXPECTED` | `OFF` | 使用 `std::expected` 替代自定义 `Outcome`（需要 C++23） |
 | `ENABLE_ENCRYPTION` | `OFF` | 启用客户端加密（需要 OpenSSL、mbedTLS 或 Windows 平台） |
 | `ENABLE_RTTI` | `OFF` | 启用/禁用 RTTI 信息 |
@@ -101,7 +102,7 @@ git clone https://github.com/aliyun/alibabacloud-oss-cpp-sdk-v2.git
 vcpkg install alibabacloud-oss-cpp-sdk-v2[curl] --overlay-ports=alibabacloud-oss-cpp-sdk-v2/vcpkg --head
 ```
 
-可用 features: `curl`, `winhttp`, `openssl`, `mbedtls`, `rtti`, `encryption`。
+可用 features: `curl`, `winhttp`, `openssl`, `mbedtls`, `rtti`, `encryption`, `tinyxml2`。
 
 **注意:**
 - 必须显式指定 HTTP transport（`curl` 或 `winhttp`），两者可以同时启用。
