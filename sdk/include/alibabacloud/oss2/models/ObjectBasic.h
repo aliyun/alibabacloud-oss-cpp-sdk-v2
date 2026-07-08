@@ -270,7 +270,7 @@ class ALIBABACLOUD_OSS_API PutObjectRequest final : public RequestModel {
         return *this;
     }
 
-    // <no value>
+    // The metadata of the object that you want to upload.
     inline const HeaderCollection& getMetadata() const {
         return metadata_;
     }
@@ -337,7 +337,7 @@ class ALIBABACLOUD_OSS_API PutObjectResult final : public ResultModel {
     PutObjectResult(int statusCode, HeaderCollection headers) : ResultModel(statusCode, std::move(headers)) {}
 
 
-    // <no value>
+    // The 64-bit CRC value of the object, calculated based on the ECMA-182 standard.
     inline const std::string& getHashCrc64ecma() const {
         return getHeaderOrEmpty("x-oss-hash-crc64ecma");
     }
@@ -347,7 +347,7 @@ class ALIBABACLOUD_OSS_API PutObjectResult final : public ResultModel {
         return val.empty() ? 0 : std::strtoull(val.c_str(), nullptr, 10);
     }
 
-    // <no value>
+    // The version ID of the object.
     inline const std::string& getVersionId() const {
         return getHeaderOrEmpty("x-oss-version-id");
     }
@@ -611,7 +611,7 @@ class ALIBABACLOUD_OSS_API CopyObjectRequest final : public RequestModel {
         return *this;
     }
 
-    // <no value>
+    // The metadata of the object that you want to upload.
     inline const HeaderCollection& getMetadata() const {
         return metadata_;
     }
@@ -646,12 +646,12 @@ class ALIBABACLOUD_OSS_API CopyObjectResult final : public ResultModel {
     CopyObjectResult(int statusCode, HeaderCollection headers, CopyObjectResultXml body)
         : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
 
-    // <no value>
+    // The version ID of the source object.
     inline const std::string& getCopySourceVersionId() const {
         return getHeaderOrEmpty("x-oss-copy-source-version-id");
     }
 
-    // <no value>
+    // The version ID of the object.
     inline const std::string& getVersionId() const {
         return getHeaderOrEmpty("x-oss-version-id");
     }
@@ -934,37 +934,37 @@ class ALIBABACLOUD_OSS_API GetObjectResult final : public ResultModel {
         : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
 
 
-    // <no value>
+    // The Content-MD5 value of the object.
     inline const std::string& getContentMd5() const {
         return getHeaderOrEmpty("Content-Md5");
     }
 
-    // <no value>
+    // The time when the object was last modified.
     inline const std::string& getLastModified() const {
         return getHeaderOrEmpty("Last-Modified");
     }
 
-    // <no value>
+    // The lifecycle expiration information of the object.
     inline const std::string& getExpiration() const {
         return getHeaderOrEmpty("x-oss-expiration");
     }
 
-    // <no value>
+    // The number of tags added to the object.
     inline std::int64_t getTaggingCount() const {
         return getHeaderAsInt64Or("x-oss-tagging-count");
     }
 
-    // <no value>
+    // A standard MIME type describing the format of the object data.
     inline const std::string& getContentType() const {
         return getHeaderOrEmpty("Content-Type");
     }
 
-    // <no value>
+    // The position for the next append operation.
     inline std::int64_t getNextAppendPosition() const {
         return getHeaderAsInt64Or("x-oss-next-append-position");
     }
 
-    // <no value>
+    // The 64-bit CRC value of the object, calculated based on the ECMA-182 standard.
     inline const std::string& getHashCrc64ecma() const {
         return getHeaderOrEmpty("x-oss-hash-crc64ecma");
     }
@@ -974,62 +974,62 @@ class ALIBABACLOUD_OSS_API GetObjectResult final : public ResultModel {
         return val.empty() ? 0 : std::strtoull(val.c_str(), nullptr, 10);
     }
 
-    // <no value>
+    // The ID of the customer master key (CMK) managed by Key Management Service (KMS).
     inline const std::string& getServerSideEncryptionKeyId() const {
         return getHeaderOrEmpty("x-oss-server-side-encryption-key-id");
     }
 
-    // <no value>
+    // The type of the object.
     inline const std::string& getObjectType() const {
         return getHeaderOrEmpty("x-oss-object-type");
     }
 
-    // <no value>
+    // The requester, returned when the pay-by-requester mode is enabled.
     inline const std::string& getRequestCharged() const {
         return getHeaderOrEmpty("x-oss-request-charged");
     }
 
-    // <no value>
+    // The size of the object content, in bytes.
     inline std::int64_t getContentLength() const {
         return getHeaderAsInt64Or("Content-Length");
     }
 
-    // <no value>
+    // The content range of the object returned when a valid Range is specified.
     inline const std::string& getContentRange() const {
         return getHeaderOrEmpty("Content-Range");
     }
 
-    // <no value>
+    // The entity tag (ETag) that identifies the content of the object.
     inline const std::string& getETag() const {
         return getHeaderOrEmpty("ETag");
     }
 
-    // <no value>
+    // A map of the object user metadata, from response headers prefixed with x-oss-meta-.
     inline const HeaderCollection& getMetadata() {
         return metadata_;
     }
 
-    // <no value>
+    // The server-side encryption algorithm used to encrypt the object.
     inline const std::string& getServerSideEncryption() const {
         return getHeaderOrEmpty("x-oss-server-side-encryption");
     }
 
-    // <no value>
+    // The storage class of the object.
     inline const std::string& getStorageClass() const {
         return getHeaderOrEmpty("x-oss-storage-class");
     }
 
-    // <no value>
+    // The restoration status of the object.
     inline const std::string& getRestore() const {
         return getHeaderOrEmpty("x-oss-restore");
     }
 
-    // <no value>
+    // The result of an event notification that is triggered for the object.
     inline const std::string& getProcessStatus() const {
         return getHeaderOrEmpty("x-oss-process-status");
     }
 
-    // <no value>
+    // The object data returned in the response body.
     inline const std::shared_ptr<std::iostream>& getBody() {
         return body_;
     }
@@ -1122,7 +1122,7 @@ class ALIBABACLOUD_OSS_API AppendObjectRequest final : public RequestModel {
         return *this;
     }
 
-    // <no value>
+    // The metadata of the object that you want to upload.
     inline const HeaderCollection& getMetadata() const {
         return metadata_;
     }
@@ -1254,12 +1254,12 @@ class ALIBABACLOUD_OSS_API AppendObjectResult final : public ResultModel {
     AppendObjectResult(int statusCode, HeaderCollection headers) : ResultModel(statusCode, std::move(headers)) {}
 
 
-    // <no value>
+    // The position for the next append operation.
     inline std::int64_t getNextAppendPosition() const {
         return getHeaderAsInt64Or("x-oss-next-append-position");
     }
 
-    // <no value>
+    // The 64-bit CRC value of the object, calculated based on the ECMA-182 standard.
     inline const std::string& getHashCrc64ecma() const {
         return getHeaderOrEmpty("x-oss-hash-crc64ecma");
     }
@@ -1322,7 +1322,7 @@ class ALIBABACLOUD_OSS_API SealAppendObjectResult final : public ResultModel {
     SealAppendObjectResult(int statusCode, HeaderCollection headers) : ResultModel(statusCode, std::move(headers)) {}
 
 
-    // <no value>
+    // The GMT time when the SealAppendObject operation was first performed on the object.
     inline const std::string& getSealedTime() const {
         return getHeaderOrEmpty("x-oss-sealed-time");
     }
@@ -1380,12 +1380,12 @@ class ALIBABACLOUD_OSS_API DeleteObjectResult final : public ResultModel {
     DeleteObjectResult(int statusCode, HeaderCollection headers) : ResultModel(statusCode, std::move(headers)) {}
 
 
-    // <no value>
+    // Indicates whether the deleted version is a delete marker.
     inline const std::string& getDeleteMarker() const {
         return getHeaderOrEmpty("x-oss-delete-marker");
     }
 
-    // <no value>
+    // The version ID of the object.
     inline const std::string& getVersionId() const {
         return getHeaderOrEmpty("x-oss-version-id");
     }
@@ -1567,82 +1567,82 @@ class ALIBABACLOUD_OSS_API HeadObjectResult final : public ResultModel {
     HeadObjectResult(int statusCode, HeaderCollection headers) : ResultModel(statusCode, std::move(headers)) {}
 
 
-    // <no value>
+    // The result of an event notification that is triggered for the object.
     inline const std::string& getProcessStatus() const {
         return getHeaderOrEmpty("x-oss-process-status");
     }
 
-    // <no value>
+    // The requester, returned when the pay-by-requester mode is enabled.
     inline const std::string& getRequestCharged() const {
         return getHeaderOrEmpty("x-oss-request-charged");
     }
 
-    // <no value>
+    // A standard MIME type describing the format of the object data.
     inline const std::string& getContentType() const {
         return getHeaderOrEmpty("Content-Type");
     }
 
-    // <no value>
+    // The server-side encryption algorithm used to encrypt the object.
     inline const std::string& getServerSideEncryption() const {
         return getHeaderOrEmpty("x-oss-server-side-encryption");
     }
 
-    // <no value>
+    // The type of the object.
     inline const std::string& getObjectType() const {
         return getHeaderOrEmpty("x-oss-object-type");
     }
 
-    // <no value>
+    // The lifecycle expiration information of the object.
     inline const std::string& getExpiration() const {
         return getHeaderOrEmpty("x-oss-expiration");
     }
 
-    // <no value>
+    // The Content-MD5 value of the object.
     inline const std::string& getContentMd5() const {
         return getHeaderOrEmpty("Content-Md5");
     }
 
-    // <no value>
+    // The size of the object content, in bytes.
     inline std::int64_t getContentLength() const {
         return getHeaderAsInt64Or("Content-Length");
     }
 
-    // <no value>
+    // The time when the object was last modified.
     inline const std::string& getLastModified() const {
         return getHeaderOrEmpty("Last-Modified");
     }
 
-    // <no value>
+    // The entity tag (ETag) that identifies the content of the object.
     inline const std::string& getETag() const {
         return getHeaderOrEmpty("ETag");
     }
 
-    // <no value>
+    // The ID of the customer master key (CMK) managed by Key Management Service (KMS).
     inline const std::string& getServerSideEncryptionKeyId() const {
         return getHeaderOrEmpty("x-oss-server-side-encryption-key-id");
     }
 
-    // <no value>
+    // The position for the next append operation.
     inline std::int64_t getNextAppendPosition() const {
         return getHeaderAsInt64Or("x-oss-next-append-position");
     }
 
-    // <no value>
+    // The restoration status of the object.
     inline const std::string& getRestore() const {
         return getHeaderOrEmpty("x-oss-restore");
     }
 
-    // <no value>
+    // The time when the object was transitioned to Cold Archive or Deep Cold Archive by lifecycle rules.
     inline const std::string& getTransitionTime() const {
         return getHeaderOrEmpty("x-oss-transition-time");
     }
 
-    // <no value>
+    // The number of tags added to the object.
     inline std::int64_t getTaggingCount() const {
         return getHeaderAsInt64Or("x-oss-tagging-count");
     }
 
-    // <no value>
+    // The 64-bit CRC value of the object, calculated based on the ECMA-182 standard.
     inline const std::string& getHashCrc64ecma() const {
         return getHeaderOrEmpty("x-oss-hash-crc64ecma");
     }
@@ -1652,12 +1652,12 @@ class ALIBABACLOUD_OSS_API HeadObjectResult final : public ResultModel {
         return val.empty() ? 0 : std::strtoull(val.c_str(), nullptr, 10);
     }
 
-    // <no value>
+    // A map of the object user metadata, from response headers prefixed with x-oss-meta-.
     inline const HeaderCollection& getMetadata() {
         return metadata_;
     }
 
-    // <no value>
+    // The storage class of the object.
     inline const std::string& getStorageClass() const {
         return getHeaderOrEmpty("x-oss-storage-class");
     }
@@ -1715,32 +1715,32 @@ class ALIBABACLOUD_OSS_API GetObjectMetaResult final : public ResultModel {
     GetObjectMetaResult(int statusCode, HeaderCollection headers) : ResultModel(statusCode, std::move(headers)) {}
 
 
-    // <no value>
+    // The time when the object was last accessed.
     inline const std::string& getLastAccessTime() const {
         return getHeaderOrEmpty("x-oss-last-access-time");
     }
 
-    // <no value>
+    // The time when the object was last modified.
     inline const std::string& getLastModified() const {
         return getHeaderOrEmpty("Last-Modified");
     }
 
-    // <no value>
+    // The time when the object was transitioned to Cold Archive or Deep Cold Archive by lifecycle rules.
     inline const std::string& getTransitionTime() const {
         return getHeaderOrEmpty("x-oss-transition-time");
     }
 
-    // <no value>
+    // The version ID of the object.
     inline const std::string& getVersionId() const {
         return getHeaderOrEmpty("x-oss-version-id");
     }
 
-    // <no value>
+    // The entity tag (ETag) that identifies the content of the object.
     inline const std::string& getETag() const {
         return getHeaderOrEmpty("ETag");
     }
 
-    // <no value>
+    // The size of the object content, in bytes.
     inline std::int64_t getContentLength() const {
         return getHeaderAsInt64Or("Content-Length");
     }
@@ -1814,12 +1814,12 @@ class ALIBABACLOUD_OSS_API RestoreObjectResult final : public ResultModel {
     RestoreObjectResult(int statusCode, HeaderCollection headers) : ResultModel(statusCode, std::move(headers)) {}
 
 
-    // <no value>
+    // The restoration priority for a Cold Archive or Deep Cold Archive object in the restored state.
     inline const std::string& getObjectRestorePriority() const {
         return getHeaderOrEmpty("x-oss-object-restore-priority");
     }
 
-    // <no value>
+    // The version ID of the object.
     inline const std::string& getVersionId() const {
         return getHeaderOrEmpty("x-oss-version-id");
     }

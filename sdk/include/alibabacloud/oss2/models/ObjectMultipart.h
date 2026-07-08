@@ -610,7 +610,7 @@ class ALIBABACLOUD_OSS_API CompleteMultipartUploadResult final : public ResultMo
         : ResultModel(statusCode, std::move(headers)) {}
 
 
-    // <no value>
+    // The version ID of the object.
     inline const std::string& getVersionId() const {
         return getHeaderOrEmpty("x-oss-version-id");
     }
@@ -868,7 +868,7 @@ class ALIBABACLOUD_OSS_API UploadPartCopyResult final : public ResultModel {
     UploadPartCopyResult(int statusCode, HeaderCollection headers, CopyPartResult body)
         : ResultModel(statusCode, std::move(headers)), body_(std::move(body)) {}
 
-    // <no value>
+    // The version ID of the source object.
     inline const std::string& getCopySourceVersionId() const {
         return getHeaderOrEmpty("x-oss-copy-source-version-id");
     }

@@ -77,7 +77,7 @@ class ALIBABACLOUD_OSS_API PutObjectTaggingResult final : public ResultModel {
     PutObjectTaggingResult(int statusCode, HeaderCollection headers) : ResultModel(statusCode, std::move(headers)) {}
 
 
-    // <no value>
+    // The version ID of the object.
     inline const std::string& getVersionId() const {
         return getHeaderOrEmpty("x-oss-version-id");
     }

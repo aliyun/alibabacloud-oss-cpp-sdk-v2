@@ -105,7 +105,7 @@ class ALIBABACLOUD_OSS_API PutSymlinkResult final : public ResultModel {
     PutSymlinkResult(int statusCode, HeaderCollection headers) : ResultModel(statusCode, std::move(headers)) {}
 
 
-    // <no value>
+    // The version ID of the object.
     inline const std::string& getVersionId() const {
         return getHeaderOrEmpty("x-oss-version-id");
     }
@@ -163,12 +163,12 @@ class ALIBABACLOUD_OSS_API GetSymlinkResult final : public ResultModel {
     GetSymlinkResult(int statusCode, HeaderCollection headers) : ResultModel(statusCode, std::move(headers)) {}
 
 
-    // <no value>
+    // The target object that the symbolic link points to.
     inline const std::string& getSymlinkTarget() const {
         return getHeaderOrEmpty("x-oss-symlink-target");
     }
 
-    // <no value>
+    // The version ID of the object.
     inline const std::string& getVersionId() const {
         return getHeaderOrEmpty("x-oss-version-id");
     }
