@@ -46,6 +46,10 @@ struct ALIBABACLOUD_OSS_API ClientConfiguration {
     /// When set, overrides the endpoint derived from @c region.
     std::optional<std::string> endpoint;
 
+    /// The account id, required by the agentic bucket client to resolve the
+    /// physical bucket name. Must be pure digits when set.
+    std::optional<std::string> accountId;
+
     // ---- Credentials ----
 
     /// The credentials provider to use when signing requests.

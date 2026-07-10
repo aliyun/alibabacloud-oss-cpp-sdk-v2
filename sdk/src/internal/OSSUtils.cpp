@@ -38,6 +38,18 @@ bool isValidMethod(const std::string& key) {
     return methods.find(key) != methods.end();
 }
 
+bool isValidAccountId(const std::string& value) {
+    if (value.empty()) {
+        return false;
+    }
+    for (char c : value) {
+        if (c < '0' || c > '9') {
+            return false;
+        }
+    }
+    return true;
+}
+
 std::string addScheme(const std::string& value, bool disableSsl) {
     static const std::regex pattern("^[^:]+://.*");
     if (!std::regex_match(value, pattern)) {
@@ -72,16 +84,17 @@ std::string buildHostPath(const OperationInput& input, const std::string& baseUr
     auto host = baseUrl;
 
     if (input.bucket.has_value()) {
+        const auto& bucket = input.bucket.value();
         switch (addressStyle) {
             case AddressStyleType::Path:
-                paths.emplace_back(input.bucket.value());
+                paths.emplace_back(bucket);
                 if (!input.key.has_value()) {
                     paths.emplace_back("");
                 }
                 break;
             case AddressStyleType::CName: break;
             case AddressStyleType::VirtualHosted:
-            default: host = input.bucket.value() + "." + baseUrl; break;
+            default: host = bucket + "." + baseUrl; break;
         }
     }
 

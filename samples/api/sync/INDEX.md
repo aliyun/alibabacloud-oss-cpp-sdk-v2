@@ -87,6 +87,20 @@ auto& result = outcome.value();
 | Query versioning state | GetBucketVersioning.cpp | `client.getBucketVersioning()` |
 | List object versions | ListObjectVersions.cpp | `client.listObjectVersions()` |
 
+## Agentic Bucket
+
+Uses `OSSAgenticBucketClient` (requires `--account-id`). The logical bucket name is resolved
+to a physical name `{prefix}-{accountId}-{region}-ab-apsr` for signing and host construction.
+
+| Use Case | File | Key API |
+|----------|------|---------|
+| Create an agentic bucket | CreateAgenticBucket.cpp | `client.createAgenticBucket()` |
+| Delete an agentic bucket | DeleteAgenticBucket.cpp | `client.deleteAgenticBucket()` |
+| Query an agentic bucket | GetAgenticBucket.cpp | `client.getAgenticBucket()` |
+| List agentic buckets | ListAgenticBuckets.cpp | `client.listAgenticBuckets()` |
+| Update agentic bucket status | PutAgenticBucketStatus.cpp | `client.putAgenticBucketStatus()` |
+| List bucket spaces | ListBucketSpaces.cpp | `client.listBucketSpaces()` |
+
 ## Service
 
 | Use Case | File | Key API |

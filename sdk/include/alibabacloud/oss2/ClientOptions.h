@@ -16,6 +16,7 @@ class CredentialsProvider;
 class Retryer;
 class HttpTransport;
 class AsyncHttpTransport;
+struct OperationInput;
 
 /**
  * @brief Resolved, immutable options used internally by ClientImpl.
@@ -36,6 +37,9 @@ struct ALIBABACLOUD_OSS_API ClientOptions {
     /// The region in which the bucket is located.
     /// Resolved from ClientConfiguration::region.
     std::string region;
+
+    /// The account id. Resolved from ClientConfiguration::accountId.
+    std::string accountId;
 
     /// The resolved endpoint URL for API calls.
     /// Derived from ClientConfiguration::endpoint or constructed from @c region.
@@ -76,6 +80,16 @@ struct ALIBABACLOUD_OSS_API ClientOptions {
 
     /// Additional signable headers to include in the request signature.
     std::vector<std::string> additionalHeaders;
+
+    /// Resolves the physical bucket name from an operation input. Used by the
+    /// agentic bucket client to expand the logical bucket prefix for signing.
+    /// Returns an empty string when no resolution applies.
+    std::function<std::string(const OperationInput&)> bucketNameResolver;
+
+    /// Builds the full request URL (scheme://host/path) from an operation input.
+    /// When set, it fully replaces the default host/path construction. Used by the
+    /// agentic bucket client to route requests to the physical virtual-hosted host.
+    std::function<std::string(const OperationInput&)> endpointProvider;
 };
 
 /// Functional option for customizing ClientOptions.

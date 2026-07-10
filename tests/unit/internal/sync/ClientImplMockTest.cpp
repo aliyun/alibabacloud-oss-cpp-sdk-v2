@@ -290,6 +290,57 @@ TEST(ClientImplMockTest, verifyExecuteArgsInvalidObjectName) {
 }
 
 
+TEST(ClientImplMockTest, verifyExecuteArgsInvalidAccountId) {
+    auto mockHandler = std::make_shared<MockTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.accountId = "bad-account";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+    auto client = ClientImpl(config, defaultClientFns);
+
+    auto input = OperationInput{};
+    input.opName = "GetObject";
+    input.method = "GET";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    auto result = client.Execute(input);
+    EXPECT_EQ(0, mockHandler->requests.size());
+    auto error = std::get_if<OperationError>(&result);
+
+    EXPECT_NE(nullptr, error);
+    EXPECT_EQ(0, error->getStatusCode());
+    EXPECT_EQ("IllegalArgument", error->getCode());
+    EXPECT_EQ("invalid account id: bad-account, must be pure digits", error->getMessage());
+}
+
+
+TEST(ClientImplMockTest, verifyPresignInvalidAccountId) {
+    auto mockHandler = std::make_shared<MockTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.accountId = "bad-account";
+    config.credentialsProvider = std::make_shared<StaticCredentialsProvider>("ak", "sk");
+    config.httpTransport = mockHandler;
+    auto client = ClientImpl(config, defaultClientFns);
+
+    auto input = OperationInput{};
+    input.opName = "GetObject";
+    input.method = "GET";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    auto result = client.Presign(input);
+    EXPECT_EQ(0, mockHandler->requests.size());
+    auto error = std::get_if<OperationError>(&result);
+
+    EXPECT_NE(nullptr, error);
+    EXPECT_EQ("IllegalArgument", error->getCode());
+    EXPECT_EQ("invalid account id: bad-account, must be pure digits", error->getMessage());
+}
+
+
 TEST(ClientImplMockTest, configRetryMaxAttemptsFromClientOptions) {
     auto mockHandler = std::make_shared<MockTransport>();
 

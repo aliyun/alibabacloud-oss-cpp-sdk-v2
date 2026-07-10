@@ -16,6 +16,7 @@ struct Args {
     std::string endpoint;
     std::string bucket;
     std::string key;
+    std::string accountId;
 };
 
 inline void printUsageAndExit(const char* prog, const char* extra) {
@@ -32,6 +33,7 @@ inline Args parseArgs(int argc, char* argv[]) {
         else if (arg == "--endpoint" && i + 1 < argc) a.endpoint = argv[++i];
         else if (arg == "--bucket" && i + 1 < argc) a.bucket = argv[++i];
         else if (arg == "--key" && i + 1 < argc) a.key = argv[++i];
+        else if (arg == "--account-id" && i + 1 < argc) a.accountId = argv[++i];
     }
     return a;
 }

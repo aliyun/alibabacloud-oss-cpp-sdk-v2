@@ -81,6 +81,10 @@ OperationResult ClientImpl::Execute(const OperationInput& input, const Operation
                               {{"Code", "RequestDisabled"}, {"Message", "Request disabled by client"}});
     }
 
+    if (innerOptions_.initError) {
+        return OperationError(innerOptions_.initError, innerOptions_.initErrorFields);
+    }
+
     verifyOperation(input, context);
     if (context.errorContext.error) {
         return OperationError(context.errorContext.error, std::move(context.errorContext.errorFields));
@@ -113,6 +117,10 @@ OperationResult ClientImpl::Execute(const OperationInput& input, const Operation
 
 PresignInnerResult ClientImpl::Presign(const OperationInput& input, const OperationOptions* opts) {
     ExecuteContext context;
+
+    if (innerOptions_.initError) {
+        return OperationError(innerOptions_.initError, innerOptions_.initErrorFields);
+    }
 
     verifyOperation(input, context);
     if (context.errorContext.error) {

@@ -25,6 +25,16 @@ TEST(OSSUtilsTest, IsValidMethod) {
 }
 
 
+TEST(OSSUtilsTest, IsValidAccountId) {
+    EXPECT_EQ(true, isValidAccountId("0"));
+    EXPECT_EQ(true, isValidAccountId("1234567890"));
+    EXPECT_EQ(false, isValidAccountId(""));
+    EXPECT_EQ(false, isValidAccountId("123abc"));
+    EXPECT_EQ(false, isValidAccountId("12 34"));
+    EXPECT_EQ(false, isValidAccountId("-123"));
+}
+
+
 } // namespace internal
 } // namespace oss2
 } // namespace alibabacloud

@@ -451,6 +451,16 @@ inline static models::BucketInfo toBucketInfo(const thirdparty::tinyxml2::XMLEle
         if (node) {
             result.extranetEndpoint = toString(node);
         }
+
+        node = root->FirstChildElement("BucketResourceType");
+        if (node) {
+            result.bucketResourceType = toString(node);
+        }
+
+        node = root->FirstChildElement("AgenticBucketName");
+        if (node) {
+            result.agenticBucketName = toString(node);
+        }
     }
     return result;
 }

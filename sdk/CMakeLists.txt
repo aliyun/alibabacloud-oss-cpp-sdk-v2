@@ -49,6 +49,7 @@ file(GLOB sdk_error_src "src/error/*.cpp")
 file(GLOB sdk_io_src "src/io/*.cpp")
 file(GLOB sdk_models_src "src/models/*.cpp")
 file(GLOB sdk_transform_src "src/transform/*.cpp")
+file(GLOB sdk_agentic_src "src/agentic/*.cpp")
 
 # transport
 file(GLOB sdk_transport_common_src "src/transport/*.cpp")
@@ -139,6 +140,7 @@ file(GLOB sdk_src
     ${sdk_io_src}
     ${sdk_models_src}
     ${sdk_transform_src}
+    ${sdk_agentic_src}
     ${sdk_thirdparty_src}
     ${sdk_encryption_src}
 )
