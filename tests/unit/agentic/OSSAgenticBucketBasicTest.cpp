@@ -473,6 +473,80 @@ TEST(OSSAgenticBucketBasicTest, MakeBucketSpaceClient_InvalidAccountId_DeferredE
     EXPECT_EQ(0, mock->requests.size());
 }
 
+// ---------------- Path-style addressing ----------------
+
+TEST(OSSAgenticBucketBasicTest, GetAgenticBucket_PathStyle) {
+    auto mock = std::make_shared<MockTransport>();
+    auto config = makeAgenticConfig(mock);
+    config.usePathStyle = true;
+    auto client = agentic::OSSAgenticBucketClient(config);
+
+    mock->Clear();
+    mock->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK", {{"x-oss-request-id", "id-1"}},
+            std::make_shared<std::stringstream>("<AgenticBucketInfo><Name>mybucket</Name></AgenticBucketInfo>")}));
+
+    auto request = agentic::models::GetAgenticBucketRequest();
+    request.setBucket("mybucket");
+    auto outcome = client.getAgenticBucket(request);
+    ASSERT_TRUE(outcome.has_value());
+
+    ASSERT_EQ(1, mock->requests.size());
+    auto& req = mock->requests[0];
+    // Under path-style the physical name lives in the path, host stays bare.
+    EXPECT_TRUE(req->uri.find("oss-cn-hangzhou.aliyuncs.com/mybucket-1234567890-cn-hangzhou-ab-apsr/") !=
+                std::string::npos)
+            << req->uri;
+    EXPECT_TRUE(req->uri.find("mybucket-1234567890-cn-hangzhou-ab-apsr.oss-cn-hangzhou.aliyuncs.com") ==
+                std::string::npos)
+            << req->uri;
+    EXPECT_TRUE(req->uri.find("agenticBucket") != std::string::npos);
+}
+
+TEST(OSSAgenticBucketBasicTest, ListAgenticBuckets_PathStyle_RegionHost) {
+    auto mock = std::make_shared<MockTransport>();
+    auto config = makeAgenticConfig(mock);
+    config.usePathStyle = true;
+    auto client = agentic::OSSAgenticBucketClient(config);
+
+    mock->Clear();
+    mock->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK", {{"x-oss-request-id", "id-1"}},
+            std::make_shared<std::stringstream>("<ListAgenticBucketsResult><IsTruncated>false</IsTruncated></ListAgenticBucketsResult>")}));
+
+    auto outcome = client.listAgenticBuckets(agentic::models::ListAgenticBucketsRequest());
+    ASSERT_TRUE(outcome.has_value());
+    ASSERT_EQ(1, mock->requests.size());
+    auto& req = mock->requests[0];
+    // No bucket -> bare regional host, no -ab-apsr prefix anywhere.
+    EXPECT_TRUE(req->uri.find("oss-cn-hangzhou.aliyuncs.com") != std::string::npos) << req->uri;
+    EXPECT_TRUE(req->uri.find("-ab-apsr") == std::string::npos) << req->uri;
+}
+
+TEST(OSSAgenticBucketBasicTest, MakeBucketSpaceClient_PathStyle) {
+    auto mock = std::make_shared<MockTransport>();
+    auto config = makeAgenticConfig(mock);
+    config.usePathStyle = true;
+    auto client = agentic::makeBucketSpaceClient(config);
+
+    mock->Clear();
+    mock->responses.emplace_back(
+            std::make_unique<ResponseMessage>(ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}}, nullptr}));
+
+    auto request = models::PutObjectRequest();
+    request.setBucket("myspace");
+    request.setKey("dir/obj.txt");
+    request.setBody(std::make_shared<StringContent>("data"));
+    auto outcome = client.putObject(request);
+    EXPECT_TRUE(outcome.has_value());
+
+    ASSERT_EQ(1, mock->requests.size());
+    auto& req = mock->requests[0];
+    EXPECT_TRUE(req->uri.find("oss-cn-hangzhou.aliyuncs.com/myspace-1234567890-cn-hangzhou-bs-apsr/dir/obj.txt") !=
+                std::string::npos)
+            << req->uri;
+}
+
 // ---------------- invokeOperation (raw) ----------------
 
 TEST(OSSAgenticBucketBasicTest, InvokeOperation_Success) {

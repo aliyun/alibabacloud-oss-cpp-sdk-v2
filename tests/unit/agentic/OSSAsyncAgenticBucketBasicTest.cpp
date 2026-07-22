@@ -199,6 +199,30 @@ TEST(OSSAsyncAgenticBucketBasicTest, MakeAsyncBucketSpaceClient_EndpointResoluti
     EXPECT_TRUE(req->uri.find("dir/obj.txt") != std::string::npos) << req->uri;
 }
 
+TEST(OSSAsyncAgenticBucketBasicTest, MakeAsyncBucketSpaceClient_PathStyle) {
+    auto mock = std::make_shared<MockAsyncTransport>();
+    auto config = makeAsyncAgenticConfig(mock);
+    config.usePathStyle = true;
+    auto client = agentic::makeAsyncBucketSpaceClient(config);
+
+    mock->responses.emplace_back(
+            std::make_unique<ResponseMessage>(ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}}, nullptr}));
+
+    auto request = models::PutObjectRequest();
+    request.setBucket("myspace");
+    request.setKey("dir/obj.txt");
+    request.setBody(std::make_shared<StringContent>("data"));
+    auto outcome = client.asyncCall(request).get();
+    EXPECT_TRUE(outcome.has_value());
+
+    ASSERT_EQ(1, mock->requests.size());
+    auto& req = mock->requests[0];
+    // Under path-style the physical name lives in the path, host stays bare.
+    EXPECT_TRUE(req->uri.find("oss-cn-hangzhou.aliyuncs.com/myspace-1234567890-cn-hangzhou-bs-apsr/dir/obj.txt") !=
+                std::string::npos)
+            << req->uri;
+}
+
 TEST(OSSAsyncAgenticBucketBasicTest, MakeAsyncBucketSpaceClient_InvalidAccountId_DeferredError) {
     auto mock = std::make_shared<MockAsyncTransport>();
     auto client = agentic::makeAsyncBucketSpaceClient(makeAsyncAgenticConfig(mock, "bad-account"));

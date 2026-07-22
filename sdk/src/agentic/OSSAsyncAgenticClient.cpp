@@ -24,13 +24,29 @@ static ClientOptionsFns makeAsyncAgenticOptionsFns(const std::string& accountId,
         auto url = internal::Url(opts.endpoint);
         auto scheme = url.scheme();
         auto authority = url.authority();
-        opts.endpointProvider = [buildName, scheme, authority](const OperationInput& input) -> std::string {
-            std::string host = input.bucket.has_value() ? (buildName(input) + "." + authority) : authority;
-            std::string result = scheme + "://" + host + "/";
-            if (input.key.has_value()) {
-                result += utils::UrlEncodePath(input.key.value());
+        auto addressStyle = opts.addressStyle;
+        opts.endpointProvider = [buildName, scheme, authority, addressStyle](const OperationInput& input) -> std::string {
+            std::vector<std::string> paths;
+            paths.reserve(2);
+            auto host = authority;
+
+            if (input.bucket.has_value()) {
+                switch (addressStyle) {
+                    case AddressStyleType::Path:
+                        paths.emplace_back(buildName(input));
+                        if (!input.key.has_value()) {
+                            paths.emplace_back("");
+                        }
+                        break;
+                    default: host = buildName(input) + "." + authority; break;
+                }
             }
-            return result;
+
+            if (input.key.has_value()) {
+                paths.emplace_back(utils::UrlEncodePath(input.key.value()));
+            }
+
+            return scheme + "://" + host + "/" + utils::StringJoin(paths, "/");
         };
     });
     return fns;
