@@ -307,6 +307,7 @@ TEST(OSSAgenticBucketBasicTest, ListBucketSpaces_FullXml) {
   <MaxKeys>100</MaxKeys>
   <ContinuationToken></ContinuationToken>
   <NextContinuationToken>next-token</NextContinuationToken>
+  <StartAfter>space-0</StartAfter>
   <IsTruncated>false</IsTruncated>
   <BucketSpaces>
     <BucketSpace>
@@ -324,14 +325,18 @@ TEST(OSSAgenticBucketBasicTest, ListBucketSpaces_FullXml) {
 
     auto request = agentic::models::ListBucketSpacesRequest();
     request.setBucket("mybucket");
+    request.setStartAfter("space-0");
     auto outcome = client.listBucketSpaces(request);
     ASSERT_TRUE(outcome.has_value());
+    ASSERT_EQ(1, mock->requests.size());
+    EXPECT_TRUE(mock->requests[0]->uri.find("start-after=space-0") != std::string::npos);
     auto& result = outcome.value();
     ASSERT_TRUE(result.getOwner().has_value());
     EXPECT_EQ("owner-id", result.getOwner().value().id);
     EXPECT_EQ("abc", result.getPrefix().value());
     EXPECT_EQ(100, result.getMaxKeys());
     EXPECT_EQ("next-token", result.getNextContinuationToken().value());
+    EXPECT_EQ("space-0", result.getStartAfter().value());
     EXPECT_FALSE(result.getIsTruncated());
     ASSERT_EQ(1, result.getBucketSpaces().size());
     EXPECT_EQ("space-a", result.getBucketSpaces()[0].name.value());

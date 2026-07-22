@@ -236,6 +236,10 @@ inline static models::ListBucketSpacesResult toListBucketSpacesResult(int status
     if (node) {
         result.setNextContinuationToken(toString(node));
     }
+    node = root->FirstChildElement("StartAfter");
+    if (node) {
+        result.setStartAfter(toString(node));
+    }
     node = root->FirstChildElement("IsTruncated");
     if (node) {
         result.setIsTruncated(toBool(node));

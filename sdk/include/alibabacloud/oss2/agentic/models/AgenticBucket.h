@@ -527,6 +527,15 @@ class ALIBABACLOUD_OSS_API ListBucketSpacesRequest final : public RequestModel {
         return *this;
     }
 
+    inline const std::string& getStartAfter() const {
+        return getParameterOrEmpty("start-after");
+    }
+    template <typename ValueT = std::string>
+    ListBucketSpacesRequest& setStartAfter(ValueT&& value) {
+        parameters_.insert_or_assign("start-after", std::forward<ValueT>(value));
+        return *this;
+    }
+
     inline std::int64_t getMaxKeys() const {
         return getParameterAsInt64Or("max-keys");
     }
@@ -589,6 +598,15 @@ class ALIBABACLOUD_OSS_API ListBucketSpacesResult final : public ResultModel {
         return *this;
     }
 
+    inline const std::optional<std::string>& getStartAfter() const {
+        return startAfter_;
+    }
+    template <typename ValueT = std::string>
+    ListBucketSpacesResult& setStartAfter(ValueT&& value) {
+        startAfter_ = std::forward<ValueT>(value);
+        return *this;
+    }
+
     inline bool getIsTruncated() const {
         return isTruncated_;
     }
@@ -612,6 +630,7 @@ class ALIBABACLOUD_OSS_API ListBucketSpacesResult final : public ResultModel {
     std::int32_t maxKeys_{0};
     std::optional<std::string> continuationToken_;
     std::optional<std::string> nextContinuationToken_;
+    std::optional<std::string> startAfter_;
     bool isTruncated_{false};
     std::vector<BucketSpaceSummary> bucketSpaces_;
 };
