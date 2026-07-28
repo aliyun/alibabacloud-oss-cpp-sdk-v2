@@ -87,6 +87,10 @@ void AsyncClientImpl::ExecuteAsync(const OperationInput& input, OperationCallbac
     applyOperationOptions(context, opts, innerOpts);
 
     auto request = applyOperationInput(context, input);
+    if (context.errorContext.error) {
+        callback(OperationError(context.errorContext.error, std::move(context.errorContext.errorFields)));
+        return;
+    }
 
     applyOther(context, request, innerOpts);
 

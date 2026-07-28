@@ -5,6 +5,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <system_error>
 #include <vector>
 
 namespace alibabacloud {
@@ -89,7 +90,7 @@ struct ALIBABACLOUD_OSS_API ClientOptions {
     /// Builds the full request URL (scheme://host/path) from an operation input.
     /// When set, it fully replaces the default host/path construction. Used by the
     /// agentic bucket client to route requests to the physical virtual-hosted host.
-    std::function<std::string(const OperationInput&)> endpointProvider;
+    std::function<std::string(const OperationInput&, std::error_code&)> endpointProvider;
 };
 
 /// Functional option for customizing ClientOptions.

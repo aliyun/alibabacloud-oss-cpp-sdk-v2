@@ -344,9 +344,17 @@ std::unique_ptr<RequestMessage> ClientImplBase::applyOperationInput(ExecuteConte
         context.signingContext.key = input.key.value();
     }
 
+    auto request = std::make_unique<RequestMessage>();
+
     std::stringstream uri;
     if (options_.endpointProvider) {
-        uri << options_.endpointProvider(input);
+        std::error_code ec;
+        auto url = options_.endpointProvider(input, ec);
+        if (ec) {
+            updateError(context, ec, "IllegalArgument", "EndpointProvider returns error, detail is " + ec.message());
+            return request;
+        }
+        uri << url;
     } else {
         uri << innerOptions_.endpointScheme << "://";
         uri << buildHostPath(input, innerOptions_.endpointAuthority, options_.addressStyle);
@@ -356,7 +364,6 @@ std::unique_ptr<RequestMessage> ClientImplBase::applyOperationInput(ExecuteConte
         uri << "?" << query;
     }
 
-    auto request = std::make_unique<RequestMessage>();
     auto headers = input.headers;
     headers.insert_or_assign("User-Agent", innerOptions_.userAgent);
 

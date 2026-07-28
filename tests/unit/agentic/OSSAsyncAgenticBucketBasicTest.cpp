@@ -3,6 +3,7 @@
 #include "alibabacloud/oss2/ClientConfiguration.h"
 #include "alibabacloud/oss2/agentic/OSSAsyncAgenticClient.h"
 #include "alibabacloud/oss2/Operation.h"
+#include "alibabacloud/oss2/Error.h"
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
 #include "alibabacloud/oss2/io/ByteStream.h"
 #include "alibabacloud/oss2/models/ObjectBasic.h"
@@ -172,6 +173,84 @@ TEST(OSSAsyncAgenticBucketBasicTest, InvalidAccountId_DeferredError) {
     auto outcome = p.get_future().get();
     EXPECT_FALSE(outcome.has_value());
     EXPECT_EQ("IllegalArgument", outcome.error().getCode());
+}
+
+TEST(OSSAsyncAgenticBucketBasicTest, EmptyAccountId_Blocked) {
+    auto mock = std::make_shared<MockAsyncTransport>();
+    auto client = agentic::OSSAsyncAgenticBucketClient(makeAsyncAgenticConfig(mock, ""));
+
+    auto request = agentic::models::CreateAgenticBucketRequest();
+    request.setBucket("mybucket");
+    std::promise<agentic::CreateAgenticBucketOutcome> p;
+    client.createAgenticBucketAsync(request, [&p](agentic::CreateAgenticBucketOutcome o) { p.set_value(std::move(o)); });
+    auto outcome = p.get_future().get();
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("IllegalArgument", outcome.error().getCode());
+    EXPECT_EQ(make_error_code(ClientErrorCode::AccountIdNull), outcome.error().getErrorCode());
+    EXPECT_EQ(0, mock->requests.size());
+}
+
+TEST(OSSAsyncAgenticBucketBasicTest, HostLabelWithinLimit) {
+    auto mock = std::make_shared<MockAsyncTransport>();
+    auto client = agentic::OSSAsyncAgenticBucketClient(makeAsyncAgenticConfig(mock));
+
+    mock->responses.emplace_back(
+            std::make_unique<ResponseMessage>(ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}}, nullptr}));
+
+    // bucket(32) + "-1234567890-cn-hangzhou-ab-apsr"(31) = 63 == max label length.
+    auto bucket = std::string(32, 'a');
+    auto request = agentic::models::CreateAgenticBucketRequest();
+    request.setBucket(bucket);
+    std::promise<agentic::CreateAgenticBucketOutcome> p;
+    client.createAgenticBucketAsync(request, [&p](agentic::CreateAgenticBucketOutcome o) { p.set_value(std::move(o)); });
+    auto outcome = p.get_future().get();
+    EXPECT_TRUE(outcome.has_value());
+
+    ASSERT_EQ(1, mock->requests.size());
+    auto name = bucket + "-1234567890-cn-hangzhou-ab-apsr";
+    EXPECT_EQ(63u, name.size());
+    EXPECT_TRUE(mock->requests[0]->uri.find(name + ".oss-cn-hangzhou.aliyuncs.com") != std::string::npos)
+            << mock->requests[0]->uri;
+}
+
+TEST(OSSAsyncAgenticBucketBasicTest, HostLabelTooLong_Blocked) {
+    auto mock = std::make_shared<MockAsyncTransport>();
+    auto client = agentic::OSSAsyncAgenticBucketClient(makeAsyncAgenticConfig(mock));
+
+    // bucket(33) + 31 = 64 > 63 max label length.
+    auto request = agentic::models::CreateAgenticBucketRequest();
+    request.setBucket(std::string(33, 'a'));
+    std::promise<agentic::CreateAgenticBucketOutcome> p;
+    client.createAgenticBucketAsync(request, [&p](agentic::CreateAgenticBucketOutcome o) { p.set_value(std::move(o)); });
+    auto outcome = p.get_future().get();
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("IllegalArgument", outcome.error().getCode());
+    EXPECT_EQ(make_error_code(ClientErrorCode::HostLabelTooLong), outcome.error().getErrorCode());
+    EXPECT_EQ(0, mock->requests.size());
+}
+
+TEST(OSSAsyncAgenticBucketBasicTest, HostLabelTooLong_PathStyleAllowed) {
+    auto mock = std::make_shared<MockAsyncTransport>();
+    auto config = makeAsyncAgenticConfig(mock);
+    config.usePathStyle = true;
+    auto client = agentic::OSSAsyncAgenticBucketClient(config);
+
+    mock->responses.emplace_back(
+            std::make_unique<ResponseMessage>(ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}}, nullptr}));
+
+    // Path-style has no host-label length limit; the long physical name goes in the path.
+    auto bucket = std::string(33, 'a');
+    auto request = agentic::models::CreateAgenticBucketRequest();
+    request.setBucket(bucket);
+    std::promise<agentic::CreateAgenticBucketOutcome> p;
+    client.createAgenticBucketAsync(request, [&p](agentic::CreateAgenticBucketOutcome o) { p.set_value(std::move(o)); });
+    auto outcome = p.get_future().get();
+    EXPECT_TRUE(outcome.has_value());
+
+    ASSERT_EQ(1, mock->requests.size());
+    auto name = bucket + "-1234567890-cn-hangzhou-ab-apsr";
+    EXPECT_TRUE(mock->requests[0]->uri.find("oss-cn-hangzhou.aliyuncs.com/" + name + "/") != std::string::npos)
+            << mock->requests[0]->uri;
 }
 
 // ---------------- makeAsyncBucketSpaceClient factory ----------------

@@ -27,6 +27,9 @@ class client_error_category : public std::error_category {
             case ClientErrorCode::RequestMethodEmpty: return "request method is empty";
             case ClientErrorCode::ReadDataFail: return "failed to read data";
             case ClientErrorCode::EncryptionFailure: return "encryption or decryption failed";
+            case ClientErrorCode::AccountIdNull: return "account id is null";
+            case ClientErrorCode::HostLabelTooLong:
+                return "the host label exceeds the maximum length of 63 characters";
             default: return "unknown client error";
         }
     }
@@ -37,7 +40,8 @@ class client_error_category : public std::error_category {
             return ec == ClientErrorCode::ArgumentInvalid || ec == ClientErrorCode::ArgumentRequired
                 || ec == ClientErrorCode::EndpointInvalid || ec == ClientErrorCode::EndpointRegionNull
                 || ec == ClientErrorCode::BucketNameInvalid || ec == ClientErrorCode::ObjectNameInvalid
-                || ec == ClientErrorCode::RequestMethodEmpty;
+                || ec == ClientErrorCode::RequestMethodEmpty || ec == ClientErrorCode::AccountIdNull
+                || ec == ClientErrorCode::HostLabelTooLong;
         }
         if (cond == make_error_condition(ErrorCondition::Retryable)) {
             return ec == ClientErrorCode::CrcMismatch;

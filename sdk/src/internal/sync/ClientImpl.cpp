@@ -93,6 +93,9 @@ OperationResult ClientImpl::Execute(const OperationInput& input, const Operation
     applyOperationOptions(context, opts, innerOpts);
 
     auto request = applyOperationInput(context, input);
+    if (context.errorContext.error) {
+        return OperationError(context.errorContext.error, std::move(context.errorContext.errorFields));
+    }
 
     applyOther(context, request, innerOpts);
 
@@ -135,6 +138,9 @@ PresignInnerResult ClientImpl::Presign(const OperationInput& input, const Operat
     applyOperationOptions(context, opts, nullptr);
 
     auto request = applyOperationInput(context, input);
+    if (context.errorContext.error) {
+        return OperationError(context.errorContext.error, std::move(context.errorContext.errorFields));
+    }
 
     applyOther(context, request, nullptr);
 

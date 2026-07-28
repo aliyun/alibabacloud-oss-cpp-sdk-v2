@@ -3,6 +3,7 @@
 #include "alibabacloud/oss2/ClientConfiguration.h"
 #include "alibabacloud/oss2/agentic/OSSAgenticClient.h"
 #include "alibabacloud/oss2/agentic/BucketSpaceHelper.h"
+#include "alibabacloud/oss2/Error.h"
 #include "alibabacloud/oss2/Operation.h"
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
 #include "alibabacloud/oss2/io/ByteStream.h"
@@ -384,19 +385,100 @@ TEST(OSSAgenticBucketBasicTest, InvalidAccountId_DeferredError) {
     EXPECT_EQ(0, mock->requests.size());
 }
 
-TEST(OSSAgenticBucketBasicTest, EmptyAccountId_NotBlocked) {
+TEST(OSSAgenticBucketBasicTest, EmptyAccountId_Blocked) {
     auto mock = std::make_shared<MockTransport>();
     auto client = agentic::OSSAgenticBucketClient(makeAgenticConfig(mock, ""));
-
-    mock->Clear();
-    mock->responses.emplace_back(
-            std::make_unique<ResponseMessage>(ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1234"}}, nullptr}));
 
     auto request = agentic::models::CreateAgenticBucketRequest();
     request.setBucket("mybucket");
     auto outcome = client.createAgenticBucket(request);
+    // A bucket-scoped op requires a non-empty account id.
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("IllegalArgument", outcome.error().getCode());
+    EXPECT_EQ(make_error_code(ClientErrorCode::AccountIdNull), outcome.error().getErrorCode());
+    EXPECT_EQ(0, mock->requests.size());
+}
+
+TEST(OSSAgenticBucketBasicTest, MissingRegion_Blocked) {
+    auto mock = std::make_shared<MockTransport>();
+    auto config = ClientConfiguration::loadDefault();
+    // Endpoint set explicitly so the missing region does not fail earlier.
+    config.endpoint = "oss-cn-hangzhou.aliyuncs.com";
+    config.accountId = "1234567890";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mock;
+    auto client = agentic::OSSAgenticBucketClient(config);
+
+    auto request = agentic::models::CreateAgenticBucketRequest();
+    request.setBucket("mybucket");
+    auto outcome = client.createAgenticBucket(request);
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("IllegalArgument", outcome.error().getCode());
+    EXPECT_EQ(make_error_code(ClientErrorCode::EndpointRegionNull), outcome.error().getErrorCode());
+    EXPECT_EQ(0, mock->requests.size());
+}
+
+TEST(OSSAgenticBucketBasicTest, HostLabelWithinLimit) {
+    auto mock = std::make_shared<MockTransport>();
+    auto client = agentic::OSSAgenticBucketClient(makeAgenticConfig(mock));
+
+    mock->Clear();
+    mock->responses.emplace_back(
+            std::make_unique<ResponseMessage>(ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}}, nullptr}));
+
+    // bucket(32) + "-1234567890-cn-hangzhou-ab-apsr"(31) = 63 == max label length.
+    auto bucket = std::string(32, 'a');
+    auto request = agentic::models::CreateAgenticBucketRequest();
+    request.setBucket(bucket);
+    auto outcome = client.createAgenticBucket(request);
     EXPECT_TRUE(outcome.has_value());
+
     ASSERT_EQ(1, mock->requests.size());
+    auto& req = mock->requests[0];
+    auto name = bucket + "-1234567890-cn-hangzhou-ab-apsr";
+    EXPECT_EQ(63u, name.size());
+    EXPECT_TRUE(req->uri.find(name + ".oss-cn-hangzhou.aliyuncs.com") != std::string::npos) << req->uri;
+}
+
+TEST(OSSAgenticBucketBasicTest, HostLabelTooLong_Blocked) {
+    auto mock = std::make_shared<MockTransport>();
+    auto client = agentic::OSSAgenticBucketClient(makeAgenticConfig(mock));
+
+    // bucket(33) + 31 = 64 > 63 max label length.
+    auto request = agentic::models::CreateAgenticBucketRequest();
+    request.setBucket(std::string(33, 'a'));
+    auto outcome = client.createAgenticBucket(request);
+    EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ("IllegalArgument", outcome.error().getCode());
+    EXPECT_EQ(make_error_code(ClientErrorCode::HostLabelTooLong), outcome.error().getErrorCode());
+    EXPECT_NE(std::string::npos, outcome.error().getMessage().find("EndpointProvider returns error"))
+            << outcome.error().getMessage();
+    EXPECT_NE(std::string::npos, outcome.error().getMessage().find("exceeds the maximum length of 63 characters"))
+            << outcome.error().getMessage();
+    EXPECT_EQ(0, mock->requests.size());
+}
+
+TEST(OSSAgenticBucketBasicTest, HostLabelTooLong_PathStyleAllowed) {
+    auto mock = std::make_shared<MockTransport>();
+    auto config = makeAgenticConfig(mock);
+    config.usePathStyle = true;
+    auto client = agentic::OSSAgenticBucketClient(config);
+
+    mock->Clear();
+    mock->responses.emplace_back(
+            std::make_unique<ResponseMessage>(ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}}, nullptr}));
+
+    // Path-style has no host-label length limit; the long physical name goes in the path.
+    auto bucket = std::string(33, 'a');
+    auto request = agentic::models::CreateAgenticBucketRequest();
+    request.setBucket(bucket);
+    auto outcome = client.createAgenticBucket(request);
+    EXPECT_TRUE(outcome.has_value());
+
+    ASSERT_EQ(1, mock->requests.size());
+    auto& req = mock->requests[0];
+    auto name = bucket + "-1234567890-cn-hangzhou-ab-apsr";
+    EXPECT_TRUE(req->uri.find("oss-cn-hangzhou.aliyuncs.com/" + name + "/") != std::string::npos) << req->uri;
 }
 
 TEST(OSSAgenticBucketBasicTest, MissingAccountId_ServiceLevelNotBlocked) {
