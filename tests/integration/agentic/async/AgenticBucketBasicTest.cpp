@@ -1,14 +1,13 @@
 #include <gtest/gtest.h>
 
 #include "Config.h"
+#include "agentic/AgenticTestHelpers.h"
 #include "alibabacloud/oss2/ClientConfiguration.h"
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
 #include "alibabacloud/oss2/agentic/OSSAsyncAgenticClient.h"
 
-#include <chrono>
 #include <future>
 #include <memory>
-#include <sstream>
 
 namespace alibabacloud {
 namespace oss2 {
@@ -31,10 +30,8 @@ static std::shared_ptr<agentic::OSSAsyncAgenticBucketClient> makeAsyncAgenticCli
 class AsyncAgenticBucketBasicTest : public ::testing::Test {
   protected:
     static void SetUpTestCase() {
-        std::stringstream ss;
-        auto tp = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
-        ss << "cpp-abasync-" << tp.time_since_epoch().count();
-        bucketName_ = ss.str();
+        // Share the reaper-matched prefix so this bucket's backlog is bounded too.
+        bucketName_ = agentictest::genBucketName();
 
         auto client = makeAsyncAgenticClient();
         std::promise<agentic::CreateAgenticBucketOutcome> p;
@@ -49,11 +46,8 @@ class AsyncAgenticBucketBasicTest : public ::testing::Test {
     }
 
     static void TearDownTestCase() {
-        auto client = makeAsyncAgenticClient();
-        std::promise<agentic::DeleteAgenticBucketOutcome> p;
-        client->deleteAgenticBucketAsync(agentic::models::DeleteAgenticBucketRequest().setBucket(bucketName_),
-                                         [&p](agentic::DeleteAgenticBucketOutcome o) { p.set_value(std::move(o)); });
-        (void)p.get_future().get();
+        // Disable this run's bucket and reap ready backlog from earlier runs.
+        agentictest::disableAndReap(bucketName_);
     }
 
   public:
