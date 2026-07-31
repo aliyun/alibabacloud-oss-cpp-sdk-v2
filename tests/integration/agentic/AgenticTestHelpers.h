@@ -48,6 +48,20 @@ inline OSSClient makeBsClient() {
     return agentic::makeBucketSpaceClient(testConfig());
 }
 
+// Path-style variants: the resolved full name goes into the request path instead
+// of the leftmost host label. Used by the misc path-style scenario.
+inline std::shared_ptr<agentic::OSSAgenticBucketClient> makeAgenticClientPathStyle() {
+    auto config = testConfig();
+    config.usePathStyle = true;
+    return std::make_shared<agentic::OSSAgenticBucketClient>(config);
+}
+
+inline OSSClient makeBsClientPathStyle() {
+    auto config = testConfig();
+    config.usePathStyle = true;
+    return agentic::makeBucketSpaceClient(config);
+}
+
 inline std::string randStr(int n) {
     static const char letters[] = "abcdefghijklmnopqrstuvwxyz";
     std::random_device rd;
