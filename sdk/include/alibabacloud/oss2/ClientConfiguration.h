@@ -102,6 +102,9 @@ struct ALIBABACLOUD_OSS_API ClientConfiguration {
     /// i.e., @c https://bucket.oss-cn-hangzhou.aliyuncs.com/key .
     std::optional<bool> usePathStyle;
 
+    /// If the endpoint is a short-alias host, set this flag to @c true.
+    std::optional<bool> useVirtualHostedAlias;
+
     // ---- HTTP Transport ----
 
     /// The HTTP client to invoke API calls with.

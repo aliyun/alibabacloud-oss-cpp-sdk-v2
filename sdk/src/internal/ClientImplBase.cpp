@@ -218,6 +218,8 @@ AddressStyleType ClientImplBase::resolveAddressStyle(const struct ClientConfigur
         style = AddressStyleType::CName;
     } else if (config.usePathStyle.value_or(false)) {
         style = AddressStyleType::Path;
+    } else if (config.useVirtualHostedAlias.value_or(false)) {
+        style = AddressStyleType::VirtualHostedAlias;
     }
     return style;
 }

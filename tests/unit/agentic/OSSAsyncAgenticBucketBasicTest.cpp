@@ -302,6 +302,28 @@ TEST(OSSAsyncAgenticBucketBasicTest, MakeAsyncBucketSpaceClient_PathStyle) {
             << req->uri;
 }
 
+TEST(OSSAsyncAgenticBucketBasicTest, MakeAsyncBucketSpaceClient_AliasStyle) {
+    auto mock = std::make_shared<MockAsyncTransport>();
+    auto config = makeAsyncAgenticConfig(mock);
+    config.useVirtualHostedAlias = true;
+    auto client = agentic::makeAsyncBucketSpaceClient(config);
+
+    mock->responses.emplace_back(
+            std::make_unique<ResponseMessage>(ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}}, nullptr}));
+
+    auto request = models::PutObjectRequest();
+    request.setBucket("myspace");
+    request.setKey("dir/obj.txt");
+    request.setBody(std::make_shared<StringContent>("data"));
+    auto outcome = client.asyncCall(request).get();
+    EXPECT_TRUE(outcome.has_value());
+
+    ASSERT_EQ(1, mock->requests.size());
+    auto& req = mock->requests[0];
+    EXPECT_TRUE(req->uri.find("myspace-alias-bs-apsr.oss-cn-hangzhou.aliyuncs.com/dir/obj.txt") != std::string::npos)
+            << req->uri;
+}
+
 TEST(OSSAsyncAgenticBucketBasicTest, MakeAsyncBucketSpaceClient_InvalidAccountId_DeferredError) {
     auto mock = std::make_shared<MockAsyncTransport>();
     auto client = agentic::makeAsyncBucketSpaceClient(makeAsyncAgenticConfig(mock, "bad-account"));

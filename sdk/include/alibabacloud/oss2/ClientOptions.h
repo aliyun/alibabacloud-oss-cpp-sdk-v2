@@ -68,11 +68,10 @@ struct ALIBABACLOUD_OSS_API ClientOptions {
     std::shared_ptr<AsyncHttpTransport> asyncHttpTransport;
 
     /// The addressing style for bucket endpoints.
-    /// Resolved from the usePathStyle / useCName configuration flags.
+    /// Resolved from the useCName / usePathStyle / useVirtualHostedAlias configuration flags.
     /// - VirtualHosted: @c https://bucket.oss-cn-hangzhou.aliyuncs.com/key (default)
     /// - Path:          @c https://oss-cn-hangzhou.aliyuncs.com/bucket/key
     /// - CName:         uses the custom domain as-is
-    /// - VirtualHostedAlias: agentic-only, @c https://bucket-alias-ab-apsr.oss-cn-hangzhou.aliyuncs.com/key
     AddressStyleType addressStyle{};
 
     /// Bitmask of enabled SDK features.

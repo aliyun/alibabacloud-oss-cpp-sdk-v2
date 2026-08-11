@@ -675,8 +675,51 @@ TEST(OSSAgenticBucketBasicTest, InvokeOperation_InvalidAccountId_DeferredError) 
 
 // ---------------- Alias-style addressing ----------------
 
-// The agentic clients resolve the addressing style from ClientConfiguration, which exposes
-// no alias flag, so the alias routing is exercised through the shared option builder.
+TEST(OSSAgenticBucketBasicTest, GetAgenticBucket_AliasStyle) {
+    auto mock = std::make_shared<MockTransport>();
+    auto config = makeAgenticConfig(mock);
+    config.useVirtualHostedAlias = true;
+    auto client = agentic::OSSAgenticBucketClient(config);
+
+    mock->Clear();
+    mock->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK", {{"x-oss-request-id", "id-1"}},
+            std::make_shared<std::stringstream>("<AgenticBucketInfo><Name>mybucket</Name></AgenticBucketInfo>")}));
+
+    auto request = agentic::models::GetAgenticBucketRequest();
+    request.setBucket("mybucket");
+    auto outcome = client.getAgenticBucket(request);
+    ASSERT_TRUE(outcome.has_value());
+
+    ASSERT_EQ(1, mock->requests.size());
+    auto& req = mock->requests[0];
+    EXPECT_TRUE(req->uri.find("mybucket-alias-ab-apsr.oss-cn-hangzhou.aliyuncs.com") != std::string::npos) << req->uri;
+    EXPECT_TRUE(req->uri.find("agenticBucket") != std::string::npos);
+}
+
+TEST(OSSAgenticBucketBasicTest, MakeBucketSpaceClient_AliasStyle) {
+    auto mock = std::make_shared<MockTransport>();
+    auto config = makeAgenticConfig(mock);
+    config.useVirtualHostedAlias = true;
+    auto client = agentic::makeBucketSpaceClient(config);
+
+    mock->Clear();
+    mock->responses.emplace_back(
+            std::make_unique<ResponseMessage>(ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1"}}, nullptr}));
+
+    auto request = models::PutObjectRequest();
+    request.setBucket("myspace");
+    request.setKey("dir/obj.txt");
+    request.setBody(std::make_shared<StringContent>("data"));
+    auto outcome = client.putObject(request);
+    ASSERT_TRUE(outcome.has_value());
+
+    ASSERT_EQ(1, mock->requests.size());
+    auto& req = mock->requests[0];
+    EXPECT_TRUE(req->uri.find("myspace-alias-bs-apsr.oss-cn-hangzhou.aliyuncs.com/dir/obj.txt") != std::string::npos)
+            << req->uri;
+}
+
 static ClientOptions makeAgenticOptions(AddressStyleType addressStyle, const std::string& suffix,
                                         const std::string& accountId = "1234567890",
                                         const std::string& region = "cn-hangzhou") {
