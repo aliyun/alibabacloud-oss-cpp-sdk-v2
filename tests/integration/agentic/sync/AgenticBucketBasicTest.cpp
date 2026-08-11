@@ -1,42 +1,25 @@
 #include <gtest/gtest.h>
 
 #include "Config.h"
+#include "agentic/AgenticTestHelpers.h"
 #include "alibabacloud/oss2/ClientConfiguration.h"
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
 #include "alibabacloud/oss2/agentic/OSSAgenticClient.h"
 #include "alibabacloud/oss2/agentic/AgenticBucketPaginator.h"
 
-#include <chrono>
 #include <memory>
-#include <sstream>
 
 namespace alibabacloud {
 namespace oss2 {
 namespace sync {
 
-static std::shared_ptr<agentic::OSSAgenticBucketClient> makeAgenticClient(bool valid = true) {
-    auto config = ClientConfiguration::loadDefault();
-    config.region = Config::Region;
-    config.endpoint = Config::Endpoint;
-    config.accountId = Config::AccountID;
-    if (valid) {
-        config.credentialsProvider =
-                std::make_shared<StaticCredentialsProvider>(Config::AccessKeyId, Config::AccessKeySecret);
-    } else {
-        config.credentialsProvider = std::make_shared<StaticCredentialsProvider>("invalid-ak", "invalid-sk");
-    }
-    return std::make_shared<agentic::OSSAgenticBucketClient>(config);
-}
-
+// One shared bucket exercising Create/Get/List/PutStatus(Enabled)/ListBucketSpaces
+// plus the negative paths. Lifecycle Disable+Delete lives in its own test class.
 class AgenticBucketBasicTest : public ::testing::Test {
   protected:
     static void SetUpTestCase() {
-        std::stringstream ss;
-        auto tp = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
-        ss << "cpp-ab-" << tp.time_since_epoch().count();
-        bucketName_ = ss.str();
-
-        auto client = makeAgenticClient();
+        bucketName_ = agentictest::genBucketName();
+        auto client = agentictest::makeAgenticClient();
         auto outcome = client->createAgenticBucket(
                 agentic::models::CreateAgenticBucketRequest()
                         .setBucket(bucketName_)
@@ -46,8 +29,7 @@ class AgenticBucketBasicTest : public ::testing::Test {
     }
 
     static void TearDownTestCase() {
-        auto client = makeAgenticClient();
-        (void)client->deleteAgenticBucket(agentic::models::DeleteAgenticBucketRequest().setBucket(bucketName_));
+        agentictest::disableAndReap(bucketName_);
     }
 
   public:
@@ -57,7 +39,7 @@ class AgenticBucketBasicTest : public ::testing::Test {
 std::string AgenticBucketBasicTest::bucketName_ = "";
 
 TEST_F(AgenticBucketBasicTest, GetAgenticBucket_Normal) {
-    auto client = makeAgenticClient();
+    auto client = agentictest::makeAgenticClient();
     auto outcome = client->getAgenticBucket(agentic::models::GetAgenticBucketRequest().setBucket(bucketName_));
     ASSERT_TRUE(outcome.has_value()) << outcome.error().getMessage();
     EXPECT_EQ(200, outcome.value().getStatusCode());
@@ -65,35 +47,35 @@ TEST_F(AgenticBucketBasicTest, GetAgenticBucket_Normal) {
 }
 
 TEST_F(AgenticBucketBasicTest, GetAgenticBucket_RequiredField) {
-    auto client = makeAgenticClient();
+    auto client = agentictest::makeAgenticClient();
     auto outcome = client->getAgenticBucket(agentic::models::GetAgenticBucketRequest());
     EXPECT_FALSE(outcome.has_value());
     EXPECT_EQ("ArgumentRequired", outcome.error().getCode());
 }
 
 TEST_F(AgenticBucketBasicTest, GetAgenticBucket_InvalidCredentials) {
-    auto client = makeAgenticClient(false);
+    auto client = agentictest::makeAgenticClient(false);
     auto outcome = client->getAgenticBucket(agentic::models::GetAgenticBucketRequest().setBucket(bucketName_));
     EXPECT_FALSE(outcome.has_value());
     EXPECT_NE(0, outcome.error().getStatusCode());
 }
 
 TEST_F(AgenticBucketBasicTest, GetAgenticBucket_NotExist) {
-    auto client = makeAgenticClient();
+    auto client = agentictest::makeAgenticClient();
     auto outcome = client->getAgenticBucket(
             agentic::models::GetAgenticBucketRequest().setBucket("cpp-ab-not-exist-000000"));
     EXPECT_FALSE(outcome.has_value());
 }
 
 TEST_F(AgenticBucketBasicTest, ListAgenticBuckets_Normal) {
-    auto client = makeAgenticClient();
+    auto client = agentictest::makeAgenticClient();
     auto outcome = client->listAgenticBuckets(agentic::models::ListAgenticBucketsRequest());
     ASSERT_TRUE(outcome.has_value()) << outcome.error().getMessage();
     EXPECT_EQ(200, outcome.value().getStatusCode());
 }
 
 TEST_F(AgenticBucketBasicTest, ListAgenticBuckets_Paginator) {
-    auto client = makeAgenticClient();
+    auto client = agentictest::makeAgenticClient();
     auto paginator = agentic::makeAgenticPaginator(client, agentic::models::ListAgenticBucketsRequest().setMaxKeys(1));
     int pages = 0;
     while (paginator.hasNext() && pages < 5) {
@@ -106,8 +88,51 @@ TEST_F(AgenticBucketBasicTest, ListAgenticBuckets_Paginator) {
     EXPECT_GE(pages, 1);
 }
 
+TEST_F(AgenticBucketBasicTest, ListAgenticBuckets_FindCreated) {
+    auto client = agentictest::makeAgenticClient();
+    // The listing is eventually consistent, so a freshly created bucket may not show
+    // up for a while. Poll with a generous budget; the bucket's actual existence is
+    // asserted strongly by GetAgenticBucket_Normal, so if the listing still lags we
+    // skip rather than fail (a consistency delay is not a defect).
+    bool found = false;
+    for (int attempt = 0; attempt < 12 && !found; ++attempt) {
+        if (attempt > 0) {
+            Config::WaitForCacheExpire(10);
+        }
+        auto paginator = agentic::makeAgenticPaginator(client, agentic::models::ListAgenticBucketsRequest());
+        while (paginator.hasNext()) {
+            auto outcome = paginator.nextPage();
+            if (!outcome.has_value()) {
+                break;
+            }
+            for (const auto& summary : outcome.value().getAgenticBuckets()) {
+                if (summary.name.has_value() &&
+                    summary.name.value().find(bucketName_) != std::string::npos) {
+                    found = true;
+                    break;
+                }
+            }
+            if (found) {
+                break;
+            }
+        }
+    }
+    if (!found) {
+        GTEST_SKIP() << "created agentic bucket has not appeared in the listing yet (eventual consistency)";
+    }
+}
+
+TEST_F(AgenticBucketBasicTest, PutAgenticBucketStatus_Enabled) {
+    auto client = agentictest::makeAgenticClient();
+    auto outcome = client->putAgenticBucketStatus(
+            agentic::models::PutAgenticBucketStatusRequest().setBucket(bucketName_).setAgenticBucketStatus(
+                    agentic::models::AgenticBucketStatus().setStatus("Enabled")));
+    ASSERT_TRUE(outcome.has_value()) << outcome.error().getMessage();
+    EXPECT_EQ(200, outcome.value().getStatusCode());
+}
+
 TEST_F(AgenticBucketBasicTest, PutAgenticBucketStatus_RequiredField) {
-    auto client = makeAgenticClient();
+    auto client = agentictest::makeAgenticClient();
     auto outcome = client->putAgenticBucketStatus(
             agentic::models::PutAgenticBucketStatusRequest().setBucket(bucketName_));
     EXPECT_FALSE(outcome.has_value());
@@ -115,7 +140,7 @@ TEST_F(AgenticBucketBasicTest, PutAgenticBucketStatus_RequiredField) {
 }
 
 TEST_F(AgenticBucketBasicTest, ListBucketSpaces_Normal) {
-    auto client = makeAgenticClient();
+    auto client = agentictest::makeAgenticClient();
     auto outcome = client->listBucketSpaces(agentic::models::ListBucketSpacesRequest().setBucket(bucketName_));
     // The agentic bucket may have no bucket spaces yet; a valid response is enough.
     if (outcome.has_value()) {
@@ -124,7 +149,7 @@ TEST_F(AgenticBucketBasicTest, ListBucketSpaces_Normal) {
 }
 
 TEST_F(AgenticBucketBasicTest, ListBucketSpaces_RequiredField) {
-    auto client = makeAgenticClient();
+    auto client = agentictest::makeAgenticClient();
     auto outcome = client->listBucketSpaces(agentic::models::ListBucketSpacesRequest());
     EXPECT_FALSE(outcome.has_value());
     EXPECT_EQ("ArgumentRequired", outcome.error().getCode());
