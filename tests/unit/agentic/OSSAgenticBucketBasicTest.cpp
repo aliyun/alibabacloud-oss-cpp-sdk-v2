@@ -8,6 +8,7 @@
 #include "alibabacloud/oss2/credentials/CredentialsProvider.h"
 #include "alibabacloud/oss2/io/ByteStream.h"
 #include "alibabacloud/oss2/models/ObjectBasic.h"
+#include "src/agentic/AgenticUtils.h"
 #include "MockTransport.h"
 
 namespace alibabacloud::oss2 {
@@ -670,6 +671,95 @@ TEST(OSSAgenticBucketBasicTest, InvokeOperation_InvalidAccountId_DeferredError) 
     ASSERT_TRUE(std::holds_alternative<OperationError>(result));
     EXPECT_EQ("IllegalArgument", std::get<OperationError>(result).getCode());
     EXPECT_EQ(0, mock->requests.size());
+}
+
+// ---------------- Alias-style addressing ----------------
+
+// The agentic clients resolve the addressing style from ClientConfiguration, which exposes
+// no alias flag, so the alias routing is exercised through the shared option builder.
+static ClientOptions makeAgenticOptions(AddressStyleType addressStyle, const std::string& suffix,
+                                        const std::string& accountId = "1234567890",
+                                        const std::string& region = "cn-hangzhou") {
+    ClientOptions opts;
+    opts.endpoint = "https://oss-cn-hangzhou.aliyuncs.com";
+    opts.addressStyle = addressStyle;
+    for (const auto& fn : agentic::makeAgenticOptionsFns(accountId, region, suffix)) {
+        fn(opts);
+    }
+    return opts;
+}
+
+static OperationInput makeInput(const std::optional<std::string>& bucket,
+                                const std::optional<std::string>& key = std::nullopt) {
+    OperationInput input;
+    input.opName = "GetAgenticBucket";
+    input.method = "GET";
+    input.bucket = bucket;
+    input.key = key;
+    return input;
+}
+
+TEST(OSSAgenticBucketBasicTest, AliasStyle_AgenticBucketHost) {
+    auto opts = makeAgenticOptions(AddressStyleType::VirtualHostedAlias, "-ab-apsr");
+    std::error_code ec;
+    auto url = opts.endpointProvider(makeInput("mybucket"), ec);
+    EXPECT_FALSE(ec);
+    // The short alias label replaces "{accountId}-{region}" in the host.
+    EXPECT_EQ("https://mybucket-alias-ab-apsr.oss-cn-hangzhou.aliyuncs.com/", url);
+}
+
+TEST(OSSAgenticBucketBasicTest, AliasStyle_BucketSpaceHostAndKey) {
+    auto opts = makeAgenticOptions(AddressStyleType::VirtualHostedAlias, "-bs-apsr");
+    std::error_code ec;
+    auto url = opts.endpointProvider(makeInput("myspace", "dir/obj.txt"), ec);
+    EXPECT_FALSE(ec);
+    EXPECT_EQ("https://myspace-alias-bs-apsr.oss-cn-hangzhou.aliyuncs.com/dir/obj.txt", url);
+}
+
+TEST(OSSAgenticBucketBasicTest, AliasStyle_NoBucketUsesRegionHost) {
+    auto opts = makeAgenticOptions(AddressStyleType::VirtualHostedAlias, "-ab-apsr");
+    std::error_code ec;
+    auto url = opts.endpointProvider(makeInput(std::nullopt), ec);
+    EXPECT_FALSE(ec);
+    EXPECT_EQ("https://oss-cn-hangzhou.aliyuncs.com/", url);
+}
+
+TEST(OSSAgenticBucketBasicTest, AliasStyle_SignsWithFullName) {
+    auto opts = makeAgenticOptions(AddressStyleType::VirtualHostedAlias, "-ab-apsr");
+    // The short label only shows up in the host, signing keeps the full name.
+    EXPECT_EQ("mybucket-1234567890-cn-hangzhou-ab-apsr", opts.bucketNameResolver(makeInput("mybucket")));
+
+    // so accountId / region stay required
+    std::error_code ec;
+    auto noAccount = makeAgenticOptions(AddressStyleType::VirtualHostedAlias, "-ab-apsr", "");
+    noAccount.endpointProvider(makeInput("mybucket"), ec);
+    EXPECT_EQ(make_error_code(ClientErrorCode::AccountIdNull), ec);
+
+    ec.clear();
+    auto noRegion = makeAgenticOptions(AddressStyleType::VirtualHostedAlias, "-ab-apsr", "1234567890", "");
+    noRegion.endpointProvider(makeInput("mybucket"), ec);
+    EXPECT_EQ(make_error_code(ClientErrorCode::EndpointRegionNull), ec);
+}
+
+TEST(OSSAgenticBucketBasicTest, AliasStyle_HostLabelWithinLimit) {
+    auto opts = makeAgenticOptions(AddressStyleType::VirtualHostedAlias, "-ab-apsr");
+    // bucket(49) + "-alias-ab-apsr"(14) = 63 == max label length.
+    auto bucket = std::string(49, 'a');
+    auto label = bucket + "-alias-ab-apsr";
+    EXPECT_EQ(63u, label.size());
+
+    std::error_code ec;
+    auto url = opts.endpointProvider(makeInput(bucket), ec);
+    EXPECT_FALSE(ec);
+    EXPECT_EQ("https://" + label + ".oss-cn-hangzhou.aliyuncs.com/", url);
+}
+
+TEST(OSSAgenticBucketBasicTest, AliasStyle_HostLabelTooLong) {
+    auto opts = makeAgenticOptions(AddressStyleType::VirtualHostedAlias, "-ab-apsr");
+    // bucket(50) + 14 = 64 > 63 max label length.
+    std::error_code ec;
+    opts.endpointProvider(makeInput(std::string(50, 'a')), ec);
+    EXPECT_EQ(make_error_code(ClientErrorCode::HostLabelTooLong), ec);
 }
 
 } // namespace alibabacloud::oss2

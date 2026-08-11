@@ -35,6 +35,26 @@ TEST(OSSUtilsTest, IsValidAccountId) {
 }
 
 
+TEST(OSSUtilsTest, BuildHostPathAddressStyles) {
+    OperationInput input;
+    input.opName = "PutObject";
+    input.method = "PUT";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    const std::string baseUrl = "oss-cn-hangzhou.aliyuncs.com";
+
+    EXPECT_EQ("bucket.oss-cn-hangzhou.aliyuncs.com/key",
+              buildHostPath(input, baseUrl, AddressStyleType::VirtualHosted));
+    EXPECT_EQ("oss-cn-hangzhou.aliyuncs.com/bucket/key", buildHostPath(input, baseUrl, AddressStyleType::Path));
+    EXPECT_EQ("oss-cn-hangzhou.aliyuncs.com/key", buildHostPath(input, baseUrl, AddressStyleType::CName));
+
+    // VirtualHostedAlias is agentic-only, the plain client falls back to virtual-hosted.
+    EXPECT_EQ("bucket.oss-cn-hangzhou.aliyuncs.com/key",
+              buildHostPath(input, baseUrl, AddressStyleType::VirtualHostedAlias));
+}
+
+
 } // namespace internal
 } // namespace oss2
 } // namespace alibabacloud

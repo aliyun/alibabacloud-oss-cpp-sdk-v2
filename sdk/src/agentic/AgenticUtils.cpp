@@ -6,6 +6,7 @@
 #include "src/utils/Utils.h"
 
 #include <cstddef>
+#include <string>
 #include <vector>
 
 namespace alibabacloud {
@@ -16,6 +17,14 @@ namespace {
 // Maximum length of a single DNS label; the physical bucket name occupies the
 // leftmost label of the virtual-hosted host and must not exceed it.
 constexpr std::size_t kMaxHostLabelLength = 63;
+
+// The literal segment that replaces "{accountId}-{region}" in the short host label.
+constexpr char kAliasToken[] = "alias";
+
+// suffix carries its own leading dash, e.g. "-ab-apsr".
+std::string buildAliasLabel(const std::string& bucket, const std::string& suffix) {
+    return bucket + "-" + kAliasToken + suffix;
+}
 } // namespace
 
 ClientOptionsFns makeAgenticOptionsFns(const std::string& accountId, const std::string& region,
@@ -36,7 +45,7 @@ ClientOptionsFns makeAgenticOptionsFns(const std::string& accountId, const std::
         auto addressStyle = opts.addressStyle;
         bool accountIdEmpty = accountId.empty();
         bool regionEmpty = region.empty();
-        opts.endpointProvider = [buildName, scheme, authority, addressStyle, accountIdEmpty, regionEmpty](
+        opts.endpointProvider = [buildName, suffix, scheme, authority, addressStyle, accountIdEmpty, regionEmpty](
                                     const OperationInput& input, std::error_code& ec) -> std::string {
             std::vector<std::string> paths;
             paths.reserve(2);
@@ -59,6 +68,15 @@ ClientOptionsFns makeAgenticOptionsFns(const std::string& accountId, const std::
                             paths.emplace_back("");
                         }
                         break;
+                    case AddressStyleType::VirtualHostedAlias: {
+                        auto label = buildAliasLabel(input.bucket.value(), suffix);
+                        if (label.size() > kMaxHostLabelLength) {
+                            ec = make_error_code(ClientErrorCode::HostLabelTooLong);
+                            return {};
+                        }
+                        host = label + "." + authority;
+                        break;
+                    }
                     default:
                         if (name.size() > kMaxHostLabelLength) {
                             ec = make_error_code(ClientErrorCode::HostLabelTooLong);

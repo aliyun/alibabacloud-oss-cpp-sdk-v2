@@ -12,6 +12,9 @@ namespace agentic {
 // a bucket-name resolver that expands the logical bucket into its physical
 // {bucket}-{accountId}-{region}{suffix} form, and an endpoint provider that
 // routes requests to the corresponding virtual-hosted (or path-style) host.
+//
+// Under AddressStyleType::VirtualHostedAlias the host carries the short label
+// {bucket}-alias{suffix} instead, while signing keeps the physical name.
 ClientOptionsFns makeAgenticOptionsFns(const std::string& accountId, const std::string& region,
                                        const std::string& suffix);
 

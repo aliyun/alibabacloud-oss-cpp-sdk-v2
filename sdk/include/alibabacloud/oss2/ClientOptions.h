@@ -72,6 +72,7 @@ struct ALIBABACLOUD_OSS_API ClientOptions {
     /// - VirtualHosted: @c https://bucket.oss-cn-hangzhou.aliyuncs.com/key (default)
     /// - Path:          @c https://oss-cn-hangzhou.aliyuncs.com/bucket/key
     /// - CName:         uses the custom domain as-is
+    /// - VirtualHostedAlias: agentic-only, @c https://bucket-alias-ab-apsr.oss-cn-hangzhou.aliyuncs.com/key
     AddressStyleType addressStyle{};
 
     /// Bitmask of enabled SDK features.
