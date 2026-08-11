@@ -65,6 +65,9 @@ TEST_F(AgenticBucketBasicTest, GetAgenticBucket_NotExist) {
     auto outcome = client->getAgenticBucket(
             agentic::models::GetAgenticBucketRequest().setBucket("cpp-ab-not-exist-000000"));
     EXPECT_FALSE(outcome.has_value());
+    EXPECT_EQ(404, outcome.error().getStatusCode());
+    EXPECT_EQ("NoSuchAgenticBucket", outcome.error().getCode());
+    EXPECT_FALSE(outcome.error().getEC().empty());
 }
 
 TEST_F(AgenticBucketBasicTest, ListAgenticBuckets_Normal) {
