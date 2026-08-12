@@ -88,20 +88,6 @@ auto& result = outcome.value();
 | Query versioning state | GetBucketVersioning.cpp | asyncCall |
 | List object versions | ListObjectVersions.cpp | asyncCall |
 
-## Agentic Bucket
-
-Uses `OSSAsyncAgenticBucketClient` (requires `--account-id`). The logical bucket name is resolved
-to a physical name `{prefix}-{accountId}-{region}-ab-apsr` for signing and host construction.
-
-| Use Case | File | Patterns |
-|----------|------|----------|
-| Create an agentic bucket | CreateAgenticBucket.cpp | Callback |
-| Delete an agentic bucket | DeleteAgenticBucket.cpp | Callback |
-| Query an agentic bucket | GetAgenticBucket.cpp | Callback |
-| List agentic buckets | ListAgenticBuckets.cpp | Callback |
-| Update agentic bucket status | PutAgenticBucketStatus.cpp | Callback |
-| List bucket spaces | ListBucketSpaces.cpp | Callback |
-
 ## Data Processing
 
 | Use Case | File | Patterns |
