@@ -50,7 +50,12 @@ auto& result = outcome.value();
 
 | Use Case | Sync File | Async File | Key API |
 |----------|-----------|------------|---------|
+| Create a bucket space | sync/CreateBucketSpace.cpp | async/CreateBucketSpace.cpp | `putBucket()` with `setAgenticBucket()` |
 | Bucket space object put/get (two modes) | sync/BucketSpace.cpp | async/BucketSpace.cpp | `makeBucketSpaceClient()` / `BucketSpaceHelper::toBucketName()` |
+
+Creating a bucket space is the only bucket space operation that needs the parent agentic bucket:
+pass its full name `{bucket}-{accountId}-{region}-ab-apsr` via `setAgenticBucket()`. Object
+operations inside an existing space do not need it.
 
 ## Run
 
@@ -62,6 +67,9 @@ auto& result = outcome.value();
 ./sample_agentic_sync_PutAgenticBucketStatus --region cn-hangzhou --account-id 1234567890 --bucket my-bucket
 ./sample_agentic_sync_ListBucketSpaces --region cn-hangzhou --account-id 1234567890 --bucket my-bucket
 ./sample_agentic_sync_DeleteAgenticBucket --region cn-hangzhou --account-id 1234567890 --bucket my-bucket
+
+# Creating a bucket space needs --bucket (space prefix) and --agentic-bucket (parent bucket prefix).
+./sample_agentic_sync_CreateBucketSpace --region cn-hangzhou --account-id 1234567890 --bucket my-sandbox --agentic-bucket my-bucket
 
 # Bucket space object access (both modes) needs --bucket (space prefix) and --key.
 ./sample_agentic_sync_BucketSpace --region cn-hangzhou --account-id 1234567890 --bucket my-sandbox --key test.txt
