@@ -244,7 +244,7 @@ static void authHeader(SigningContext& context) {
     }
     ss << ",Signature=" << signature;
 
-    request->headers.emplace("Authorization", ss.str());
+    request->headers.insert_or_assign("Authorization", ss.str());
 
     context.stringToSign = std::move(stringToSign);
     context.signTimeInEpoch = timeNow;

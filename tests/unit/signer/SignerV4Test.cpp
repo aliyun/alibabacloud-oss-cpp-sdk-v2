@@ -246,6 +246,76 @@ TEST(SignerV4Test, AuthHeaderComplex) {
 }
 
 
+TEST(SignerV4Test, AuthHeaderReSign) {
+    auto provider = StaticCredentialsProvider("ak", "sk");
+    auto cred = provider.getCredentials();
+
+    HeaderCollection headers{
+            {"x-oss-head1", "value"},
+            {"content-type", "text/plain"},
+    };
+
+    auto makeContext = [&cred](RequestMessage* request, std::time_t signTime) {
+        auto context = SigningContext();
+        context.bucket = "bucket";
+        context.key = "1.txt";
+        context.request = request;
+        context.credentials = cred;
+        context.product = "oss";
+        context.region = "cn-hangzhou";
+        context.signTimeInEpoch = signTime;
+        return context;
+    };
+
+    auto signer = SignerV4();
+
+    auto request = RequestMessage{"PUT", "http://bucket.oss-cn-hangzhou.aliyuncs.com/1.txt", headers};
+    auto context = makeContext(&request, 1702743657);
+    EXPECT_TRUE(signer.sign(context));
+    auto firstAuth = request.headers.at("Authorization");
+    EXPECT_EQ("20231216T162057Z", request.headers.at("x-oss-date"));
+
+    // the retryer resets the sign time, then the same request object is signed again
+    context.signTimeInEpoch = 1702743757;
+    EXPECT_TRUE(signer.sign(context));
+    EXPECT_EQ("20231216T162237Z", request.headers.at("x-oss-date"));
+    EXPECT_NE(firstAuth, request.headers.at("Authorization"));
+
+    // re-signing must yield the same result as signing a fresh request at the new time
+    auto expectedRequest = RequestMessage{"PUT", "http://bucket.oss-cn-hangzhou.aliyuncs.com/1.txt", headers};
+    auto expectedContext = makeContext(&expectedRequest, 1702743757);
+    EXPECT_TRUE(signer.sign(expectedContext));
+    EXPECT_EQ(expectedRequest.headers.at("Authorization"), request.headers.at("Authorization"));
+    EXPECT_EQ(expectedRequest.headers.at("Date"), request.headers.at("Date"));
+}
+
+
+TEST(SignerV4Test, AuthHeaderReSignWithRefreshedToken) {
+    auto request = RequestMessage{"PUT",
+                                  "http://bucket.oss-cn-hangzhou.aliyuncs.com/1.txt",
+                                  {
+                                          {"content-type", "text/plain"},
+                                  }};
+
+    auto context = SigningContext();
+    context.bucket = "bucket";
+    context.key = "1.txt";
+    context.request = &request;
+    context.credentials = StaticCredentialsProvider("ak", "sk", "token1").getCredentials();
+    context.product = "oss";
+    context.region = "cn-hangzhou";
+    context.signTimeInEpoch = 1702743657;
+
+    auto signer = SignerV4();
+    EXPECT_TRUE(signer.sign(context));
+    EXPECT_EQ("token1", request.headers.at("x-oss-security-token"));
+
+    context.credentials = StaticCredentialsProvider("ak", "sk", "token2").getCredentials();
+    EXPECT_TRUE(signer.sign(context));
+    EXPECT_EQ("token2", request.headers.at("x-oss-security-token"));
+}
+
+
 TEST(SignerV4Test, AuthQuery) {
     auto provider = StaticCredentialsProvider("ak", "sk");
     auto cred = provider.getCredentials();
