@@ -5,6 +5,7 @@
 #include "alibabacloud/oss2/retry/Retryer.h"
 #include "alibabacloud/oss2/retry/StandardRetryer.h"
 #include "alibabacloud/oss2/signer/Signer.h"
+#include "alibabacloud/oss2/signer/SignerV4.h"
 #include "alibabacloud/oss2/transport/HttpTransport.h"
 #include "src/internal/async/AsyncClientImpl.h"
 #include "src/internal/Defaults.h"
@@ -979,6 +980,67 @@ TEST(AsyncClientImplMockTest, ClockSkew_RetryWithCorrectedTime) {
     auto output = std::get_if<OperationOutput>(&helper.result);
     EXPECT_NE(nullptr, output);
     EXPECT_EQ(200, output->statusCode);
+}
+
+TEST(AsyncClientImplMockTest, ClockSkew_ReSignsRequestOnRetry) {
+    auto mockHandler = std::make_shared<MockAsyncTransportImpl>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<StaticCredentialsProvider>("ak", "sk");
+    config.asyncHttpTransport = mockHandler;
+
+    auto client = AsyncClientImpl(config, asyncDefaultClientFns);
+
+    // server runs 10 minutes ahead, so the corrected signing time is far from the first attempt
+    std::time_t serverTime = std::time(nullptr) + 600;
+    auto serverDateStr = utils::ToGmtTime(serverTime);
+
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            403, "Forbidden",
+            {{"x-oss-request-id", "id-1"}, {"Date", serverDateStr}},
+            std::make_shared<std::stringstream>(AsyncClockSkewErrorXml)}));
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(ResponseMessage{
+            200, "OK", {{"x-oss-request-id", "id-2"}}, std::make_shared<std::stringstream>("")}));
+
+    auto input = OperationInput{};
+    input.opName = "PutObject";
+    input.method = "PUT";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    AsyncTestHelper helper;
+    client.ExecuteAsync(input, helper.callback());
+    helper.wait();
+
+    auto output = std::get_if<OperationOutput>(&helper.result);
+    ASSERT_NE(nullptr, output);
+    EXPECT_EQ(200, output->statusCode);
+
+    ASSERT_EQ(2ULL, mockHandler->requests.size());
+    const auto& firstHeaders = mockHandler->requests[0]->headers;
+    const auto& retryHeaders = mockHandler->requests[1]->headers;
+
+    EXPECT_NE(firstHeaders.at("Date"), retryHeaders.at("Date"));
+    EXPECT_NE(firstHeaders.at("x-oss-date"), retryHeaders.at("x-oss-date"));
+    EXPECT_NE(firstHeaders.at("Authorization"), retryHeaders.at("Authorization"));
+
+    auto retrySignTime = utils::GmtToUnixTime(retryHeaders.at("Date"));
+    EXPECT_GT(retrySignTime - utils::GmtToUnixTime(firstHeaders.at("Date")), 500);
+
+    // the Authorization actually sent must match the timestamp actually sent
+    auto resigned = RequestMessage{*mockHandler->requests[1]};
+    auto signingContext = SigningContext();
+    signingContext.bucket = "bucket";
+    signingContext.key = "key";
+    signingContext.request = &resigned;
+    signingContext.credentials = StaticCredentialsProvider("ak", "sk").getCredentials();
+    signingContext.product = "oss";
+    signingContext.region = "cn-hangzhou";
+    signingContext.signTimeInEpoch = retrySignTime;
+    EXPECT_TRUE(SignerV4().sign(signingContext));
+    EXPECT_EQ(retryHeaders.at("Authorization"), resigned.headers.at("Authorization"));
 }
 
 TEST(AsyncClientImplMockTest, ClockSkew_OffsetPersistsAcrossRequests) {

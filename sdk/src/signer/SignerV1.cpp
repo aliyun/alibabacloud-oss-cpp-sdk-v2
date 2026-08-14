@@ -168,17 +168,17 @@ static void authHeader(SigningContext& context) {
     }
 
     auto dateRfc2822 = utils::ToGmtTime(timeNow);
-    request->headers.emplace("Date", dateRfc2822);
+    request->headers.insert_or_assign("Date", dateRfc2822);
 
     if (!cred.getSessionToken().empty()) {
-        request->headers.emplace("x-oss-security-token", cred.getSessionToken());
+        request->headers.insert_or_assign("x-oss-security-token", cred.getSessionToken());
     }
 
     auto stringToSign = calcStringToSign(context);
     auto signature = calcSignature(cred.getAccessKeySecret(), stringToSign);
 
     std::string credentialHeader = "OSS " + cred.getAccessKeyId() + ":" + signature;
-    request->headers.emplace("Authorization", credentialHeader);
+    request->headers.insert_or_assign("Authorization", credentialHeader);
 
     context.stringToSign = std::move(stringToSign);
     context.signTimeInEpoch = timeNow;

@@ -120,6 +120,72 @@ TEST(SignerV1Test, AuthHeader4) {
     EXPECT_EQ("OSS ak:x3E5TgOvl/i7PN618s5mEvpJDYk=", request.headers.at("Authorization"));
 }
 
+TEST(SignerV1Test, AuthHeaderReSign) {
+    auto provider = StaticCredentialsProvider("ak", "sk");
+    auto cred = provider.getCredentials();
+
+    HeaderCollection headers{
+            {"Content-Type", "text/html"},
+            {"x-oss-meta-author", "alice"},
+    };
+
+    auto makeContext = [&cred](RequestMessage* request, std::time_t signTime) {
+        auto context = SigningContext();
+        context.bucket = "examplebucket";
+        context.key = "nelson";
+        context.request = request;
+        context.credentials = cred;
+        context.signTimeInEpoch = signTime;
+        return context;
+    };
+
+    auto signer = SignerV1();
+
+    auto request = RequestMessage{"PUT", "http://examplebucket.oss-cn-hangzhou.aliyuncs.com/nelson", headers};
+    auto context = makeContext(&request, 1702743657);
+    EXPECT_TRUE(signer.sign(context));
+    auto firstDate = request.headers.at("Date");
+    auto firstAuth = request.headers.at("Authorization");
+
+    // the retryer resets the sign time, then the same request object is signed again
+    context.signTimeInEpoch = 1702743757;
+    EXPECT_TRUE(signer.sign(context));
+    EXPECT_NE(firstDate, request.headers.at("Date"));
+    EXPECT_NE(firstAuth, request.headers.at("Authorization"));
+
+    // re-signing must yield the same result as signing a fresh request at the new time
+    auto expectedRequest = RequestMessage{"PUT", "http://examplebucket.oss-cn-hangzhou.aliyuncs.com/nelson", headers};
+    auto expectedContext = makeContext(&expectedRequest, 1702743757);
+    EXPECT_TRUE(signer.sign(expectedContext));
+    EXPECT_EQ(expectedRequest.headers.at("Date"), request.headers.at("Date"));
+    EXPECT_EQ(expectedRequest.headers.at("Authorization"), request.headers.at("Authorization"));
+    EXPECT_EQ(expectedContext.stringToSign, context.stringToSign);
+}
+
+TEST(SignerV1Test, AuthHeaderReSignWithRefreshedToken) {
+    auto request = RequestMessage{"PUT",
+                                  "http://examplebucket.oss-cn-hangzhou.aliyuncs.com/nelson",
+                                  {
+                                          {"Content-Type", "text/html"},
+                                  }};
+
+    auto context = SigningContext();
+    context.bucket = "examplebucket";
+    context.key = "nelson";
+    context.request = &request;
+    context.credentials = StaticCredentialsProvider("ak", "sk", "token1").getCredentials();
+    context.signTimeInEpoch = 1702743657;
+
+    auto signer = SignerV1();
+    EXPECT_TRUE(signer.sign(context));
+    EXPECT_EQ("token1", request.headers.at("x-oss-security-token"));
+
+    context.credentials = StaticCredentialsProvider("ak", "sk", "token2").getCredentials();
+    EXPECT_TRUE(signer.sign(context));
+    EXPECT_EQ("token2", request.headers.at("x-oss-security-token"));
+    EXPECT_NE(std::string::npos, context.stringToSign.find("x-oss-security-token:token2"));
+}
+
 TEST(SignerV1Test, AuthQuery) {
     auto provider = StaticCredentialsProvider("ak", "sk");
     auto cred = provider.getCredentials();
