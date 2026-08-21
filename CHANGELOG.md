@@ -1,5 +1,10 @@
 # ChangeLog - Alibaba Cloud OSS SDK for C++ v2
 
+## Version: 0.1.2 Date: 2026-08-21
+### Changes
+- Fix: Signers overwrite the Authorization header when re-signing a request on retry
+
+
 ## Version: 0.1.1 Date: 2026-06-26
 ### Changes
 - Feature: Add ProcessObject and AsyncProcessObject APIs
