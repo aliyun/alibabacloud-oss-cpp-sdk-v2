@@ -557,6 +557,12 @@ struct ALIBABACLOUD_OSS_API BucketInfo final {
     // The versioning status of the bucket.
     std::optional<std::string> versioning;
 
+    // The resource type of the bucket.
+    std::optional<std::string> bucketResourceType;
+
+    // The agentic bucket name of the bucket.
+    std::optional<std::string> agenticBucketName;
+
 
     // Provide setter interfaces via template
     template <typename ValueT = std::string>
@@ -666,6 +672,18 @@ struct ALIBABACLOUD_OSS_API BucketInfo final {
         owner = std::forward<ValueT>(value);
         return *this;
     }
+
+    template <typename ValueT = std::string>
+    BucketInfo& setBucketResourceType(ValueT&& value) {
+        bucketResourceType = std::forward<ValueT>(value);
+        return *this;
+    }
+
+    template <typename ValueT = std::string>
+    BucketInfo& setAgenticBucketName(ValueT&& value) {
+        agenticBucketName = std::forward<ValueT>(value);
+        return *this;
+    }
 };
 
 
@@ -771,6 +789,16 @@ class ALIBABACLOUD_OSS_API PutBucketRequest final : public RequestModel {
     template <typename ValueT = std::string>
     PutBucketRequest& setBucketTagging(ValueT&& value) {
         headers_.insert_or_assign("x-oss-bucket-tagging", std::forward<ValueT>(value));
+        return *this;
+    }
+
+    // Specifies whether the bucket is an agentic bucket.
+    inline const std::string& getAgenticBucket() const {
+        return getHeaderOrEmpty("x-oss-agentic-bucket");
+    }
+    template <typename ValueT = std::string>
+    PutBucketRequest& setAgenticBucket(ValueT&& value) {
+        headers_.insert_or_assign("x-oss-agentic-bucket", std::forward<ValueT>(value));
         return *this;
     }
 

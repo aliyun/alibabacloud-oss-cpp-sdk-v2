@@ -6,6 +6,7 @@
 |-----------|-------------|
 | [api/sync/](api/sync/INDEX.md) | Sync API samples using `OSSClient` |
 | [api/async/](api/async/INDEX.md) | Async API samples using `OSSAsyncClient` |
+| [agentic/](agentic/INDEX.md) | Agentic bucket samples using `OSSAgenticBucketClient` / `OSSAsyncAgenticBucketClient` |
 | [paginator/](paginator/INDEX.md) | Paginator samples using `makePaginator()` |
 | [encryption/](encryption/INDEX.md) | Client-side encryption samples using `OSSEncryptionClient` |
 | common/ | Shared helpers (`SampleConfig.h`) |
@@ -31,6 +32,7 @@ cmake --build build --config Release
 
 # Build a subset using SAMPLE_FILTER
 cmake -B build -DBUILD_SAMPLES=ON -DSAMPLE_FILTER=api/sync
+cmake -B build -DBUILD_SAMPLES=ON -DSAMPLE_FILTER=agentic
 cmake -B build -DBUILD_SAMPLES=ON -DSAMPLE_FILTER=paginator
 cmake -B build -DBUILD_SAMPLES=ON -DSAMPLE_FILTER=api/sync/PutObject
 ```

@@ -7,8 +7,10 @@
 #include "alibabacloud/oss2/ClientOptions.h"
 #include "alibabacloud/oss2/OSSFwd.h"
 
+#include <map>
 #include <memory>
 #include <string>
+#include <system_error>
 #include <tuple>
 
 namespace alibabacloud {
@@ -20,6 +22,8 @@ struct ClientInnerOptions {
     std::string endpointAuthority;
     std::string userAgent;
     int64_t clockOffset{0};
+    std::error_code initError;
+    std::map<std::string, std::string> initErrorFields;
 };
 
 struct OperationInnerOptions {
