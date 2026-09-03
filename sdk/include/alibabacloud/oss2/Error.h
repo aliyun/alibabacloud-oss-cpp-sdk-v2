@@ -40,6 +40,8 @@ enum class ClientErrorCode {
     RequestMethodEmpty,
     ReadDataFail,
     EncryptionFailure,
+    AccountIdNull,
+    HostLabelTooLong,
 };
 
 ALIBABACLOUD_OSS_API std::error_code make_error_code(ClientErrorCode e);

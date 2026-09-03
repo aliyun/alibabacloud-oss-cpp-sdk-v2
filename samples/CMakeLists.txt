@@ -10,9 +10,10 @@ project(oss-cpp-sdk-v2-samples)
 # Default: build all samples
 set(SAMPLE_FILTER "" CACHE STRING "Prefix filter for sample targets (e.g. api, api/sync, api/sync/PutObject)")
 
-# ── Regular samples (api, paginator, transfer) ──────────────
+# ── Regular samples (api, agentic, paginator, transfer) ──────────────
 file(GLOB_RECURSE SAMPLE_SRCS
     "api/*.cpp"
+    "agentic/*.cpp"
     "paginator/*.cpp"
     "transfer/*.cpp"
 )

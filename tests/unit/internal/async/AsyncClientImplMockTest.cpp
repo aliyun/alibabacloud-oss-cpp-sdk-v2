@@ -261,6 +261,35 @@ TEST(AsyncClientImplMockTest, verifyExecuteArgsInvalidBucketName) {
 }
 
 
+TEST(AsyncClientImplMockTest, verifyExecuteArgsInvalidAccountId) {
+    auto mockHandler = std::make_shared<MockAsyncTransportImpl>();
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.accountId = "bad-account";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.asyncHttpTransport = mockHandler;
+    auto client = AsyncClientImpl(config, asyncDefaultClientFns);
+
+    auto input = OperationInput{};
+    input.opName = "GetObject";
+    input.method = "GET";
+    input.bucket = "bucket";
+    input.key = "key";
+
+    AsyncTestHelper helper;
+    client.ExecuteAsync(input, helper.callback());
+    helper.wait();
+
+    EXPECT_EQ(0ULL, mockHandler->requests.size());
+    auto error = std::get_if<OperationError>(&helper.result);
+
+    EXPECT_NE(nullptr, error);
+    EXPECT_EQ(0, error->getStatusCode());
+    EXPECT_EQ("IllegalArgument", error->getCode());
+    EXPECT_EQ("invalid account id: bad-account, must be pure digits", error->getMessage());
+}
+
+
 TEST(AsyncClientImplMockTest, configRetryMaxAttemptsFromClientOptions) {
     auto mockHandler = std::make_shared<MockAsyncTransportImpl>();
 

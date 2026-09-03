@@ -46,6 +46,10 @@ struct ALIBABACLOUD_OSS_API ClientConfiguration {
     /// When set, overrides the endpoint derived from @c region.
     std::optional<std::string> endpoint;
 
+    /// The account id, required by the agentic bucket client to resolve the
+    /// physical bucket name. Must be pure digits when set.
+    std::optional<std::string> accountId;
+
     // ---- Credentials ----
 
     /// The credentials provider to use when signing requests.
@@ -97,6 +101,9 @@ struct ALIBABACLOUD_OSS_API ClientConfiguration {
     /// By default, the OSS client will use virtual hosted addressing,
     /// i.e., @c https://bucket.oss-cn-hangzhou.aliyuncs.com/key .
     std::optional<bool> usePathStyle;
+
+    /// If the endpoint is a short-alias host, set this flag to @c true.
+    std::optional<bool> useVirtualHostedAlias;
 
     // ---- HTTP Transport ----
 

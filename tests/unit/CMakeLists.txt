@@ -6,6 +6,7 @@ file(GLOB test_gtest_src "${TEST_ROOT}/external/googletest/src/gtest-all.cc")
 
 file(GLOB test_unit_src "*.cpp")
 file(GLOB_RECURSE test_unit_client_src "client/*.cpp")
+file(GLOB_RECURSE test_unit_agentic_src "agentic/*.cpp")
 file(GLOB_RECURSE test_unit_credentail_src "credentials/*.cpp")
 file(GLOB_RECURSE test_unit_retry_src "retry/*.cpp")
 file(GLOB_RECURSE test_unit_internal_src "internal/*.cpp")
@@ -34,6 +35,7 @@ add_executable(${PROJECT_NAME}
 	${test_gtest_src}
 	${test_unit_src}
 	${test_unit_client_src}
+	${test_unit_agentic_src}
 	${test_unit_credentail_src}
 	${test_unit_retry_src}
 	${test_unit_internal_src}

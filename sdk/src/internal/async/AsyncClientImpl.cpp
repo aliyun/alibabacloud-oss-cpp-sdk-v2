@@ -73,6 +73,11 @@ void AsyncClientImpl::ExecuteAsync(const OperationInput& input, OperationCallbac
                                    const OperationOptions* opts, const OperationInnerOptions* innerOpts) {
     ExecuteContext context;
 
+    if (innerOptions_.initError) {
+        callback(OperationError(innerOptions_.initError, innerOptions_.initErrorFields));
+        return;
+    }
+
     verifyOperation(input, context);
     if (context.errorContext.error) {
         callback(OperationError(context.errorContext.error, std::move(context.errorContext.errorFields)));
@@ -82,6 +87,10 @@ void AsyncClientImpl::ExecuteAsync(const OperationInput& input, OperationCallbac
     applyOperationOptions(context, opts, innerOpts);
 
     auto request = applyOperationInput(context, input);
+    if (context.errorContext.error) {
+        callback(OperationError(context.errorContext.error, std::move(context.errorContext.errorFields)));
+        return;
+    }
 
     applyOther(context, request, innerOpts);
 

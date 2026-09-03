@@ -17,7 +17,12 @@ namespace oss2 {
 
 class ByteWriter;
 
-enum class AddressStyleType { VirtualHosted, Path, CName };
+enum class AddressStyleType {
+    VirtualHosted,
+    Path,
+    CName,
+    VirtualHostedAlias
+};
 
 enum class LogLevel {
     LogOff = 0,

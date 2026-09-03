@@ -7,6 +7,7 @@ file(GLOB test_gtest_src "${TEST_ROOT}/external/googletest/src/gtest-all.cc")
 file(GLOB test_src "*.cpp")
 file(GLOB_RECURSE test_sync_src "sync/*.cpp")
 file(GLOB_RECURSE test_async_src "async/*.cpp")
+file(GLOB_RECURSE test_agentic_src "agentic/*.cpp")
 
 if(ENABLE_ENCRYPTION)
     file(GLOB_RECURSE test_crypto_src "crypto/*.cpp")
@@ -19,6 +20,7 @@ add_executable(${PROJECT_NAME}
 	${test_src}
 	${test_sync_src}
 	${test_async_src}
+	${test_agentic_src}
 	${test_crypto_src}
 )
 

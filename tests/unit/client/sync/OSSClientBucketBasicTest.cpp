@@ -1166,6 +1166,41 @@ TEST(OSSClientBucketBasicTest, GetBucketInfo_Success) {
     EXPECT_EQ(true, result.getBucketInfo().blockPublicAccess.value());
 }
 
+TEST(OSSClientBucketBasicTest, GetBucketInfo_AgenticFields) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<BucketInfo>
+    <Bucket>
+        <Name>test-bucket</Name>
+        <Location>oss-cn-hangzhou</Location>
+        <BucketResourceType>AgenticBucket</BucketResourceType>
+        <AgenticBucketName>test-bucket-1234567890-cn-hangzhou-ab-apsr</AgenticBucketName>
+    </Bucket>
+</BucketInfo>
+    )";
+
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1234"}}, std::make_shared<std::stringstream>(body)}));
+
+    auto request = models::GetBucketInfoRequest();
+    request.setBucket("test-bucket");
+
+    auto outcome = client.getBucketInfo(request);
+    ASSERT_TRUE(outcome.has_value());
+    auto& info = outcome.value().getBucketInfo();
+    EXPECT_EQ("AgenticBucket", info.bucketResourceType.value());
+    EXPECT_EQ("test-bucket-1234567890-cn-hangzhou-ab-apsr", info.agenticBucketName.value());
+}
+
 TEST(OSSClientBucketBasicTest, GetBucketInfo_ErrorResponse) {
     auto mockHandler = std::make_shared<MockTransport>();
 

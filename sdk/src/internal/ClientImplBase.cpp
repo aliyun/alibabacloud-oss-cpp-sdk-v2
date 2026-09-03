@@ -162,11 +162,21 @@ void ClientImplBase::init(const struct ClientConfiguration& config, const Client
         options_.addressStyle = AddressStyleType::Path;
     }
     innerOptions_.userAgent = resolveUserAgent(config);
+
+    // deferred initialization error: surfaced at operation-execute time, not construction
+    if (config.accountId.has_value() && !config.accountId.value().empty() &&
+        !isValidAccountId(config.accountId.value())) {
+        innerOptions_.initError = make_error_code(ClientErrorCode::ArgumentInvalid);
+        innerOptions_.initErrorFields = {
+            {"Code", "IllegalArgument"},
+            {"Message", "invalid account id: " + config.accountId.value() + ", must be pure digits"}};
+    }
 }
 
 void ClientImplBase::resolveConfig(const struct ClientConfiguration& config) {
     options_.product = defaults::PRODUCT;
     options_.region = config.region.value_or("");
+    options_.accountId = config.accountId.value_or("");
     options_.endpoint = resolveEndpoint(config);
     options_.credentialsProvider = config.credentialsProvider;
     options_.signer = resolveSigner(config);
@@ -208,6 +218,8 @@ AddressStyleType ClientImplBase::resolveAddressStyle(const struct ClientConfigur
         style = AddressStyleType::CName;
     } else if (config.usePathStyle.value_or(false)) {
         style = AddressStyleType::Path;
+    } else if (config.useVirtualHostedAlias.value_or(false)) {
+        style = AddressStyleType::VirtualHostedAlias;
     }
     return style;
 }
@@ -325,22 +337,35 @@ void ClientImplBase::applyOperationOptions(ExecuteContext& context, const Operat
 
 std::unique_ptr<RequestMessage> ClientImplBase::applyOperationInput(ExecuteContext& context,
                                                                     const OperationInput& input) {
+    // resolve bucket name for signing only; keep input.bucket as the logical name
     if (input.bucket.has_value()) {
-        context.signingContext.bucket = input.bucket.value();
+        context.signingContext.bucket =
+            options_.bucketNameResolver ? options_.bucketNameResolver(input) : input.bucket.value();
     }
     if (input.key.has_value()) {
         context.signingContext.key = input.key.value();
     }
 
+    auto request = std::make_unique<RequestMessage>();
+
     std::stringstream uri;
-    uri << innerOptions_.endpointScheme << "://";
-    uri << buildHostPath(input, innerOptions_.endpointAuthority, options_.addressStyle);
+    if (options_.endpointProvider) {
+        std::error_code ec;
+        auto url = options_.endpointProvider(input, ec);
+        if (ec) {
+            updateError(context, ec, "IllegalArgument", "EndpointProvider returns error, detail is " + ec.message());
+            return request;
+        }
+        uri << url;
+    } else {
+        uri << innerOptions_.endpointScheme << "://";
+        uri << buildHostPath(input, innerOptions_.endpointAuthority, options_.addressStyle);
+    }
     auto query = utils::ToQueryString(input.parameters);
     if (!query.empty()) {
         uri << "?" << query;
     }
 
-    auto request = std::make_unique<RequestMessage>();
     auto headers = input.headers;
     headers.insert_or_assign("User-Agent", innerOptions_.userAgent);
 

@@ -18,6 +18,7 @@ bool isValidIp(const std::string& host);
 bool isValidBucketName(const std::string& bucket);
 bool isValidObjectName(const std::string& key);
 bool isValidMethod(const std::string& key);
+bool isValidAccountId(const std::string& value);
 
 std::string addScheme(const std::string& value, bool disableSsl);
 std::string regionToEndpoint(const std::string& value, EndpointType type, bool disableSsl);
