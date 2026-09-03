@@ -1,5 +1,10 @@
 # ChangeLog - Alibaba Cloud OSS SDK for C++ v2
 
+## Version: 0.2.0 Date: 2026-09-03
+### Changes
+- Feature: Add agentic bucket
+
+
 ## Version: 0.1.2 Date: 2026-08-21
 ### Changes
 - Fix: Signers overwrite the Authorization header when re-signing a request on retry
