@@ -173,7 +173,18 @@ void CurlMultiTransport::drainPending() {
     for (auto& ctx : batch) {
         auto* raw = ctx.get();
         setupCurlHandle(raw);
-        curl_multi_add_handle(multiHandle_, raw->io.curl);
+        CURLMcode mc = curl_multi_add_handle(multiHandle_, raw->io.curl);
+        if (mc != CURLM_OK) {
+            curl_slist_free_all(raw->headers);
+            CURL* curl = raw->io.curl;
+            raw->io.curl = nullptr;
+            raw->headers = nullptr;
+            curlContainer_->Release(curl, true);
+            raw->callback(TransportError{std::make_error_code(std::errc::resource_unavailable_try_again), "ClientError",
+                                         std::string("curl_multi_add_handle failed: ") + curl_multi_strerror(mc)},
+                          std::move(raw->request));
+            continue;
+        }
         inflightHandles_.insert(raw);
         (void) ctx.release();
     }
