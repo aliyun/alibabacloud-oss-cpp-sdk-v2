@@ -144,6 +144,34 @@ TEST_F(BucketObjectsTest, DeleteMultipleObjects_Normal) {
     EXPECT_EQ(3, result.getDeletedObjects().size());
 }
 
+TEST_F(BucketObjectsTest, DeleteMultipleObjects_KeyWithControlChars) {
+    auto client = ClientHelper::GetDefaultClient();
+
+    // Key carrying characters outside the XML 1.0 character set: without proper
+    // escaping the server rejects the request body as malformed XML.
+    std::string key = "delete-ctrl-";
+    key.push_back((char) 0x01);
+    key.push_back('\t');
+    key.push_back((char) 0x1F);
+    key.append("-end");
+
+    auto putOutcome = client->putObject(
+            models::PutObjectRequest().setBucket(bucketName_).setKey(key).setBody(RequestBody::fromString("content")));
+    ASSERT_TRUE(putOutcome.has_value());
+
+    models::ObjectIdentifier obj;
+    obj.setKey(key);
+    models::Delete deleteReq;
+    deleteReq.setObjects({obj});
+
+    auto outcome = client->deleteMultipleObjects(
+            models::DeleteMultipleObjectsRequest().setBucket(bucketName_).setDelete(deleteReq));
+    ASSERT_TRUE(outcome.has_value());
+    auto& result = outcome.value();
+    ASSERT_EQ(1, result.getDeletedObjects().size());
+    EXPECT_EQ(key, result.getDeletedObjects().at(0).key);
+}
+
 TEST_F(BucketObjectsTest, DeleteMultipleObjects_Fail) {
     auto client = ClientHelper::GetInvalidClient();
 

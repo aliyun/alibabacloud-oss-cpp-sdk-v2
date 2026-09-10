@@ -46,7 +46,7 @@ inline static std::string toXmlText(const models::Delete& value, const std::stri
 
     for (const auto& item : value.objects) {
         str.append("<Object>");
-        str.append("<Key>").append(utils::XmlEscape(item.key)).append("</Key>");
+        str.append("<Key>").append(utils::XmlEscapeKey(item.key)).append("</Key>");
         if (item.versionId.has_value()) {
             str.append("<VersionId>").append(utils::XmlEscape(item.versionId.value())).append("</VersionId>");
         }
