@@ -1682,6 +1682,43 @@ TEST(OSSClientObjectBasicTest, DeleteMultipleObjects_Success) {
     EXPECT_EQ("<Delete><Object><Key>key1&amp;1</Key></Object><Object><Key>key2</Key><VersionId>id-2</VersionId></Object></Delete>", str);
 }
 
+TEST(OSSClientObjectBasicTest, DeleteMultipleObjects_KeyEscapesInvalidXmlChars) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    auto body = R"(<?xml version="1.0" encoding="UTF-8"?>
+<DeleteResult></DeleteResult>
+    )";
+
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{204, "No Content", {{"x-oss-request-id", "id-1234"}}, std::make_shared<std::stringstream>(body)}));
+
+    // Key carrying characters outside the XML 1.0 set: control char 0x01 and a tab.
+    std::string key = "a";
+    key.push_back((char) 0x01);
+    key.push_back('\t');
+    key.push_back('b');
+
+    auto request = models::DeleteMultipleObjectsRequest();
+    request.setBucket("test-bucket");
+    request.setDelete(models::Delete{{models::ObjectIdentifier{key}}});
+
+    auto outcome = client.deleteMultipleObjects(request);
+    EXPECT_TRUE(outcome.has_value());
+
+    auto src = mockHandler->lastRequest->body->spanSource();
+    auto data = src->readToEnd();
+    std::string str(data.begin(), data.end());
+    EXPECT_EQ("<Delete><Object><Key>a&#x01;&#x9;b</Key></Object></Delete>", str);
+}
+
 TEST(OSSClientObjectBasicTest, DeleteMultipleObjects_EncodingTypeUrl) {
     auto mockHandler = std::make_shared<MockTransport>();
 

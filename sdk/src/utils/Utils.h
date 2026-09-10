@@ -47,6 +47,7 @@ uint64_t CalcCRC64(uint64_t crc, const void* buf, size_t len, bool little);
 
 // xml utils
 std::string XmlEscape(const std::string& value);
+std::string XmlEscapeKey(const std::string& value);
 
 // string utils
 void StringReplace(std::string& src, const std::string& s1, const std::string& s2);
