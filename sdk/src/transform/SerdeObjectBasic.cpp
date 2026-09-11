@@ -606,6 +606,7 @@ OperationInput fromProcessObject(const models::ProcessObjectRequest& request) {
     }
 
     std::string bodyStr = "x-oss-process=" + request.getProcess();
+    input.headers.emplace("Content-MD5", utils::CalcContentMD5(bodyStr));
     input.body = RequestBody::fromString(std::move(bodyStr));
     input.bucket = request.getBucket();
     input.key = request.getKey();
@@ -639,6 +640,7 @@ OperationInput fromAsyncProcessObject(const models::AsyncProcessObjectRequest& r
     }
 
     std::string bodyStr = "x-oss-async-process=" + request.getProcess();
+    input.headers.emplace("Content-MD5", utils::CalcContentMD5(bodyStr));
     input.body = RequestBody::fromString(std::move(bodyStr));
     input.bucket = request.getBucket();
     input.key = request.getKey();
