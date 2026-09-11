@@ -2581,4 +2581,62 @@ TEST(OSSClientObjectBasicTest, PutObject_WithoutCallback_EmptyCallbackResult) {
     EXPECT_EQ("", outcome.value().getCallbackResult());
 }
 
+TEST(OSSClientObjectBasicTest, ProcessObject_SetsContentMD5) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1234"}}, std::make_shared<std::stringstream>("")}));
+
+    auto request = models::ProcessObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setProcess("image/resize,w_100");
+
+    auto outcome = client.processObject(request);
+    EXPECT_TRUE(outcome.has_value());
+
+    auto src = mockHandler->lastRequest->body->spanSource();
+    auto data = src->readToEnd();
+    std::string str(data.begin(), data.end());
+    EXPECT_EQ("x-oss-process=image/resize,w_100", str);
+    EXPECT_EQ("hGT5ZufNzYaV12SFcAMmfQ==", mockHandler->lastRequest->headers.at("Content-MD5"));
+}
+
+TEST(OSSClientObjectBasicTest, AsyncProcessObject_SetsContentMD5) {
+    auto mockHandler = std::make_shared<MockTransport>();
+
+    auto config = ClientConfiguration::loadDefault();
+    config.region = "cn-hangzhou";
+    config.credentialsProvider = std::make_shared<AnonymousCredentialsProvider>();
+    config.httpTransport = mockHandler;
+
+    auto client = OSSClient(config);
+
+    mockHandler->Clear();
+    mockHandler->responses.emplace_back(std::make_unique<ResponseMessage>(
+            ResponseMessage{200, "OK", {{"x-oss-request-id", "id-1234"}}, std::make_shared<std::stringstream>("")}));
+
+    auto request = models::AsyncProcessObjectRequest();
+    request.setBucket("test-bucket");
+    request.setKey("test-key");
+    request.setProcess("video/convert,f_mp4");
+
+    auto outcome = client.asyncProcessObject(request);
+    EXPECT_TRUE(outcome.has_value());
+
+    auto src = mockHandler->lastRequest->body->spanSource();
+    auto data = src->readToEnd();
+    std::string str(data.begin(), data.end());
+    EXPECT_EQ("x-oss-async-process=video/convert,f_mp4", str);
+    EXPECT_EQ("RJTEkn9TMOd8JsEECKfVaA==", mockHandler->lastRequest->headers.at("Content-MD5"));
+}
+
 } // namespace alibabacloud::oss2
