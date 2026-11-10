@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        compiler: [gcc, clang]
+        compiler: [gcc, gcc-12, clang]
         std: [c++17, c++20]
 
     steps:
@@ -44,6 +44,9 @@ jobs:
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
             echo "CC=gcc" >> $GITHUB_ENV
             echo "CXX=g++" >> $GITHUB_ENV
+          elif [ "${{ matrix.compiler }}" = "gcc-12" ]; then
+            echo "CC=gcc-12" >> $GITHUB_ENV
+            echo "CXX=g++-12" >> $GITHUB_ENV
           else
             echo "CC=clang" >> $GITHUB_ENV
             echo "CXX=clang++" >> $GITHUB_ENV
@@ -53,6 +56,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libssl-dev pkg-config libcurl4-openssl-dev
+          if [ "${{ matrix.compiler }}" = "gcc-12" ]; then
+            sudo apt-get install -y g++-12
+          fi
 
       # Static library build + unit tests
       - name: Configure CMake (static)
