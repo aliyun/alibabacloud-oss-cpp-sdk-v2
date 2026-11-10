@@ -53,12 +53,12 @@ class ClientImplBase {
 
   private:
     void resolveConfig(const struct ClientConfiguration& config);
-    std::string resolveEndpoint(const struct ClientConfiguration& config);
-    AddressStyleType resolveAddressStyle(const struct ClientConfiguration& config);
+    static std::string resolveEndpoint(const struct ClientConfiguration& config);
+    static AddressStyleType resolveAddressStyle(const struct ClientConfiguration& config);
     std::shared_ptr<Retryer> resolveRetryer(const struct ClientConfiguration& config);
     std::shared_ptr<Signer> resolveSigner(const struct ClientConfiguration& config);
     std::string resolveUserAgent(const struct ClientConfiguration& config);
-    int resolveFeatureFlags(const struct ClientConfiguration& config);
+    static int resolveFeatureFlags(const struct ClientConfiguration& config);
 
   public:
     inline ClientOptions& getOptions() {
