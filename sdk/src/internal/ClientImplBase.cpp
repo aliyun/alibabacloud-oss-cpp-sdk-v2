@@ -378,7 +378,7 @@ std::unique_ptr<RequestMessage> ClientImplBase::applyOperationInput(ExecuteConte
 
     context.signingContext.expirationInEpoch = 0;
     if (input.opMetadata.find("EXPIRATION_TIME") != input.opMetadata.end()) {
-        auto value = input.opMetadata.at("EXPIRATION_TIME");
+        const auto& value = input.opMetadata.at("EXPIRATION_TIME");
         if (auto* val = std::get_if<std::int64_t>(&value)) {
             context.signingContext.expirationInEpoch = static_cast<std::time_t>(*val);
         }
