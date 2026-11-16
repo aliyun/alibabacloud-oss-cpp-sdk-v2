@@ -15,9 +15,9 @@ size_t sendBodyCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
         return 0;
     }
 
-    size_t wanted = size * nmemb;
     size_t got = 0;
     if (io->source != nullptr) {
+        const size_t wanted = size * nmemb;
         got = io->source->readToCount(reinterpret_cast<uint8_t*>(ptr), wanted);
         if (got < wanted) {
             auto st = io->source->state();
@@ -87,7 +87,7 @@ size_t recvHeadersCallback(char* buffer, size_t size, size_t nitems, void* userd
 
     if (wanted == 2 && (buffer[0] == 0x0D) && (buffer[1] == 0x0A)) {
         if (io->response->headers.find("Content-Length") != io->response->headers.end()) {
-#if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 55, 0)
+#if LIBCURL_VERSION_NUM >= 0x073700  // 7.55.0
             curl_off_t dval;
             curl_easy_getinfo(io->curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &dval);
             io->recvDataLength = (int64_t) dval;
@@ -295,7 +295,7 @@ static bool shouldAbortTransfer(const TransferIO* io) {
     return false;
 }
 
-#if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 32, 0)
+#if LIBCURL_VERSION_NUM >= 0x072000  // 7.32.0
 static int xferInfoCallback(void* userdata, curl_off_t, curl_off_t, curl_off_t, curl_off_t) {
     const auto* io = static_cast<const TransferIO*>(userdata);
     if (io == nullptr) {
@@ -307,6 +307,7 @@ static int xferInfoCallback(void* userdata, curl_off_t, curl_off_t, curl_off_t, 
     return 0;
 }
 #else
+// cppcheck-suppress constParameterCallback
 static int progressCallback(void* userdata, double, double, double, double) {
     const auto* io = static_cast<const TransferIO*>(userdata);
     if (io == nullptr) {
@@ -342,7 +343,7 @@ TransportError buildTransportError(CURLcode res, const char* errbuf, const Trans
 
 void applyRequestOptions(CURL* curl, TransferIO* io) {
     if (io->cancellationToken != nullptr || io->isRequestDisabled != nullptr) {
-#if LIBCURL_VERSION_NUM >= CURL_VERSION_BITS(7, 32, 0)
+#if LIBCURL_VERSION_NUM >= 0x072000  // 7.32.0
         curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, xferInfoCallback);
 #else
         curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progressCallback);

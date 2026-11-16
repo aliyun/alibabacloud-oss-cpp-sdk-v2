@@ -93,7 +93,7 @@ void SetLogCallbackInner(LogCallback callback) {
 void InitLogInner() {
     gOssLogLevel = LogLevel::LogOff;
     gLogCallback = nullptr;
-    auto value = std::getenv("OSS_SDK_LOG_LEVEL");
+    const auto* value = std::getenv("OSS_SDK_LOG_LEVEL");
     if (value) {
         auto level = utils::ToLower(utils::Trim(value).c_str());
         const auto size = sizeof(EnvLogLevels) / sizeof(EnvLogLevels[0]);

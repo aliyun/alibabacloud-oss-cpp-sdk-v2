@@ -30,4 +30,9 @@
 	<suppress>
 		<id>knownConditionTrueFalse</id>
 	</suppress>
+	<!-- Url.h getters intentionally return members by value to avoid dangling references -->
+	<suppress>
+		<id>returnByReference</id>
+		<fileName>*internal/Url.h</fileName>
+	</suppress>
 </suppressions>

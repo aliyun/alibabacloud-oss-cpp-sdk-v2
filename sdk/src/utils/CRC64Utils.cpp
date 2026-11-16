@@ -166,7 +166,7 @@ static uint64_t crc64_big(uint64_t crc, void* buf, size_t len) {
 
 #define GF2_DIM 64 /* dimension of GF(2) vectors (length of CRC) */
 
-static uint64_t gf2_matrix_times(uint64_t* mat, uint64_t vec) {
+static uint64_t gf2_matrix_times(const uint64_t* mat, uint64_t vec) {
     uint64_t sum;
 
     sum = 0;
@@ -180,7 +180,7 @@ static uint64_t gf2_matrix_times(uint64_t* mat, uint64_t vec) {
     return sum;
 }
 
-static void gf2_matrix_square(uint64_t* square, uint64_t* mat) {
+static void gf2_matrix_square(uint64_t* square, const uint64_t* mat) {
     unsigned n;
 
     for (n = 0; n < GF2_DIM; n++) {
